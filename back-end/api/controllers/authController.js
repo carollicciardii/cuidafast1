@@ -214,17 +214,20 @@ export const googleLogin = async (req, res) => {
         await CuidadorModel.create({ usuario_id: newId });
       }
     } else {
-      // atualiza foto se mudou
+      // atualiza dados do usuário, incluindo foto se fornecida
+      const updateData = {
+        nome: nome || user.nome
+      };
+      
+      // Atualiza photo_url se fornecida
       if (foto_url) {
-        await UsuarioModel.update(user.usuario_id, {
-          nome: nome || user.nome,
-          email: user.email,
-          telefone: user.telefone,
-          data_nascimento: user.data_nascimento
-        });
-        // Atualiza photo_url diretamente no banco se necessário
-        // Por enquanto, apenas atualiza nome se fornecido
+        updateData.photo_url = foto_url;
       }
+      
+      if (Object.keys(updateData).length > 0) {
+        await UsuarioModel.update(user.usuario_id, updateData);
+      }
+      
       user = await UsuarioModel.getById(user.usuario_id);
     }
 
@@ -239,11 +242,19 @@ export const googleLogin = async (req, res) => {
 
     delete user.senha;
 
+    // Garante que photo_url está presente no retorno
+    if (!user.photo_url && foto_url) {
+      user.photo_url = foto_url;
+    }
+
     setRefreshCookie(res, refreshToken);
 
     return res.status(200).json({
       accessToken,
-      user,
+      user: {
+        ...user,
+        photo_url: user.photo_url || foto_url || null
+      },
       google: true
     });
 
@@ -307,10 +318,90 @@ export const logout = async (req, res) => {
   }
 };
 
+/* ------------------------------------------
+    GET USER DATA (buscar dados completos do banco)
+-------------------------------------------*/
+export const getUserData = async (req, res) => {
+  try {
+    // Extrai ID da query string ou da URL
+    const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    const id = urlObj.searchParams.get('id') || req.query?.id;
+    
+    if (!id) {
+      return res.status(400).json({ message: 'ID do usuário é obrigatório' });
+    }
+
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'ID do usuário inválido' });
+    }
+
+    const user = await UsuarioModel.getById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    // Remove senha dos dados retornados
+    delete user.senha;
+
+    // Monta objeto de endereço a partir dos campos do banco
+    const endereco = {};
+    if (user.rua) endereco.rua = user.rua;
+    if (user.numero) endereco.numero = user.numero;
+    if (user.complemento) endereco.complemento = user.complemento;
+    if (user.bairro) endereco.bairro = user.bairro;
+    if (user.cidade) endereco.cidade = user.cidade;
+    if (user.estado) endereco.estado = user.estado;
+    if (user.cep) endereco.cep = user.cep;
+
+    // Busca dados específicos conforme tipo
+    let additionalData = {};
+    if (user.tipo === 'cliente') {
+      const cliente = await ClienteModel.getById(userId);
+      if (cliente) {
+        additionalData = {
+          historico_contratacoes: cliente.historico_contratacoes,
+          preferencias: cliente.preferencias
+        };
+      }
+    } else if (user.tipo === 'cuidador') {
+      const cuidador = await CuidadorModel.getById(userId);
+      if (cuidador) {
+        additionalData = {
+          tipos_cuidado: cuidador.tipos_cuidado,
+          descricao: cuidador.descricao,
+          valor_hora: cuidador.valor_hora,
+          especialidades: cuidador.especialidades,
+          experiencia: cuidador.experiencia,
+          horarios_disponiveis: cuidador.horarios_disponiveis,
+          idiomas: cuidador.idiomas,
+          formacao: cuidador.formacao,
+          local_trabalho: cuidador.local_trabalho
+        };
+      }
+    }
+
+    return res.status(200).json({
+      user: {
+        ...user,
+        ...additionalData,
+        endereco: Object.keys(endereco).length > 0 ? endereco : null,
+        photoURL: user.photo_url || null,
+        primeiroNome: (user.nome || '').split(' ')[0]
+      }
+    });
+
+  } catch (err) {
+    console.error('getUserData error', err);
+    return res.status(500).json({ message: 'Erro no servidor' });
+  }
+};
+
 export default {
   register,
   login,
   googleLogin,
   refresh,
-  logout
+  logout,
+  getUserData
 };

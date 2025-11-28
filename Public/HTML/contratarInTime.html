@@ -222,13 +222,13 @@
   </main>
 
   <script>
-    // Carregar endereço do cliente do localStorage
-    document.addEventListener('DOMContentLoaded', function() {
+    // Carregar endereço do cliente do localStorage ou banco
+    document.addEventListener('DOMContentLoaded', async function() {
       console.log('[ContratarInTime] Iniciando carregamento de dados');
       
       // Verificar se usuário está logado
       const isLoggedIn = localStorage.getItem('cuidafast_isLoggedIn');
-      const userData = localStorage.getItem('cuidafast_user');
+      let userData = localStorage.getItem('cuidafast_user');
       
       if (isLoggedIn !== 'true' || !userData) {
         alert('Você precisa estar logado para contratar um cuidador.');
@@ -237,7 +237,16 @@
       }
 
       try {
-        const user = JSON.parse(userData);
+        let user = JSON.parse(userData);
+        
+        // Tenta buscar dados atualizados do banco primeiro
+        if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+          const updatedUser = await window.CuidaFastAuth.fetchUserDataFromDB();
+          if (updatedUser) {
+            user = updatedUser;
+          }
+        }
+        
         console.log('[ContratarInTime] Dados do usuário:', user);
         
         // Atualizar nome do usuário no header
@@ -246,9 +255,22 @@
           headerUserName.textContent = user.primeiroNome || user.nome.split(' ')[0];
         }
         
-        // Carregar endereço se existir
-        if (user.endereco) {
-          const endereco = user.endereco;
+        // Carregar endereço se existir (pode estar em user.endereco ou nos campos diretos)
+        let endereco = user.endereco;
+        
+        // Se não tiver objeto endereco, monta a partir dos campos diretos do banco
+        if (!endereco && (user.rua || user.cidade)) {
+          endereco = {};
+          if (user.rua) endereco.rua = user.rua;
+          if (user.numero) endereco.numero = user.numero;
+          if (user.complemento) endereco.complemento = user.complemento;
+          if (user.bairro) endereco.bairro = user.bairro;
+          if (user.cidade) endereco.cidade = user.cidade;
+          if (user.estado) endereco.estado = user.estado;
+          if (user.cep) endereco.cep = user.cep;
+        }
+        
+        if (endereco) {
           console.log('[ContratarInTime] Endereço encontrado:', endereco);
           
           // Preencher campos

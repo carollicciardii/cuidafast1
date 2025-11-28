@@ -1,8 +1,8 @@
 import mercadopago from "mercadopago";
 
-export async function criarPreferenciaPagamento({ valor, descricao, idUsuario }) {
+export async function criarPreferenciaPagamento({ valor, descricao, usuario_id, payer }) {
   try {
-    const preference = await mercadopago.preferences.create({
+    const preferenceData = {
       items: [
         {
           title: descricao,
@@ -12,10 +12,6 @@ export async function criarPreferenciaPagamento({ valor, descricao, idUsuario })
         }
       ],
 
-      payer: {
-        id: idUsuario || undefined
-      },
-
       back_urls: {
         success: process.env.MP_SUCCESS_URL,
         failure: process.env.MP_FAIL_URL,
@@ -23,7 +19,23 @@ export async function criarPreferenciaPagamento({ valor, descricao, idUsuario })
       },
 
       auto_return: "approved"
-    });
+    };
+
+    // Adiciona dados do pagador se disponíveis
+    if (payer) {
+      preferenceData.payer = {};
+      if (payer.id) preferenceData.payer.id = payer.id;
+      if (payer.name) preferenceData.payer.name = payer.name;
+      if (payer.email) preferenceData.payer.email = payer.email;
+      if (payer.phone) preferenceData.payer.phone = payer.phone;
+      if (payer.address) preferenceData.payer.address = payer.address;
+    } else if (usuario_id) {
+      preferenceData.payer = {
+        id: usuario_id
+      };
+    }
+
+    const preference = await mercadopago.preferences.create(preferenceData);
 
     return {
       success: true,

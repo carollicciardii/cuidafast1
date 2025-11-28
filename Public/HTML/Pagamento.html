@@ -214,19 +214,53 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../JS/header.js"></script>
   
+  <script src="../JS/auth.js"></script>
   <script>
-      // Carregar endereço do localStorage
-      document.addEventListener('DOMContentLoaded', function() {
-          const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+      // Carregar endereço do banco ou localStorage
+      document.addEventListener('DOMContentLoaded', async function() {
+          // Tenta buscar dados atualizados do banco primeiro
+          let userData = null;
+          if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+              userData = await window.CuidaFastAuth.fetchUserDataFromDB();
+          }
           
-          if (userData.endereco || userData.cep) {
-              document.getElementById('cep').value = userData.cep || userData.endereco?.cep || '';
-              document.getElementById('rua').value = userData.rua || userData.endereco?.rua || '';
-              document.getElementById('numero').value = userData.numero || userData.endereco?.numero || '';
-              document.getElementById('complemento').value = userData.complemento || userData.endereco?.complemento || '';
-              document.getElementById('bairro').value = userData.bairro || userData.endereco?.bairro || '';
-              document.getElementById('cidade').value = userData.cidade || userData.endereco?.cidade || '';
-              document.getElementById('estado').value = userData.estado || userData.endereco?.estado || '';
+          // Se não conseguiu buscar do banco, usa localStorage
+          if (!userData) {
+              try {
+                  userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+              } catch (e) {
+                  userData = {};
+              }
+          }
+          
+          // Monta endereço a partir dos campos do banco ou objeto endereco
+          let endereco = userData.endereco;
+          if (!endereco && (userData.rua || userData.cidade)) {
+              endereco = {
+                  cep: userData.cep,
+                  rua: userData.rua,
+                  numero: userData.numero,
+                  complemento: userData.complemento,
+                  bairro: userData.bairro,
+                  cidade: userData.cidade,
+                  estado: userData.estado
+              };
+          }
+          
+          // Preenche campos do formulário
+          if (endereco || userData.cep) {
+              document.getElementById('cep').value = endereco?.cep || userData.cep || '';
+              document.getElementById('rua').value = endereco?.rua || userData.rua || '';
+              document.getElementById('numero').value = endereco?.numero || userData.numero || '';
+              document.getElementById('complemento').value = endereco?.complemento || userData.complemento || '';
+              document.getElementById('bairro').value = endereco?.bairro || userData.bairro || '';
+              document.getElementById('cidade').value = endereco?.cidade || userData.cidade || '';
+              document.getElementById('estado').value = endereco?.estado || userData.estado || '';
+          }
+          
+          // Preenche telefone se disponível
+          if (userData.telefone) {
+              document.getElementById('telefone').value = userData.telefone || '';
           }
       });
   </script>

@@ -750,10 +750,10 @@ window.CuidaFastClient = {
 
 (function() {
   const HomeCliente = {
-    init() {
+    async init() {
       this.initModernHeader();
       this.initSidebar();
-      this.loadUserData();
+      await this.loadUserData();
       this.initLoadMore();
       this.initLogout();
       console.log('HomeCliente inicializada');
@@ -931,9 +931,21 @@ window.CuidaFastClient = {
       });
     },
 
-    loadUserData() {
-      // Carregar dados do sistema de autenticação
-      const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+    async loadUserData() {
+      // Tenta buscar dados atualizados do banco primeiro
+      let userData = null;
+      if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+        userData = await window.CuidaFastAuth.fetchUserDataFromDB();
+      }
+      
+      // Se não conseguiu buscar do banco, usa localStorage
+      if (!userData) {
+        try {
+          userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+        } catch (e) {
+          userData = {};
+        }
+      }
       
       // Se não houver dados, redirecionar para login
       if (!userData || !userData.nome) {
@@ -955,12 +967,13 @@ window.CuidaFastClient = {
       if (dropdownUserName) dropdownUserName.textContent = userData.nome;
       
       // Atualizar foto do perfil (header e dropdown)
-      if (userData.photoURL) {
+      const photoURL = userData.photoURL || userData.photo_url || userData.foto_perfil;
+      if (photoURL) {
         const headerAvatar = document.querySelector('.user-avatar-img');
         const dropdownAvatar = document.querySelector('.dropdown-avatar');
         
-        if (headerAvatar) headerAvatar.src = userData.photoURL;
-        if (dropdownAvatar) dropdownAvatar.src = userData.photoURL;
+        if (headerAvatar) headerAvatar.src = photoURL;
+        if (dropdownAvatar) dropdownAvatar.src = photoURL;
         
         console.log('[HomeCliente] Foto do perfil atualizada');
       }

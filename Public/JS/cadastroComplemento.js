@@ -132,11 +132,35 @@ async function handleSubmit(ev, initialSession) {
       // sucesso: backend retornou usuario atualizado
       if (result.user) {
         const resolvedId = result.user.usuario_id ?? result.user.id;
-        const userWithTipo = { ...result.user, tipo: result.user.tipo || 'cliente' };
-        const storedUser = { ...result.user, id: resolvedId, usuario_id: resolvedId };
+        
+        // Monta objeto de endereço a partir dos campos do banco
+        const endereco = {};
+        if (result.user.rua) endereco.rua = result.user.rua;
+        if (result.user.numero) endereco.numero = result.user.numero;
+        if (result.user.complemento) endereco.complemento = result.user.complemento;
+        if (result.user.bairro) endereco.bairro = result.user.bairro;
+        if (result.user.cidade) endereco.cidade = result.user.cidade;
+        if (result.user.estado) endereco.estado = result.user.estado;
+        if (result.user.cep) endereco.cep = result.user.cep;
+        
+        // Prepara dados completos para salvar
+        const storedUser = {
+          ...result.user,
+          id: resolvedId,
+          usuario_id: resolvedId,
+          tipo: result.user.tipo || 'cliente',
+          endereco: Object.keys(endereco).length > 0 ? endereco : null,
+          photoURL: result.user.photo_url || null,
+          primeiroNome: (result.user.nome || '').split(' ')[0],
+          cpf: result.user.cpf || result.user.cpf_numero || null,
+          dataNascimento: result.user.data_nascimento || null
+        };
+        
         localStorage.setItem("cuidafast_user", JSON.stringify(storedUser));
         localStorage.setItem("cuidafast_isLoggedIn", "true");
         localStorage.setItem("cuidafast_usuario_id", String(resolvedId));
+        
+        console.log("[cadastroComplemento] Dados salvos no localStorage com endereço:", storedUser);
       }
 
       // redireciona para home do cliente
@@ -176,12 +200,35 @@ async function handleSubmit(ev, initialSession) {
       }
 
       if (result.user) {
-        const userWithTipo = { ...result.user, tipo: result.user.tipo || 'cliente' };
-        localStorage.setItem("cuidafast_user", JSON.stringify(userWithTipo));
         const resolvedId = result.user.usuario_id ?? result.user.id;
-        const storedUser = { ...result.user, id: resolvedId, usuario_id: resolvedId };
+        
+        // Monta objeto de endereço a partir dos campos do banco
+        const endereco = {};
+        if (result.user.rua) endereco.rua = result.user.rua;
+        if (result.user.numero) endereco.numero = result.user.numero;
+        if (result.user.complemento) endereco.complemento = result.user.complemento;
+        if (result.user.bairro) endereco.bairro = result.user.bairro;
+        if (result.user.cidade) endereco.cidade = result.user.cidade;
+        if (result.user.estado) endereco.estado = result.user.estado;
+        if (result.user.cep) endereco.cep = result.user.cep;
+        
+        // Prepara dados completos para salvar
+        const storedUser = {
+          ...result.user,
+          id: resolvedId,
+          usuario_id: resolvedId,
+          tipo: result.user.tipo || 'cliente',
+          endereco: Object.keys(endereco).length > 0 ? endereco : null,
+          photoURL: result.user.photo_url || null,
+          primeiroNome: (result.user.nome || '').split(' ')[0],
+          cpf: result.user.cpf || result.user.cpf_numero || null,
+          dataNascimento: result.user.data_nascimento || null
+        };
+        
         localStorage.setItem("cuidafast_user", JSON.stringify(storedUser));
         localStorage.setItem("cuidafast_isLoggedIn", "true");
+        
+        console.log("[cadastroComplemento] Dados salvos no localStorage com endereço (fluxo B):", storedUser);
       }
       // após complementar cadastro normal de cliente, ir para homeCliente
       window.location.href = `${window.location.origin}/HTML/homeCliente.html`;

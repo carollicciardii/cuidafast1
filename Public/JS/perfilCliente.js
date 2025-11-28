@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initProfile();
 });
 
-function initProfile() {
-    loadUserProfile();
+async function initProfile() {
+    await loadUserProfile();
     initEditButtons();
     console.log('Perfil do cliente inicializado');
 }
@@ -13,8 +13,17 @@ function initProfile() {
 /**
  * Carrega os dados do usuário no perfil
  */
-function loadUserProfile() {
-    const userData = getUserDataFromStorage();
+async function loadUserProfile() {
+    // Tenta buscar dados atualizados do banco primeiro
+    let userData = null;
+    if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+        userData = await window.CuidaFastAuth.fetchUserDataFromDB();
+    }
+    
+    // Se não conseguiu buscar do banco, usa localStorage
+    if (!userData) {
+        userData = getUserDataFromStorage();
+    }
     
     if (!userData) {
         console.warn('Nenhum dado de usuário encontrado');
@@ -64,16 +73,30 @@ function loadUserProfile() {
     }
 
     // Atualizar endereço se existir
-    if (userData.endereco) {
-        const end = userData.endereco;
+    // Pode estar em userData.endereco (objeto) ou nos campos diretos (rua, numero, etc)
+    let enderecoObj = userData.endereco;
+    
+    // Se não tiver objeto endereco, monta a partir dos campos diretos do banco
+    if (!enderecoObj && (userData.rua || userData.cidade)) {
+        enderecoObj = {};
+        if (userData.rua) enderecoObj.rua = userData.rua;
+        if (userData.numero) enderecoObj.numero = userData.numero;
+        if (userData.complemento) enderecoObj.complemento = userData.complemento;
+        if (userData.bairro) enderecoObj.bairro = userData.bairro;
+        if (userData.cidade) enderecoObj.cidade = userData.cidade;
+        if (userData.estado) enderecoObj.estado = userData.estado;
+        if (userData.cep) enderecoObj.cep = userData.cep;
+    }
+    
+    if (enderecoObj) {
         let enderecoCompleto = '';
         
-        if (end.rua) enderecoCompleto += end.rua;
-        if (end.numero) enderecoCompleto += `, ${end.numero}`;
-        if (end.complemento) enderecoCompleto += ` - ${end.complemento}`;
-        if (end.bairro) enderecoCompleto += `\n${end.bairro}`;
-        if (end.cidade && end.estado) enderecoCompleto += ` - ${end.cidade}/${end.estado}`;
-        if (end.cep) enderecoCompleto += `\nCEP: ${end.cep}`;
+        if (enderecoObj.rua) enderecoCompleto += enderecoObj.rua;
+        if (enderecoObj.numero) enderecoCompleto += `, ${enderecoObj.numero}`;
+        if (enderecoObj.complemento) enderecoCompleto += ` - ${enderecoObj.complemento}`;
+        if (enderecoObj.bairro) enderecoCompleto += `\n${enderecoObj.bairro}`;
+        if (enderecoObj.cidade && enderecoObj.estado) enderecoCompleto += ` - ${enderecoObj.cidade}/${enderecoObj.estado}`;
+        if (enderecoObj.cep) enderecoCompleto += `\nCEP: ${enderecoObj.cep}`;
         
         if (enderecoCompleto) {
             updateInfoField('Endereço', enderecoCompleto);
@@ -90,10 +113,11 @@ function loadUserProfile() {
     }
 
     // Atualizar foto do perfil APENAS se tiver photoURL (Google ou upload)
-    if (userData.photoURL) {
+    const photoURL = userData.photoURL || userData.photo_url || userData.foto_perfil;
+    if (photoURL) {
         const avatarImages = document.querySelectorAll('.avatar-img, .user-avatar-img, .dropdown-avatar');
         avatarImages.forEach(img => {
-            img.src = userData.photoURL;
+            img.src = photoURL;
             img.alt = `Foto de ${userData.nome}`;
         });
     } else {

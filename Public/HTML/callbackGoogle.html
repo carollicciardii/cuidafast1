@@ -74,16 +74,28 @@
         }
 
         console.log('[callbackGoogle] Usuário autenticado:', user.email);
+        console.log('[callbackGoogle] user_metadata completo:', user.user_metadata);
+        console.log('[callbackGoogle] user completo:', user);
 
         // Recupera o tipo de usuário que foi escolhido antes do OAuth
         const tipoUsuario = localStorage.getItem('cuidafast_tipoRegistro') || 'cliente';
 
         // Prepara dados do usuário
+        // Tenta pegar foto do Google de diferentes campos possíveis
+        const photoUrl = user.user_metadata?.avatar_url || 
+                        user.user_metadata?.picture || 
+                        user.user_metadata?.avatar ||
+                        user.identities?.[0]?.identity_data?.avatar_url ||
+                        null;
+        
+        console.log('[callbackGoogle] Foto capturada do Google:', photoUrl);
+        
         const userData = {
           id: user.id,
           email: user.email,
           nome: user.user_metadata?.full_name || user.email.split('@')[0],
-          photo_url: user.user_metadata?.avatar_url || null,
+          photo_url: photoUrl,
+          photoURL: photoUrl, // Também salva como photoURL para compatibilidade
           tipo: tipoUsuario,
           primeiroNome: (user.user_metadata?.full_name || user.email.split('@')[0]).split(' ')[0],
           auth_uid: user.id
@@ -103,7 +115,7 @@
             body: JSON.stringify({
               email: user.email,
               nome: userData.nome,
-              foto_url: userData.photo_url,
+              foto_url: userData.photo_url || userData.photoURL,
               tipo_usuario: tipoUsuario
             })
           });
@@ -112,14 +124,25 @@
 
           if (resp.ok && result.user) {
             // Atualiza com dados do backend
+            const resolvedId = result.user.usuario_id || result.user.id;
+            // Prioriza foto do backend, depois do userData, depois do Google original
+            const finalPhotoUrl = result.user.photo_url || userData.photo_url || userData.photoURL || photoUrl;
+            
             const backendUser = {
               ...userData,
-              id: result.user.id,
+              id: resolvedId,
+              usuario_id: resolvedId,
               nome: result.user.nome || userData.nome,
+              email: result.user.email || userData.email,
               telefone: result.user.telefone || null,
-              tipo: result.user.tipo || tipoUsuario
+              tipo: result.user.tipo || tipoUsuario,
+              photoURL: finalPhotoUrl,
+              photo_url: finalPhotoUrl,
+              primeiroNome: (result.user.nome || userData.nome || '').split(' ')[0]
             };
             localStorage.setItem('cuidafast_user', JSON.stringify(backendUser));
+            console.log('[callbackGoogle] Dados do backend salvos. Foto:', finalPhotoUrl);
+            console.log('[callbackGoogle] backendUser completo:', backendUser);
           } else {
             console.warn('[callbackGoogle] Backend não respondeu corretamente, usando dados do Supabase');
           }

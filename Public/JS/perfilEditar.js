@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initProfileEdit();
 });
 
-function initProfileEdit() {
-    loadUserData();
+async function initProfileEdit() {
+    await loadUserData();
     initAvatarUpload();
     initFormSubmit();
     console.log('[PerfilEditar] Inicializado');
@@ -14,8 +14,17 @@ function initProfileEdit() {
 /**
  * Carrega dados do usuário no formulário
  */
-function loadUserData() {
-    const userData = getUserDataFromStorage();
+async function loadUserData() {
+    // Tenta buscar dados atualizados do banco primeiro
+    let userData = null;
+    if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+        userData = await window.CuidaFastAuth.fetchUserDataFromDB();
+    }
+    
+    // Se não conseguiu buscar do banco, usa localStorage
+    if (!userData) {
+        userData = getUserDataFromStorage();
+    }
     
     if (!userData) {
         console.warn('[PerfilEditar] Nenhum dado de usuário encontrado');
