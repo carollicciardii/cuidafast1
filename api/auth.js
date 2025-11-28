@@ -33,9 +33,28 @@ async function parseJsonBody(req) {
 export default async function handler(req, res) {
   try {
     const { method, query, url } = req;
-    // query.slug será um array se for /api/auth/alguma/coisa
-    const slugArr = Array.isArray(query?.slug) ? query.slug : (query?.slug ? [query.slug] : []);
-    const path = slugArr.join('/'); // ex: 'register' ou 'complete-profile'
+    
+    // Extrai o path da URL ou do query.slug
+    let path = '';
+    
+    // Tenta obter do query.slug primeiro (funciona se arquivo estiver em api/auth/[...slug].js)
+    if (query?.slug) {
+      const slugArr = Array.isArray(query.slug) ? query.slug : [query.slug];
+      path = slugArr.join('/');
+    } 
+    // Se não tiver slug, extrai diretamente da URL (funciona se arquivo estiver em api/auth.js)
+    else if (url) {
+      // Remove /api/auth do início da URL
+      const urlPath = url.split('?')[0]; // Remove query string
+      const match = urlPath.match(/^\/api\/auth\/(.+)$/);
+      if (match) {
+        path = match[1];
+      } else if (urlPath === '/api/auth' || urlPath === '/api/auth/') {
+        path = '';
+      }
+    }
+    
+    console.log('[api/auth] URL:', url, 'Path extraído:', path, 'Query:', query);
 
     // Health check: GET /api/auth  OR GET /api/auth/
     if (!path || path === '') {
@@ -56,41 +75,45 @@ export default async function handler(req, res) {
     }
 
     // Roteamento - centralizado
-    // -> login, logout, refresh, google-login, register, complete-profile, create-or-associate-user, user-data, ...
-    if (path === 'auth/login' && method === 'POST') {
+    // O path já vem sem o prefixo /api/auth, então é apenas 'login', 'google-login', etc.
+    console.log('[api/auth] Roteando para:', path, 'Method:', method);
+    
+    if (path === 'login' && method === 'POST') {
       return authController.login(req, res);
     }
 
-    if (path === 'auth/logout' && method === 'POST') {
+    if (path === 'logout' && method === 'POST') {
       return authController.logout(req, res);
     }
 
-    if (path === 'auth/refresh' && method === 'POST') {
+    if (path === 'refresh' && method === 'POST') {
       return authController.refresh(req, res);
     }
 
-    if (path === 'auth/google-login' && method === 'POST') {
+    if (path === 'google-login' && method === 'POST') {
+      console.log('[api/auth] Rota google-login encontrada, chamando controller');
       return authController.googleLogin(req, res);
     }
 
-    if (path === 'auth/register' && method === 'POST') {
+    if (path === 'register' && method === 'POST') {
       return authController.register(req, res);
     }
 
-    if ((path === 'auth/complete-profile' || path === 'auth/complete-cuidador-profile') && method === 'POST') {
+    if ((path === 'complete-profile' || path === 'complete-cuidador-profile') && method === 'POST') {
       // chama o completeProfile importado (do seu arquivo atual em api/authe/complete-profile.js)
       return completeProfileFromOldLocation(req, res);
     }
 
-    if (path === 'auth/create-or-associate-user' && method === 'POST') {
+    if (path === 'create-or-associate-user' && method === 'POST') {
       return createOrAssociateUser(req, res);
     }
 
-    if (path.includes('auth/user-data') && method === 'GET') {
+    if (path.includes('user-data') && method === 'GET') {
       return authController.getUserData(req, res);
     }
 
-    return res.status(404).json({ error: 'Rota não encontrada', path });
+    console.error('[api/auth] Rota não encontrada:', path, 'Method:', method);
+    return res.status(404).json({ error: 'Rota não encontrada', path, method, url: req.url });
   } catch (err) {
     console.error('auth catch-all unexpected error:', err);
     return res.status(500).json({ error: 'Internal server error', message: err?.message });
