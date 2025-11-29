@@ -60,5 +60,4 @@ onMessage(messaging, (payload) => {
   alert(`🔔 ${payload.notification.title}\n${payload.notification.body}`);
 });
 
-// Exportar auth para uso em outros módulos (ex: login.js)
 export { auth, db, messaging };

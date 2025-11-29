@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
       section.style.display = visibleCount > 0 || query === "" ? "block" : "none";
     });
   }
-
   searchBtn.addEventListener("click", searchHelp);
   searchInput.addEventListener("input", searchHelp);
 });
