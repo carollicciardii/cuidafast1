@@ -169,7 +169,16 @@ async function atualizarBadgeNotificacoes(userId) {
       console.log('[Header] API de notificações não disponível, usando fallback');
     }
     
-    // Fallback: verificar notificações no DOM (se estiver na página de notificações)
+    // Fallback: verificar serviços pendentes (específico para dashboard de cuidador)
+    if (unreadCount === 0 && typeof ServicosManager !== 'undefined') {
+      const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+      if (userData.email) {
+        const stats = ServicosManager.getEstatisticasCuidador(userData.email);
+        unreadCount = stats.servicosPendentes || 0;
+      }
+    }
+    
+    // Fallback adicional: verificar notificações no DOM (se estiver na página de notificações)
     if (unreadCount === 0) {
       const notificationItems = document.querySelectorAll('.notification-item.unread');
       unreadCount = notificationItems.length;

@@ -136,34 +136,57 @@ function initMessageButton() {
 
 /**
  * Atualizar badges de notificação e mensagem no header
- * Só mostra os badges quando realmente houver notificações/mensagens
+ * Usa as funções do header.js (carregado antes deste arquivo)
+ * Se header.js não estiver disponível, define funções locais como fallback
  */
 async function atualizarBadgesHeader() {
+    // Se header.js já definiu a função, usar ela
+    if (window.atualizarBadgesHeader && window.atualizarBadgesHeader !== atualizarBadgesHeader) {
+        return window.atualizarBadgesHeader();
+    }
+    
+    // Fallback local (caso header.js não esteja carregado)
     try {
         const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
         
-        if (!userData.id) {
+        if (!userData.id && !userData.usuario_id) {
             console.warn('[Dashboard] Usuário não autenticado, não é possível atualizar badges');
-            ocultarBadges();
+            if (window.ocultarBadges) {
+                window.ocultarBadges();
+            }
             return;
         }
 
-        // Atualizar badge de notificações
-        await atualizarBadgeNotificacoes(userData.id);
+        const userId = userData.id || userData.usuario_id;
         
-        // Atualizar badge de mensagens
-        await atualizarBadgeMensagens(userData.id);
+        // Usar funções do header.js se disponíveis
+        if (window.atualizarBadgeNotificacoes && window.atualizarBadgeMensagens) {
+            await window.atualizarBadgeNotificacoes(userId);
+            await window.atualizarBadgeMensagens(userId);
+        } else {
+            // Fallback local
+            await atualizarBadgeNotificacoes(userId);
+            await atualizarBadgeMensagens(userId);
+        }
         
     } catch (error) {
         console.error('[Dashboard] Erro ao atualizar badges:', error);
-        ocultarBadges();
+        if (window.ocultarBadges) {
+            window.ocultarBadges();
+        }
     }
 }
 
 /**
- * Atualizar badge de notificações
+ * Atualizar badge de notificações (fallback local se header.js não estiver disponível)
  */
 async function atualizarBadgeNotificacoes(userId) {
+    // Se header.js já definiu a função, usar ela
+    if (window.atualizarBadgeNotificacoes && window.atualizarBadgeNotificacoes !== atualizarBadgeNotificacoes) {
+        return window.atualizarBadgeNotificacoes(userId);
+    }
+    
+    // Fallback local
     try {
         let unreadCount = 0;
         
@@ -173,14 +196,13 @@ async function atualizarBadgeNotificacoes(userId) {
             
             if (response.ok) {
                 const data = await response.json();
-                unreadCount = data.count || 0;
+                unreadCount = data.count || data.total || 0;
             }
         } catch (apiError) {
-            // API não disponível, usar fallback
             console.log('[Dashboard] API de notificações não disponível, usando fallback');
         }
         
-        // Fallback: verificar se há serviços pendentes nas estatísticas
+        // Fallback específico do dashboard: verificar serviços pendentes
         if (unreadCount === 0 && typeof ServicosManager !== 'undefined') {
             const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
             if (userData.email) {
@@ -189,112 +211,117 @@ async function atualizarBadgeNotificacoes(userId) {
             }
         }
         
-        // Fallback adicional: verificar notificações no DOM (se estiver na página de notificações)
+        // Fallback adicional: verificar notificações no DOM
         if (unreadCount === 0) {
             const notificationItems = document.querySelectorAll('.notification-item.unread');
             unreadCount = notificationItems.length;
         }
         
-        // Atualizar badge no header
-        const notificationBadge = document.querySelector('.notification-badge') || 
-                                  document.getElementById('notificationBadge');
-        if (notificationBadge) {
+        // Atualizar todos os badges de notificação
+        const notificationBadges = document.querySelectorAll('.notification-badge');
+        notificationBadges.forEach(badge => {
             if (unreadCount > 0) {
-                notificationBadge.textContent = unreadCount;
-                notificationBadge.style.display = 'block';
+                badge.textContent = unreadCount;
+                badge.style.display = 'block';
             } else {
-                notificationBadge.style.display = 'none';
+                badge.style.display = 'none';
             }
-        }
+        });
         
         console.log('[Dashboard] Badge de notificações atualizado:', unreadCount);
         
     } catch (error) {
         console.error('[Dashboard] Erro ao atualizar badge de notificações:', error);
-        // Em caso de erro, ocultar o badge
-        const notificationBadge = document.querySelector('.notification-badge') || 
-                                  document.getElementById('notificationBadge');
-        if (notificationBadge) {
-            notificationBadge.style.display = 'none';
-        }
+        const notificationBadges = document.querySelectorAll('.notification-badge');
+        notificationBadges.forEach(badge => {
+            badge.style.display = 'none';
+        });
     }
 }
 
 /**
- * Atualizar badge de mensagens
+ * Atualizar badge de mensagens (fallback local se header.js não estiver disponível)
  */
 async function atualizarBadgeMensagens(userId) {
+    // Se header.js já definiu a função, usar ela
+    if (window.atualizarBadgeMensagens && window.atualizarBadgeMensagens !== atualizarBadgeMensagens) {
+        return window.atualizarBadgeMensagens(userId);
+    }
+    
+    // Fallback local
     try {
         let unreadCount = 0;
         
-        // Tentar buscar conversas do usuário para contar mensagens não lidas
+        // Tentar buscar conversas do usuário
         try {
             const response = await fetch(`/api/mensagens/conversas/${userId}`);
             
             if (response.ok) {
                 const data = await response.json();
-                const conversas = data.conversas || [];
+                const conversas = data.conversas || data || [];
                 
-                // Somar mensagens não lidas de todas as conversas
                 unreadCount = conversas.reduce((total, conversa) => {
-                    return total + (conversa.mensagens_nao_lidas || 0);
+                    return total + (conversa.mensagens_nao_lidas || conversa.unread_count || 0);
                 }, 0);
             }
         } catch (apiError) {
-            // API não disponível, usar fallback
             console.log('[Dashboard] API de mensagens não disponível, usando fallback');
         }
         
-        // Fallback: verificar se há conversas no localStorage
+        // Fallback: verificar localStorage
         if (unreadCount === 0) {
             try {
                 const conversas = JSON.parse(localStorage.getItem('cuidafast_conversas') || '[]');
                 unreadCount = conversas.reduce((total, conversa) => {
-                    return total + (conversa.mensagens_nao_lidas || 0);
+                    return total + (conversa.mensagens_nao_lidas || conversa.unread_count || 0);
                 }, 0);
             } catch (e) {
                 // Não há conversas no localStorage
             }
         }
         
-        // Atualizar badge no header
-        const messageBadge = document.querySelector('.message-badge');
-        if (messageBadge) {
+        // Atualizar todos os badges de mensagem
+        const messageBadges = document.querySelectorAll('.message-badge');
+        messageBadges.forEach(badge => {
             if (unreadCount > 0) {
-                messageBadge.textContent = unreadCount;
-                messageBadge.style.display = 'block';
+                badge.textContent = unreadCount;
+                badge.style.display = 'block';
             } else {
-                messageBadge.style.display = 'none';
+                badge.style.display = 'none';
             }
-        }
+        });
         
         console.log('[Dashboard] Badge de mensagens atualizado:', unreadCount);
         
     } catch (error) {
         console.error('[Dashboard] Erro ao atualizar badge de mensagens:', error);
-        // Em caso de erro, ocultar o badge
-        const messageBadge = document.querySelector('.message-badge');
-        if (messageBadge) {
-            messageBadge.style.display = 'none';
-        }
+        const messageBadges = document.querySelectorAll('.message-badge');
+        messageBadges.forEach(badge => {
+            badge.style.display = 'none';
+        });
     }
 }
 
 /**
- * Ocultar todos os badges quando não houver dados
+ * Ocultar todos os badges (fallback local se header.js não estiver disponível)
  */
 function ocultarBadges() {
-    const notificationBadge = document.querySelector('.notification-badge') || 
-                              document.getElementById('notificationBadge');
-    const messageBadge = document.querySelector('.message-badge');
-    
-    if (notificationBadge) {
-        notificationBadge.style.display = 'none';
+    // Se header.js já definiu a função, usar ela
+    if (window.ocultarBadges && window.ocultarBadges !== ocultarBadges) {
+        return window.ocultarBadges();
     }
     
-    if (messageBadge) {
-        messageBadge.style.display = 'none';
-    }
+    // Fallback local
+    const notificationBadges = document.querySelectorAll('.notification-badge');
+    const messageBadges = document.querySelectorAll('.message-badge');
+    
+    notificationBadges.forEach(badge => {
+        badge.style.display = 'none';
+    });
+    
+    messageBadges.forEach(badge => {
+        badge.style.display = 'none';
+    });
 }
 
 // Função para alternar visualização do valor arrecadado
