@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
         initPerformanceChart();
         initServicosChart();
     } else {
-        // Mostrar estado vazio
         mostrarEstadoVazio();
     }
     
