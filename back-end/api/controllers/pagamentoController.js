@@ -6,7 +6,7 @@ const PagamentoModel = require('../models/PagamentoModel');
  */
 exports.criarPagamentoPIX = async (req, res) => {
   try {
-    const { valor, descricao, cliente, consulta_id, contratar_id, cuidador_id } = req.body;
+    const { valor, descricao, cliente, usuario, idUsuario, consulta_id, contratar_id, cuidador_id } = req.body;
 
     // Validações
     if (!valor || valor <= 0) {
@@ -17,15 +17,20 @@ exports.criarPagamentoPIX = async (req, res) => {
       return res.status(400).json({ error: 'Descrição do pagamento é obrigatória' });
     }
 
-    // Busca dados do cliente se não fornecidos
-    let dadosCliente = cliente || {};
-    if (!dadosCliente.email) {
-      // Tenta buscar do localStorage ou sessão se disponível
-      console.warn('[PagamentoController] Dados do cliente incompletos');
+    // Busca dados do cliente - aceita tanto 'cliente' quanto 'usuario' do body
+    let dadosCliente = cliente || usuario || {};
+    
+    // Se idUsuario foi enviado separadamente, usa ele
+    if (idUsuario && !dadosCliente.id) {
+      dadosCliente.id = idUsuario;
+    }
+    
+    if (!dadosCliente.email && !dadosCliente.id) {
+      console.warn('[PagamentoController] Dados do cliente incompletos - email ou id não fornecido');
     }
 
     // Gera referência externa única
-    const usuarioId = dadosCliente.id || null;
+    const usuarioId = dadosCliente.id || idUsuario || null;
     const externalReference = `pix_${usuarioId || 'user'}_${Date.now()}`;
 
     // Cria pagamento PIX no Mercado Pago
@@ -66,6 +71,7 @@ exports.criarPagamentoPIX = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      init_point: resultadoMercadoPago.data.ticket_url, // Para compatibilidade com frontend
       pagamento: {
         id: pagamentoId,
         mercado_pago_id: resultadoMercadoPago.data.id,
@@ -73,6 +79,7 @@ exports.criarPagamentoPIX = async (req, res) => {
         qr_code: resultadoMercadoPago.data.qr_code,
         qr_code_base64: resultadoMercadoPago.data.qr_code_base64,
         ticket_url: resultadoMercadoPago.data.ticket_url,
+        init_point: resultadoMercadoPago.data.ticket_url, // Alias para ticket_url
         external_reference: resultadoMercadoPago.data.external_reference,
         valor: valor,
         valor_centavos: resultadoMercadoPago.data.transaction_amount,

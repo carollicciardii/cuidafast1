@@ -367,12 +367,32 @@ export const getUserData = async (req, res) => {
       return res.status(400).json({ message: 'ID do usuário é obrigatório' });
     }
 
+    let user = null;
+    
+    // Tenta como número inteiro primeiro (ID do banco)
     const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
-      return res.status(400).json({ message: 'ID do usuário inválido' });
+    if (!isNaN(userId)) {
+      user = await UsuarioModel.getById(userId);
+    }
+    
+    // Se não encontrou e o ID parece ser UUID ou string, tenta buscar por email ou auth_uid
+    if (!user) {
+      // Se for UUID do Supabase, tenta buscar por auth_uid
+      if (id.includes('-') && id.length > 20) {
+        user = await UsuarioModel.findByAuthUid(id);
+      }
+      
+      // Se ainda não encontrou, tenta buscar por email (caso o ID seja email)
+      if (!user && id.includes('@')) {
+        user = await UsuarioModel.findByEmail(id);
+      }
     }
 
-    const user = await UsuarioModel.getById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+    
+    const finalUserId = user.usuario_id || user.id;
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado' });
     }
@@ -393,7 +413,7 @@ export const getUserData = async (req, res) => {
     // Busca dados específicos conforme tipo
     let additionalData = {};
     if (user.tipo === 'cliente') {
-      const cliente = await ClienteModel.getById(userId);
+      const cliente = await ClienteModel.getById(finalUserId);
       if (cliente) {
         additionalData = {
           historico_contratacoes: cliente.historico_contratacoes,
@@ -401,7 +421,7 @@ export const getUserData = async (req, res) => {
         };
       }
     } else if (user.tipo === 'cuidador') {
-      const cuidador = await CuidadorModel.getById(userId);
+      const cuidador = await CuidadorModel.getById(finalUserId);
       if (cuidador) {
         additionalData = {
           tipos_cuidado: cuidador.tipos_cuidado,

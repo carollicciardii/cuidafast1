@@ -61,9 +61,23 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('Erro em /api/pagamento:', err);
-    return res.status(500).json({ 
-      error: 'Erro no servidor',
-      message: err.message 
-    });
+    
+    // Garantir que sempre retorna JSON válido
+    try {
+      return res.status(500).json({ 
+        success: false,
+        error: 'Erro no servidor',
+        message: err.message || 'Erro desconhecido ao processar pagamento'
+      });
+    } catch (jsonError) {
+      // Se não conseguir enviar JSON, tenta enviar texto simples
+      res.status(500);
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ 
+        success: false,
+        error: 'Erro no servidor',
+        message: 'Erro ao processar requisição'
+      }));
+    }
   }
 }
