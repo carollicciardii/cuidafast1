@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Dashboard - CuidaFast">
+    <title>Dashboard - CuidaFast</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/styles.css">
+    <link rel="stylesheet" href="../CSS/components.css">
+    <link rel="stylesheet" href="../CSS/pages/dashboard-cuidador.css">
+</head>
+<body class="client-home">
+    <!-- Header Moderno -->
+    <header class="modern-header">
+        <div class="header-container">
+            <!-- Logo Section -->
+            <div class="header-left">
+                <a href="dashboard-cuidador.html" class="logo-link" id="logoLink">
+                    <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+                    <span class="logo-text"></span>
+                </a>
+            </div>
+            
+            <!-- Barra de Pesquisa -->
+            <div class="header-center">
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" class="search-input" id="headerSearch" placeholder="Buscar oportunidades...">
+                    <button class="search-btn" type="button">
+                        <i class="ph ph-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- User Actions -->
+            <div class="header-right">
+                <!-- Notifications -->
+                <a class="header-action-btn notification-btn" id="notificationBtn">
+                    <i class="ph ph-bell"></i>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                </a>
+                
+                <!-- Messages -->
+                <a class="header-action-btn message-btn" id="messageBtn">
+                    <i class="ph ph-chat-circle"></i>
+                    <span class="message-badge" style="display: none;">0</span>
+                </a>
+                
+                <!-- User Profile -->
+                <div class="user-profile-dropdown" id="userProfileDropdown">
+                    <button class="user-profile-btn" id="userProfileBtn">
+                        <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
+                        <span class="user-name" id="headerUserName">Cuidador</span>
+                        <i class="ph ph-caret-down dropdown-arrow"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                        <div class="dropdown-header">
+                            <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+                            <div class="dropdown-user-info">
+                                <h4 id="dropdownUserName">Cuidador</h4>
+                                <p>Conta Profissional</p>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="perfilCuidador.html" class="dropdown-item">
+                            <i class="ph ph-user"></i>
+                            <span>Meu Perfil</span>
+                        </a>
+                        <a href="../HTML/configuracoes.html" class="dropdown-item">
+                            <i class="ph ph-gear"></i>
+                            <span>Configurações</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-clock"></i>
+                            <span>Histórico</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-question"></i>
+                            <span>Ajuda</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="../../index.html" class="dropdown-item logout-item" id="headerLogoutBtn">
+                            <i class="ph ph-sign-out"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    <!-- Main Content -->
+    <main class="container-fluid py-4">
+        <!-- Welcome Section -->
+        <div class="welcome-section text-center mb-5">
+            <h1 class="welcome-title">Seja bem-vindo ao CuidaFast</h1>
+            <p class="welcome-subtitle">Cuidados quando e onde precisar.</p>
+        </div>
+
+        <!-- Dashboard Cards -->
+        <div class="row g-4 mb-5">
+            <!-- Total de Serviços -->
+            <div class="col-lg-3 col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="ph ph-calendar-check card-icon"></i>
+                        <h3>Total de Serviços</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-value" id="totalServicos">0</div>
+                        <div class="metric-label">Serviços realizados</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Valor Total Arrecadado -->
+            <div class="col-lg-3 col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="ph ph-currency-circle-dollar card-icon"></i>
+                        <h3>Valor Arrecadado</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-value" id="valorArrecadado">
+                            <span class="hidden-value">••••••</span>
+                            <span class="real-value d-none">R$ 0,00</span>
+                        </div>
+                        <div class="metric-label">Total este mês</div>
+                        <button class="btn btn-sm btn-outline-primary mt-2" id="toggleValor">
+                            <i class="ph ph-eye"></i> Visualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usuários Atendidos -->
+            <div class="col-lg-3 col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="ph ph-users card-icon"></i>
+                        <h3>Usuários Atendidos</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-value" id="usuariosAtendidos">0</div>
+                        <div class="metric-label">Total de clientes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avaliação Média -->
+            <div class="col-lg-3 col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="ph ph-star card-icon"></i>
+                        <h3>Avaliação Média</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-value" id="avaliacaoMedia">-</div>
+                        <div class="metric-label">
+                            <div class="stars" id="starsContainer">
+                                <i class="ph ph-star"></i>
+                                <i class="ph ph-star"></i>
+                                <i class="ph ph-star"></i>
+                                <i class="ph ph-star"></i>
+                                <i class="ph ph-star"></i>
+                            </div>
+                            <span id="avaliacoesCount">Nenhuma avaliação ainda</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Heatmap Section -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="ph ph-calendar-dots card-icon"></i>
+                        <h3>Atividade de Serviços - Últimos 150 Dias</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="calendarHeatmap" class="calendar-heatmap-horizontal">
+                            <div class="empty-state text-center py-5">
+                                <i class="ph ph-calendar-x" style="font-size: 48px; color: #ccc;"></i>
+                                <p class="text-muted mt-3">Nenhum serviço realizado ainda</p>
+                                <small class="text-muted">Complete seu primeiro serviço para ver suas atividades aqui</small>
+                            </div>
+                        </div>
+                        <div class="heatmap-legend mt-3">
+                            <span class="legend-label">Menos</span>
+                            <div class="legend-colors">
+                                <div class="legend-color" data-level="0"></div>
+                                <div class="legend-color" data-level="1"></div>
+                                <div class="legend-color" data-level="2"></div>
+                                <div class="legend-color" data-level="3"></div>
+                                <div class="legend-color" data-level="4"></div>
+                            </div>
+                            <span class="legend-label">Mais</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance e Analytics -->
+        <div class="row g-4 mb-5">
+            <!-- Performance Geral -->
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="ph ph-chart-line-up card-icon"></i>
+                        <h3>Performance Mensal</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart" style="min-height: 300px;"></canvas>
+                        <div id="performanceEmpty" class="empty-state text-center py-5">
+                            <i class="ph ph-chart-line" style="font-size: 48px; color: #ccc;"></i>
+                            <p class="text-muted mt-3">Sem dados de performance ainda</p>
+                            <small class="text-muted">Complete serviços para ver seu desempenho mensal</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distribuição de Serviços -->
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="ph ph-chart-pie card-icon"></i>
+                        <h3>Distribuição de Serviços</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="servicosChart" style="min-height: 300px;"></canvas>
+                        <div id="servicosEmpty" class="empty-state text-center py-5">
+                            <i class="ph ph-chart-donut" style="font-size: 48px; color: #ccc;"></i>
+                            <p class="text-muted mt-3">Sem serviços realizados ainda</p>
+                            <small class="text-muted">Complete serviços para ver a distribuição por tipo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico de Pagamentos -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <i class="ph ph-credit-card card-icon"></i>
+                        <h3>Histórico de Pagamentos</h3>
+                        <div class="ms-auto">
+                            <select class="form-select form-select-sm" id="filtroMes">
+                                <option value="todos">Todos os meses</option>
+                                <option value="atual">Mês atual</option>
+                                <option value="anterior">Mês anterior</option>
+                                <option value="trimestre">Último trimestre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="tabelaPagamentos">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Cliente</th>
+                                        <th>Serviço</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pagamentosTableBody">
+                                    <tr>
+                                        <td>15/10/2024</td>
+                                        <td>Maria Silva</td>
+                                        <td>Cuidado de Idoso</td>
+                                        <td>R$ 250,00</td>
+                                        <td><span class="badge bg-danger">Cancelado</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="pagination-info">
+                                Mostrando <span id="paginaAtual">1-10</span> de <span id="totalRegistros">45</span> registros
+                            </div>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0" id="paginacao">
+                                    <!-- Paginação será inserida via JavaScript -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../JS/auth.js"></script>
+    <script src="../JS/header.js"></script>
+    <script src="../JS/servicosManager.js"></script>
+    <script src="../JS/dashboard-cuidador.js"></script>
+    <script src="../JS/taskbar.js"></script>
+    <script>
+        // Carregar dados do cuidador e configurar busca de oportunidades
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            
+            if (!userData || !userData.nome) {
+                console.warn('[DashboardCuidador] Usuário não autenticado');
+                window.location.href = '../../index.html';
+                return;
+            }
+
+            // Atualizar nome no header e dropdown
+            const headerUserName = document.getElementById('headerUserName');
+            const dropdownUserName = document.getElementById('dropdownUserName');
+            
+            const primeiroNome = userData.primeiroNome || userData.nome.split(' ')[0];
+            
+            if (headerUserName) headerUserName.textContent = primeiroNome;
+            if (dropdownUserName) dropdownUserName.textContent = userData.nome;
+            
+            // Atualizar foto do perfil (header e dropdown)
+            if (userData.photoURL) {
+                const headerAvatar = document.querySelector('.user-avatar-img');
+                const dropdownAvatar = document.querySelector('.dropdown-avatar');
+                
+                if (headerAvatar) headerAvatar.src = userData.photoURL;
+                if (dropdownAvatar) dropdownAvatar.src = userData.photoURL;
+                
+                console.log('[DashboardCuidador] Foto do perfil atualizada');
+            }
+
+            // Dropdown menu é gerenciado pelo header.js
+
+            // Atualizar estatísticas do dashboard com dados reais
+            if (typeof ServicosManager !== 'undefined') {
+                const stats = ServicosManager.getEstatisticasCuidador(userData.email);
+                
+                // Atualizar total de serviços
+                const totalServicosEl = document.getElementById('totalServicos');
+                if (totalServicosEl) totalServicosEl.textContent = stats.totalServicos;
+                
+                // Atualizar valor arrecadado
+                const valorRealEl = document.querySelector('#valorArrecadado .real-value');
+                if (valorRealEl) valorRealEl.textContent = `R$ ${stats.valorTotal.toFixed(2).replace('.', ',')}`;
+                
+                // Atualizar usuários atendidos
+                const usuariosAtendidosEl = document.getElementById('usuariosAtendidos');
+                if (usuariosAtendidosEl) usuariosAtendidosEl.textContent = stats.clientesAtendidos;
+                
+                // Atualizar avaliação média
+                const avaliacaoMediaEl = document.getElementById('avaliacaoMedia');
+                const starsContainer = document.getElementById('starsContainer');
+                const avaliacoesCountEl = document.getElementById('avaliacoesCount');
+                
+                if (stats.avaliacaoMedia > 0) {
+                    if (avaliacaoMediaEl) avaliacaoMediaEl.textContent = stats.avaliacaoMedia.toFixed(1);
+                    if (avaliacoesCountEl) avaliacoesCountEl.textContent = `Baseado em ${stats.totalAvaliacoes} avaliações`;
+                    
+                    // Atualizar estrelas
+                    if (starsContainer) {
+                        const fullStars = Math.floor(stats.avaliacaoMedia);
+                        const stars = starsContainer.querySelectorAll('i');
+                        stars.forEach((star, index) => {
+                            if (index < fullStars) {
+                                star.classList.remove('ph');
+                                star.classList.add('ph-fill');
+                            }
+                        });
+                    }
+                }
+                
+                // Atualizar badge de notificações (só mostrar se houver notificações)
+                const notificationBadge = document.getElementById('notificationBadge');
+                if (notificationBadge) {
+                    const servicosPendentes = stats.servicosPendentes || 0;
+                    if (servicosPendentes > 0) {
+                        notificationBadge.textContent = servicosPendentes;
+                        notificationBadge.style.display = 'block';
+                    } else {
+                        notificationBadge.style.display = 'none';
+                    }
+                }
+                
+                console.log('[DashboardCuidador] Estatísticas atualizadas:', stats);
+            }
+            
+            // Atualizar badges de notificação e mensagem (chamada final para garantir que está atualizado)
+            if (typeof atualizarBadgesHeader === 'function') {
+                setTimeout(() => {
+                    atualizarBadgesHeader();
+                }, 500);
+            }
+
+            console.log('[DashboardCuidador] Cuidador carregado:', userData.nome);
+
+            // Navegação (notificações e mensagens) é gerenciada pelo header.js
+
+            // Configurar logout
+            const logoutBtn = document.getElementById('headerLogoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('cuidafast_isLoggedIn');
+                    localStorage.removeItem('cuidafast_user');
+                    window.location.href = '../../index.html';
+                });
+            }
+
+            // Configurar busca de oportunidades (clientes)
+            const headerSearch = document.getElementById('headerSearch');
+            const searchBtn = document.querySelector('.search-btn');
+
+            function buscarOportunidades(query) {
+                console.log('[DashboardCuidador] Buscando oportunidades:', query);
+                
+                // Carregar clientes cadastrados
+                const usuarios = localStorage.getItem('cuidafast_usuarios');
+                if (!usuarios) {
+                    alert('Nenhum cliente cadastrado ainda.');
+                    return;
+                }
+
+                try {
+                    const listaUsuarios = JSON.parse(usuarios);
+                    const clientes = listaUsuarios.filter(u => u.tipo === 'cliente');
+                    
+                    if (clientes.length === 0) {
+                        alert('Nenhum cliente cadastrado ainda.');
+                        return;
+                    }
+
+                    // Filtrar clientes por query
+                    const q = query.toLowerCase().trim();
+                    const filtered = q ? clientes.filter(c => 
+                        (c.nome || '').toLowerCase().includes(q) ||
+                        (c.endereco?.cidade || '').toLowerCase().includes(q) ||
+                        (c.endereco?.estado || '').toLowerCase().includes(q)
+                    ) : clientes;
+
+                    console.log(`[DashboardCuidador] ${filtered.length} oportunidades encontradas`);
+                    
+                    // Mostrar resultados
+                    if (filtered.length > 0) {
+                        let mensagem = `Encontrados ${filtered.length} clientes:\n\n`;
+                        filtered.slice(0, 5).forEach(c => {
+                            mensagem += `• ${c.nome}`;
+                            if (c.endereco?.cidade) mensagem += ` - ${c.endereco.cidade}`;
+                            mensagem += '\n';
+                        });
+                        if (filtered.length > 5) mensagem += `\n... e mais ${filtered.length - 5} clientes`;
+                        alert(mensagem);
+                    } else {
+                        alert('Nenhum cliente encontrado com esses critérios.');
+                    }
+                } catch (error) {
+                    console.error('[DashboardCuidador] Erro ao buscar clientes:', error);
+                    alert('Erro ao buscar oportunidades.');
+                }
+            }
+
+            if (headerSearch) {
+                headerSearch.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        buscarOportunidades(this.value);
+                    }
+                });
+            }
+
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function() {
+                    if (headerSearch) {
+                        buscarOportunidades(headerSearch.value);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

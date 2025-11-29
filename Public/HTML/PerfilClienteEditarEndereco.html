@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Endereço - CuidaFast</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../CSS/styles.css">
+  <link rel="stylesheet" href="../CSS/header.css">
+  <link rel="stylesheet" href="../CSS/pages/perfilEditar.css">
+</head>
+<body class="edit-profile">
+  <!-- Header Moderno -->
+  <header class="modern-header">
+    <div class="header-container">
+      <div class="header-left">
+        <a href="homeCliente.html" class="logo-link">
+          <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+          <span class="logo-text"></span>
+        </a>
+      </div>
+      
+      <div class="header-center">
+        <div class="search-container">
+          <i class="ph ph-magnifying-glass search-icon"></i>
+          <input type="text" placeholder="Buscar cuidadores..." class="search-input">
+          <button class="search-btn" type="button">
+            <i class="ph ph-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <button class="header-action-btn notification-btn">
+          <i class="ph ph-bell"></i>
+          <span class="notification-badge" style="display: none;">0</span>
+        </button>
+        
+        <button class="header-action-btn message-btn">
+          <i class="ph ph-chat-circle"></i>
+          <span class="message-badge" style="display: none;">0</span>
+        </button>
+        
+        <div class="user-profile-dropdown" id="userProfileDropdown">
+          <button class="user-profile-btn" id="userProfileBtn">
+            <img src="../assets/images.webp" alt="Avatar" class="user-avatar-img">
+            <span class="user-name" id="headerUserName">Usuário</span>
+            <i class="ph ph-caret-down dropdown-arrow"></i>
+          </button>
+          
+          <div class="profile-dropdown-menu" id="profileDropdownMenu">
+            <div class="dropdown-header">
+              <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+              <div class="dropdown-user-info">
+                <h4>Usuário</h4>
+                <p>Cliente</p>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a href="perfilCliente.html" class="dropdown-item">
+              <i class="ph ph-user"></i>
+              <span>Meu Perfil</span>
+            </a>
+            <a href="configuracoes.html" class="dropdown-item">
+              <i class="ph ph-gear"></i>
+              <span>Configurações</span>
+            </a>
+            <a href="contratarInTime.html" class="dropdown-item">
+              <i class="ph ph-clock"></i>
+              <span>In-time</span>
+            </a>
+            <a href="#" class="dropdown-item">
+              <i class="ph ph-question"></i>
+              <span>Ajuda</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="../../index.html" class="dropdown-item logout-item">
+              <i class="ph ph-sign-out"></i>
+              <span>Sair</span>
+            </a>
+          </div>
+        </div>
+        
+        <button class="mobile-menu-toggle">
+          <i class="ph ph-list"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Mobile Search Bar -->
+    <div class="mobile-search-container" id="mobileSearchContainer">
+      <div class="mobile-search-wrapper">
+        <i class="ph ph-magnifying-glass search-icon"></i>
+        <input type="text" placeholder="Buscar cuidadores..." class="mobile-search-input">
+        <button class="mobile-search-btn" type="button">
+          <i class="ph ph-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="edit-profile-container">
+    <div class="edit-profile-header">
+      <a href="perfilCliente.html" class="back-link">
+        <i class="ph ph-arrow-left"></i> Voltar para o perfil
+      </a>
+      <h1>Editar Endereço</h1>
+    </div>
+
+    <div class="edit-profile-content">
+      <!-- Tabs -->
+      <div class="edit-tabs">
+        <a href="perfilClienteEditarInformações.html" class="tab">
+          <i class="ph ph-user"></i> Informações Pessoais
+        </a>
+        <a href="PerfilClienteEditarEndereco.html" class="tab active">
+          <i class="ph ph-map-pin"></i> Endereço
+        </a>
+      </div>
+
+      <!-- Formulário -->
+      <form class="edit-profile-form">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="cep">CEP</label>
+            <input type="text" id="cep" value="" placeholder="00000-000">
+          </div>
+          
+          <div class="form-group">
+            <label for="rua">Rua</label>
+            <input type="text" id="rua" value="" placeholder="Nome da rua">
+          </div>
+          
+          <div class="form-group">
+            <label for="numero">Número</label>
+            <input type="text" id="numero" value="" placeholder="Nº">
+          </div>
+          
+          <div class="form-group full-width">
+            <label for="complemento">Complemento</label>
+            <input type="text" id="complemento" value="" placeholder="Apto, Bloco, etc">
+          </div>
+          
+          <div class="form-group">
+            <label for="bairro">Bairro</label>
+            <input type="text" id="bairro" value="" placeholder="Bairro">
+          </div>
+          
+          <div class="form-group">
+            <label for="cidade">Cidade</label>
+            <input type="text" id="cidade" value="" placeholder="Cidade">
+          </div>
+          
+          <div class="form-group">
+            <label for="estado">Estado</label>
+            <select id="estado">
+              <option value="">Selecione</option>
+              <option value="SP">São Paulo</option>
+              <option value="RJ">Rio de Janeiro</option>
+              <option value="MG">Minas Gerais</option>
+              <!-- Adicionar outros estados -->
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="window.location.href='perfilCliente.html'">Cancelar</button>
+          <button type="submit" class="btn-save">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../JS/auth.js"></script>
+  <script src="../JS/header.js"></script>
+  <script src="../JS/perfilEditar.js"></script>
+</body>
+</html>

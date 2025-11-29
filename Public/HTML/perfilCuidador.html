@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Perfil do Cuidador - CuidaFast. Visualize e gerencie suas informações profissionais.">
+    <title>Meu Perfil - Cuidador | CuidaFast</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/styles.css">
+    <link rel="stylesheet" href="../CSS/pages/perfilCliente.css">
+</head>
+<body class="caregiver-profile">
+    <!-- Header -->
+    <header class="modern-header">
+        <div class="header-container">
+            <!-- Logo Section -->
+            <div class="header-left">
+                <a href="dashboard-cuidador.html" class="logo-link">
+                    <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+                    <span class="logo-text"></span>
+                </a>
+            </div>
+            
+            <!-- Search Bar (Desktop) -->
+            <div class="header-center">
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" placeholder="Buscar oportunidades..." class="search-input" id="headerSearch">
+                    <button class="search-btn" type="button">
+                        <i class="ph ph-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- User Actions -->
+            <div class="header-right">
+                <!-- Notifications -->
+                <button class="header-action-btn notification-btn" id="notificationBtn">
+                    <i class="ph ph-bell"></i>
+                    <span class="notification-badge" style="display: none;">0</span>
+                </button>
+                
+                <!-- Messages -->
+                <button class="header-action-btn message-btn" id="messageBtn">
+                    <i class="ph ph-chat-circle"></i>
+                    <span class="message-badge" style="display: none;">0</span>
+                </button>
+                
+                <!-- User Profile -->
+                <div class="user-profile-dropdown" id="userProfileDropdown">
+                    <button class="user-profile-btn" id="userProfileBtn">
+                        <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
+                        <span class="user-name" id="headerUserName">Cuidador</span>
+                        <i class="ph ph-caret-down dropdown-arrow"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                        <div class="dropdown-header">
+                            <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+                            <div class="dropdown-user-info">
+                                <h4 id="dropdownUserName">Cuidador</h4>
+                                <p>Cuidador Profissional</p>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="perfilCuidador.html" class="dropdown-item active">
+                            <i class="ph ph-user"></i>
+                            <span>Meu Perfil</span>
+                        </a>
+                        <a href="configuracoes.html" class="dropdown-item">
+                            <i class="ph ph-gear"></i>
+                            <span>Configurações</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-clock"></i>
+                            <span>Histórico</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-question"></i>
+                            <span>Ajuda</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item logout-item" id="headerLogoutBtn">
+                            <i class="ph ph-sign-out"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="profile-container">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <img src="../assets/images.webp" alt="Foto de perfil" class="avatar-img">
+                <button class="edit-avatar-btn" aria-label="Alterar foto">
+                    <i class="ph ph-camera"></i>
+                </button>
+            </div>
+            <div class="profile-info">
+                <h1>Maria Santos</h1>
+                <p class="member-since">Cuidadora desde Março de 2023</p>
+                <div class="profile-rating">
+                    <div class="stars">
+                        <i class="ph ph-star-fill"></i>
+                        <i class="ph ph-star-fill"></i>
+                        <i class="ph ph-star-fill"></i>
+                        <i class="ph ph-star-fill"></i>
+                        <i class="ph ph-star-fill"></i>
+                        <span>5.0 (48 avaliações)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Informações Pessoais</h2>
+                    <a href="PerfilCuidadorEditarInformações.html" class="edit-link">
+                        <i class="ph ph-pencil-simple"></i> Editar
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="info-group">
+                        <div class="info-item">
+                            <span class="info-label">Nome Completo</span>
+                            <span class="info-value">Maria Santos Silva</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">E-mail</span>
+                            <span class="info-value">maria.santos@email.com</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Telefone</span>
+                            <span class="info-value">(11) 99876-5432</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">CPF</span>
+                            <span class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Data de Nascimento</span>
+                            <span class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Descrição</span>
+                            <span class="info-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Especialidades</h2>
+                    <a href="PerfilCuidadorEditarEspecialidades.html" class="edit-link">
+                        <i class="ph ph-pencil-simple"></i> Editar
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="info-group">
+                        <div class="info-item">
+                            <span class="info-label">Tipos de Serviço</span>
+                            <span class="info-value" id="tiposServico">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Áreas de Atuação</span>
+                            <span class="info-value">Cuidados com Idosos, Cuidados Paliativos, Reabilitação</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Experiência</span>
+                            <span class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Disponibilidade</span>
+                            <span class="info-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../JS/auth.js"></script>
+    <script src="../JS/header.js"></script>
+    <script src="../JS/perfilCliente.js"></script>
+    <script>
+        // Carregar dados do cuidador logado
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            
+            if (!userData || !userData.nome) {
+                console.warn('[PerfilCuidador] Usuário não autenticado');
+                window.location.href = '../../index.html';
+                return;
+            }
+
+            // Atualizar nome no header e dropdown
+            const headerUserName = document.getElementById('headerUserName');
+            const dropdownUserName = document.getElementById('dropdownUserName');
+            
+            const primeiroNome = userData.primeiroNome || userData.nome.split(' ')[0];
+            
+            if (headerUserName) headerUserName.textContent = primeiroNome;
+            if (dropdownUserName) dropdownUserName.textContent = userData.nome;
+            
+            // Atualizar foto do perfil (header e dropdown)
+            if (userData.photoURL) {
+                const headerAvatar = document.querySelector('.user-avatar-img');
+                const dropdownAvatar = document.querySelector('.dropdown-avatar');
+                
+                if (headerAvatar) headerAvatar.src = userData.photoURL;
+                if (dropdownAvatar) dropdownAvatar.src = userData.photoURL;
+                
+                console.log('[PerfilCuidador] Foto do perfil atualizada');
+            }
+            
+            // Atualizar tipos de serviço
+            if (userData.servicosOferecidos && userData.servicosOferecidos.length > 0) {
+                const tiposMap = {
+                    'idoso': 'Cuidador de Idosos',
+                    'pet': 'Cuidador de Pet',
+                    'infantil': 'Cuidador Infantil',
+                    'crianca': 'Cuidador Infantil'
+                };
+                
+                const tiposTexto = userData.servicosOferecidos
+                    .map(tipo => tiposMap[tipo] || tipo)
+                    .join(', ');
+                
+                const tiposElement = document.getElementById('tiposServico');
+                if (tiposElement) {
+                    tiposElement.textContent = tiposTexto;
+                }
+                
+                console.log('[PerfilCuidador] Tipos de serviço:', tiposTexto);
+            }
+            
+            console.log('[PerfilCuidador] Cuidador carregado:', userData.nome);
+        });
+    </script>
+</body>
+</html>

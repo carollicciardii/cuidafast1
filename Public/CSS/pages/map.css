@@ -1,0 +1,4 @@
+#map { height: 60vh; width: 100%; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); background: #f9fafc; }
+#status { margin: 8px 16px; color: #333333; font-size: 0.95rem; }
+.leaflet-control-zoom a { background-color: #0d6efd; color: #ffffff; }
+.leaflet-control-zoom a:hover { background-color: #60a5fa; }

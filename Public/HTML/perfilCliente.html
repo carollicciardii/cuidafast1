@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Perfil do Cliente - CuidaFast. Visualize e gerencie suas informações pessoais.">
+    <title>Meu Perfil - Cliente | CuidaFast</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/styles.css">
+    <link rel="stylesheet" href="../CSS/pages/perfilCliente.css">
+    <link rel="stylesheet" href="../CSS/header.css">
+ 
+</head>
+<body class="client-profile">
+    <!-- Header Moderno -->
+    <header class="modern-header">
+        <div class="header-container">
+            <!-- Logo Section -->
+            <div class="header-left">
+                <a href="homeCliente.html" class="logo-link">
+                    <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+                    <span class="logo-text"></span>
+                </a>
+            </div>
+            <!-- User Actions -->
+            <div class="header-right">
+                <!-- Notifications -->
+        <a href="notificacao.html" class="header-action-btn notification-btn active" id="notificationBtn">
+          <i class="ph ph-bell"></i>
+          <span class="notification-badge" style="display: none;">0</span>
+    </a>
+
+                
+                <!-- Messages -->
+                    <a href="mensagens.html" class="header-action-btn message-btn" id="messageBtn">
+                    <i class="ph ph-chat-circle"></i>
+                    <span class="message-badge" style="display: none;">0</span>
+                    </a>
+                
+                <!-- User Profile -->
+                <div class="user-profile-dropdown" id="userProfileDropdown">
+                    <button class="user-profile-btn" id="userProfileBtn">
+                        <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
+                        <span class="user-name" id="headerUserName">João Silva</span>
+                        <i class="ph ph-caret-down dropdown-arrow"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                        <div class="dropdown-header">
+                            <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+                            <div class="dropdown-user-info">
+                                <h4>João Silva</h4>
+                                <p>Cliente Premium</p>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="perfilCliente.html" class="dropdown-item">
+                            <i class="ph ph-user"></i>
+                            <span>Meu Perfil</span>
+                        </a>
+                        <a href="../HTML/configuracoes.html" class="dropdown-item">
+                            <i class="ph ph-gear"></i>
+                            <span>Configurações</span>
+                        </a>
+                        <a href="../HTML/contratarInTime.html" class="dropdown-item">
+                            <i class="ph ph-clock"></i>
+                            <span>In-time</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-question"></i>
+                            <span>Ajuda</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="../../index.html" class="dropdown-item logout-item" id="headerLogoutBtn">
+                            <i class="ph ph-sign-out"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Search Bar -->
+        <div class="mobile-search-container" id="mobileSearchContainer">
+            <div class="mobile-search-wrapper">
+                <i class="ph ph-magnifying-glass search-icon"></i>
+                <input type="text" placeholder="Buscar cuidadores..." class="mobile-search-input">
+                <button class="mobile-search-btn" type="button">
+                    <i class="ph ph-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+
+
+    <main class="profile-container">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <img src="../assets/images.webp" alt="Foto de perfil" class="avatar-img">
+                <button class="edit-avatar-btn" aria-label="Alterar foto">
+                    <i class="ph ph-camera"></i>
+                </button>
+            </div>
+            <div class="profile-info">
+                <h1>João Silva</h1>
+                <p class="member-since">Membro desde Janeiro de 2024</p>
+                <div class="profile-rating">
+                    <div class="stars">
+                        <i class="ph ph-star-fill"></i>
+                        <i class="ph ph-star-fill"></i>
+                        <i class="ph ph-star-fill"></i>
+                        <i class="ph ph-star-fill"></i>
+                        <i class="ph ph-star"></i>
+                        <span>4.0 (12 avaliações)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Informações Pessoais</h2>
+                    <a href="perfilClienteEditarInformações.html" class="edit-link">
+                        <i class="ph ph-pencil-simple"></i> Editar
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="info-group">
+                        <div class="info-item">
+                            <span class="info-label">Nome Completo</span>
+                            <span class="info-value">João da Silva</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">E-mail</span>
+                            <span class="info-value">joao.silva@email.com</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Telefone</span>
+                            <span class="info-value">(11) 98765-4321</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">CPF</span>
+                            <span class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Data de Nascimento</span>
+                            <span class="info-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Endereço</h2>
+                    <a href="../HTML/PerfilClienteEditarEndereco.html" class="edit-link">
+                        <i class="ph ph-pencil-simple"></i> Editar
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="info-group">
+                        <div class="info-item">
+                            <span class="info-label">CEP</span>
+                            <span class="info-value">01234-567</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Endereço</span>
+                            <span class="info-value">Rua das Flores, 123</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Complemento</span>
+                            <span class="info-value">Apto 42</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Cidade/Estado</span>
+                            <span class="info-value">São Paulo/SP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../JS/auth.js"></script>
+    <script src="../JS/perfilCliente.js"></script>
+    <script src="../JS/header.js"></script>
+</body>
+</html>

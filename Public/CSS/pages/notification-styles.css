@@ -1,0 +1,966 @@
+/* Estilos para a página de notificações */
+
+/* Body background removed - using main.css global styles */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Garante que o rodapé fique no final da página */
+}
+
+/* Estilo para o conteúdo principal */
+.main-content {
+    flex: 1;
+    padding: 6rem 2rem 2rem; /* Adiciona espaço para o cabeçalho fixo */
+    position: relative;
+    z-index: 1;
+}
+
+/* Estilo para o rodapé */
+.rodape {
+    background-color: var(--azul-escuro);
+    color: white;
+    padding: 3rem 0 2rem;
+    margin-top: auto;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.rodape-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 0 2rem;
+}
+
+.rodape .logo img {
+    max-width: 150px;
+    height: auto;
+}
+
+.linha-vertical {
+    width: 1px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0 1rem;
+}
+
+.rodape h4 {
+    color: white;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.rodape a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.rodape a:hover {
+    color: var(--amarelo);
+}
+
+.redes-sociais {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.redes-sociais a {
+    font-size: 1.5rem;
+}
+
+/* Estilos do cabeçalho moderno */
+.modern-header {
+    background: var(--creme);
+    border-bottom: 1px solid rgba(27, 71, 93, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 80px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Logo Section */
+.header-left {
+    display: flex;
+    align-items: center;
+    min-width: 200px;
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.logo-link:hover {
+    transform: translateY(-1px);
+}
+
+.logo {
+    height: 45px;
+    width: auto;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--azul-escuro);
+    display: none;
+}
+
+/* Search Bar */
+.header-center {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 2rem;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--creme);
+    border: 2px solid transparent;
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.search-container:focus-within {
+    border-color: var(--azul-escuro);
+    box-shadow: 0 0 0 3px rgba(27, 71, 93, 0.1);
+    background: var(--creme);
+}
+
+.search-icon {
+    color: var(--azul-escuro);
+    font-size: 1.125rem;
+    margin-right: 0.75rem;
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.95rem;
+    color: var(--azul-escuro);
+    padding: 0.25rem 0;
+}
+
+.search-input::placeholder {
+    color: var(--azul-escuro);
+    opacity: 0.7;
+}
+
+.search-btn {
+    background: var(--azul-escuro);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--branco);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 0.5rem;
+}
+
+.search-btn:hover {
+    background: var(--azul-escuro-hover);
+    transform: scale(1.05);
+}
+
+/* Header Right - User Actions */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 200px;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+/* Ajustes específicos para o cabeçalho na página de notificações */
+.notification-page .modern-header .header-container {
+    justify-content: space-between;
+}
+
+.notification-page .header-center {
+    display: none; /* Garante que o espaço vazio não afete o layout */
+}
+
+.notification-page .header-right {
+    margin-left: auto;
+}
+
+.header-action-btn {
+    position: relative;
+    background: none;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--azul-escuro);
+    font-size: 1.25rem;
+}
+
+.header-action-btn:hover {
+    background: var(--creme);
+    transform: translateY(-1px);
+}
+
+.header-action-btn.active {
+    background: var(--amarelo-light);
+}
+
+.notification-badge,
+.message-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #ff4757;
+    color: var(--branco);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.125rem 0.375rem;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Quando o botão estiver ativo, esconder o badge (comportamento do header de notificações) */
+.header-action-btn.notification-btn.active .notification-badge,
+.header-action-btn.message-btn.active .message-badge,
+.header-action-btn.active .notification-badge,
+.header-action-btn.active .message-badge {
+    display: none;
+}
+
+/* User Profile Dropdown */
+.user-profile-dropdown {
+    position: relative;
+}
+
+.user-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--azul-escuro);
+}
+
+.user-profile-btn:hover {
+    background: var(--creme);
+}
+
+.user-avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--azul-escuro);
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--azul-escuro);
+    font-size: 0.95rem;
+}
+
+.dropdown-arrow {
+    font-size: 1rem;
+    color: var(--azul-escuro);
+    transition: transform 0.3s ease;
+}
+
+.user-profile-dropdown.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.profile-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 280px;
+    background: var(--branco);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.user-profile-dropdown.active .profile-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    padding: 0 1.25rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.5rem;
+}
+
+.dropdown-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--azul-escuro);
+    margin-right: 0.75rem;
+}
+
+.dropdown-user-info h4 {
+    font-size: 1rem;
+    color: var(--azul-escuro);
+    margin: 0 0 0.25rem 0;
+}
+
+.dropdown-user-info p {
+    font-size: 0.85rem;
+    color: var(--azul-escuro);
+    opacity: 0.8;
+    margin: 0;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.05);
+    margin: 0.5rem 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: var(--azul-escuro);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+.dropdown-item i {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.dropdown-item:hover {
+    background: var(--creme);
+    color: var(--azul-escuro);
+}
+
+.logout-item {
+    color: #ff4757 !important;
+}
+
+.logout-item:hover {
+    background: rgba(255, 71, 87, 0.1) !important;
+}
+
+/* Mobile Search */
+.mobile-search-container {
+    display: none;
+    padding: 0.75rem 1.5rem;
+    background: var(--branco);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mobile-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--creme);
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+}
+
+.mobile-search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.95rem;
+    color: var(--azul-escuro);
+    padding: 0.25rem 0;
+}
+
+.mobile-search-btn {
+    background: none;
+    border: none;
+    color: var(--azul-escuro);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--azul-escuro);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-left: 0.5rem;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .logo-text {
+        display: block;
+    }
+    
+    .header-center {
+        display: none;
+    }
+    
+    .mobile-search-container {
+        display: block;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .user-name {
+        display: none;
+    }
+}
+
+@media (max-width: 992px) {
+    .modern-header {
+        height: 70px;
+    }
+    
+    .header-container {
+        padding: 0 1.25rem;
+    }
+    
+    .logo {
+        height: 38px;
+    }
+}
+
+/* Ajustes para tablets */
+@media (max-width: 768px) {
+    .header-container {
+        padding: 0 1rem;
+    }
+    
+    /* Ajustes para o rodapé em tablets */
+    .rodape {
+        padding: 2.5rem 0;
+        position: relative;
+    }
+    
+    .rodape-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 0 1.5rem;
+        gap: 2rem;
+    }
+   
+    .linha-vertical {
+        display: none;
+    }
+   
+    .rodape .p-rodape {
+        margin: 0 auto 1.5rem;
+        max-width: 80%;
+    }
+   
+    .redes-sociais {
+        justify-content: center;
+        margin: 1.5rem auto 0;
+    }
+    
+    /* Ajuste para garantir que o conteúdo não fique escondido atrás do rodapé */
+    body {
+        padding-bottom: 0;
+    }
+}
+    
+@media (max-width: 576px) {
+    /* Ajustes para o rodapé em dispositivos móveis */
+    .rodape {
+        padding: 2rem 0;
+        position: relative;
+        margin-top: 2rem;
+    }
+   
+    .rodape-container {
+        padding: 0 1.25rem;
+        gap: 1.5rem;
+    }
+    
+    /* Ajuste para garantir que o conteúdo não fique escondido atrás do rodapé */
+    main {
+        padding-bottom: 2rem;
+    }
+    
+    .col {
+        width: 100%;
+        padding: 0.5rem 0;
+    }
+    
+    .redes-sociais {
+        justify-content: center;
+        margin: 1rem auto 0;
+    }
+    
+    .redes-sociais a {
+        font-size: 1.75rem;
+    }
+
+    .notification-page {
+        margin-top: 4.5rem;
+        padding: 0 1rem 2rem;
+    }
+    
+    .notification-header h1 {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .notification-header p {
+        font-size: 0.95rem;
+    }
+    
+    /* Ajuste para o conteúdo principal */
+    .main-content {
+        padding: 5.5rem 1rem 2rem;
+    }
+}
+
+/* Estilos para o modal de configurações */
+.modal {
+    --bs-modal-bg: var(--branco);
+    --bs-modal-header-border-color: rgba(0, 0, 0, 0.1);
+    --bs-modal-footer-border-color: rgba(0, 0, 0, 0.1);
+}
+
+.modal-content {
+    background-color: var(--branco);
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 1 !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-title {
+    color: var(--azul-escuro);
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1rem 1.5rem;
+}
+
+/* Estilos para os botões do modal */
+.modal-footer .btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.modal-footer .btn-outline-secondary {
+    border-color: var(--cinza-input);
+    color: var(--azul-escuro);
+}
+
+.modal-footer .btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    border-color: var(--cinza-input);
+}
+
+.modal-footer .btn-primary {
+    background-color: var(--azul-escuro);
+    border-color: var(--azul-escuro);
+}
+
+.modal-footer .btn-primary:hover {
+    background-color: var(--azul-escuro-hover);
+    border-color: var(--azul-escuro-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para os campos do formulário */
+.form-label {
+    font-weight: 500;
+    color: var(--azul-escuro);
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border: 1px solid var(--cinza-input);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: var(--azul-escuro);
+    box-shadow: 0 0 0 0.2rem rgba(27, 71, 93, 0.25);
+}
+
+.form-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
+
+/* Estilos para a página de notificações */
+.notification-page {
+    max-width: 1000px;
+    margin: 6rem auto 2rem; /* Ajuste na margem superior para acomodar o cabeçalho fixo */
+    padding: 0 1.5rem;
+    position: relative;
+    flex: 1;
+    width: 100%;
+}
+
+.notification-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.notification-header h1 {
+    font-size: 2.5rem;
+    color: var(--azul-escuro);
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.notification-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* Estilo dos botões para combinar com o index.html */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    gap: 0.5rem;
+}
+
+.btn i {
+    font-size: 1.1em;
+}
+
+.btn-primary {
+    background-color: var(--azul-escuro);
+    color: white;
+    border-color: var(--azul-escuro);
+}
+
+.btn-primary:hover {
+    background-color: #163947;
+    border-color: #163947;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(27, 71, 93, 0.15);
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: var(--azul-escuro);
+    border: 2px solid var(--azul-escuro);
+}
+
+.btn-outline:hover {
+    background-color: rgba(27, 71, 93, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Cards de notificação */
+.notification-list {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2rem;
+}
+
+.notification-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.notification-card.unread {
+    border-left: 4px solid var(--amarelo);
+    background-color: #fffdf5;
+}
+
+.notification-card.important {
+    border-left: 4px solid #ff6b6b;
+}
+
+.notification-card.system {
+    border-left: 4px solid #6c757d;
+}
+
+.notification-card.messages {
+    border-left: 4px solid #17a2b8;
+}
+
+.notification-header-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    color: var(--azul-escuro);
+    padding: 0.75rem;
+    border-radius: 12px;
+    background-color: rgba(27, 71, 93, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.notification-card.unread .notification-icon {
+    color: var(--amarelo);
+    background-color: rgba(250, 213, 100, 0.2);
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: var(--azul-escuro);
+    font-size: 1.1rem;
+}
+
+.notification-message {
+    color: var(--cinza-texto);
+    margin: 0 0 1rem 0;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.notification-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: var(--cinza-claro-texto);
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.notification-time {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--cinza-claro-texto);
+}
+
+.notification-time i {
+    font-size: 1.1em;
+}
+
+.notification-actions-container {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.notification-actions-container .btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+/* Filtros de notificação */
+.notification-filters {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.filter-tag {
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    background-color: white;
+    border: 2px solid var(--cinza-borda);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    color: var(--azul-escuro);
+}
+
+.filter-tag:hover {
+    background-color: rgba(27, 71, 93, 0.05);
+    border-color: var(--azul-escuro);
+}
+
+.filter-tag.active {
+    background-color: var(--azul-escuro);
+    color: white;
+    border-color: var(--azul-escuro);
+}
+
+/* Mensagem quando não há notificações */
+.no-notifications {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.no-notifications i {
+    font-size: 3rem;
+    color: var(--cinza-claro-texto);
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.no-notifications p {
+    color: var(--cinza-texto);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .notification-page {
+        padding: 0 1rem;
+    }
+    
+    .notification-header h1 {
+        font-size: 2rem;
+    }
+    
+    .notification-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .notification-actions .btn {
+        width: 100%;
+    }
+    
+    .notification-card {
+        padding: 1.25rem;
+    }
+    
+    .notification-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .notification-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .notification-actions-container {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .filter-tag {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}

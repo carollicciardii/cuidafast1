@@ -1,0 +1,210 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Reset e configurações globais */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #FFFBEC;
+  color: #1c1c1c;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Container principal */
+.container {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Botão voltar */
+.back {
+  text-align: left;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.back-link {
+  font-size: 30px;
+  text-decoration: none;
+  color: var(--azul-escuro, #1B475D);
+}
+
+.back-link:hover {
+  opacity: 0.7;
+}
+
+/* Header do formulário */
+.form-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.form-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1B475D;
+  margin-bottom: 0.75rem;
+}
+
+.form-header p {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Cards de serviço */
+.service-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.service-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: transparent;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.service-card:hover {
+  border-color: #1B475D;
+  background: rgba(27, 71, 93, 0.02);
+}
+
+.service-card input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  accent-color: #1B475D;
+  flex-shrink: 0;
+}
+
+.service-card input[type="checkbox"]:checked ~ .card-content {
+  color: #1B475D;
+}
+
+.service-card:has(input:checked) {
+  border-color: #1B475D;
+  background: rgba(27, 71, 93, 0.08);
+}
+
+.card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.card-content i {
+  font-size: 2.5rem;
+  color: #1B475D;
+  flex-shrink: 0;
+}
+
+.card-content > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.card-content .card-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1B475D;
+  display: block;
+}
+
+.card-content p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Botão submit */
+.btn-submit {
+  width: 100%;
+  background: #1B475D;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 1rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.btn-submit:hover {
+  background: #163947;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(27, 71, 93, 0.3);
+}
+
+.btn-submit i {
+  font-size: 1.25rem;
+}
+
+/* Termos */
+.terms {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.terms a {
+  color: #1B475D;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.terms a:hover {
+  text-decoration: underline;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+
+  .container {
+    padding: 1.5rem;
+  }
+
+  .form-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .card-content i {
+    font-size: 2rem;
+  }
+
+  .card-content .card-title {
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitações de Serviços - CuidaFast</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../CSS/main.css">
+    <link rel="stylesheet" href="../CSS/header.css">
+    <style>
+        body {
+            background: var(--bege);
+            padding-top: 100px;
+            min-height: 100vh;
+        }
+        
+        .container-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--azul-escuro);
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .tabs-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn.active {
+            background: var(--azul-escuro);
+            color: white;
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: rgba(27, 71, 93, 0.1);
+        }
+        
+        .solicitacao-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .solicitacao-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .solicitacao-card.pendente {
+            border-left-color: #f39c12;
+        }
+        
+        .solicitacao-card.aceito {
+            border-left-color: #3498db;
+        }
+        
+        .solicitacao-card.concluido {
+            border-left-color: #27ae60;
+        }
+        
+        .solicitacao-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .solicitacao-icon.pendente {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+        
+        .solicitacao-icon.aceito {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .solicitacao-icon.concluido {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+        
+        .solicitacao-content {
+            flex: 1;
+        }
+        
+        .solicitacao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .solicitacao-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--azul-escuro);
+            margin: 0;
+        }
+        
+        .solicitacao-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .solicitacao-badge.pendente {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+        
+        .solicitacao-badge.aceito {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .solicitacao-badge.concluido {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+        
+        .solicitacao-info {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .info-item i {
+            color: var(--azul-escuro);
+        }
+        
+        .solicitacao-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .solicitacao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .cliente-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .cliente-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--azul-escuro);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+        
+        .cliente-nome {
+            font-weight: 700;
+            color: var(--azul-escuro);
+            font-size: 1.1rem;
+        }
+        
+        .cliente-email {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .status-pendente {
+            background: rgba(255, 193, 7, 0.2);
+            color: #f57c00;
+        }
+        
+        .status-aceito {
+            background: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+        }
+        
+        .status-concluido {
+            background: rgba(33, 150, 243, 0.2);
+            color: #1565c0;
+        }
+        
+        .solicitacao-body {
+            margin-bottom: 1rem;
+        }
+        
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
+        .info-row i {
+            color: var(--azul-escuro);
+        }
+        
+        .observacoes-box {
+            background: rgba(27, 71, 93, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .solicitacao-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-aceitar {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-aceitar:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-recusar {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-recusar:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+        
+        .btn-concluir {
+            background: var(--azul-escuro);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-concluir:hover {
+            background: #163947;
+            transform: translateY(-2px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="modern-header">
+        <div class="header-container">
+            <!-- Logo Section -->
+            <div class="header-left">
+                <a href="dashboard-cuidador.html" class="logo-link">
+                    <img src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+                </a>
+            </div>
+            
+            <!-- Barra de Pesquisa -->
+            <div class="header-center">
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Buscar oportunidades...">
+                    <button class="search-btn" type="button">
+                        <i class="ph ph-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- User Actions -->
+            <div class="header-right">
+                <!-- Notifications -->
+                <a href="solicitacoesServicos.html" class="header-action-btn notification-btn active">
+                    <i class="ph ph-bell"></i>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                </a>
+                
+                <!-- Messages -->
+                <a href="mensagens.html" class="header-action-btn message-btn">
+                    <i class="ph ph-chat-circle"></i>
+                    <span class="message-badge" style="display: none;">0</span>
+                </a>
+                
+                <!-- User Profile -->
+                <div class="user-profile-dropdown" id="userProfileDropdown">
+                    <button class="user-profile-btn" id="userProfileBtn">
+                        <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
+                        <span class="user-name" id="headerUserName">Cuidador</span>
+                        <i class="ph ph-caret-down dropdown-arrow"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                        <div class="dropdown-header">
+                            <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+                            <div class="dropdown-user-info">
+                                <h4 id="dropdownUserName">Cuidador</h4>
+                                <p>Conta Profissional</p>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="perfilCuidador.html" class="dropdown-item">
+                            <i class="ph ph-user"></i>
+                            <span>Meu Perfil</span>
+                        </a>
+                        <a href="configuracoes.html" class="dropdown-item">
+                            <i class="ph ph-gear"></i>
+                            <span>Configurações</span>
+                        </a>
+                        <a href="dashboard-cuidador.html" class="dropdown-item">
+                            <i class="ph ph-house"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-question"></i>
+                            <span>Ajuda</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item logout-item" id="headerLogoutBtn">
+                            <i class="ph ph-sign-out"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-main">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="ph ph-clipboard-text"></i>
+                Solicitações de Serviços
+            </h1>
+            <p class="page-subtitle">Gerencie suas solicitações de serviços e atualize o status</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="pendentes">
+                <i class="ph ph-clock"></i>
+                Pendentes
+            </button>
+            <button class="tab-btn" data-tab="aceitos">
+                <i class="ph ph-check"></i>
+                Aceitos
+            </button>
+            <button class="tab-btn" data-tab="concluidos">
+                <i class="ph ph-check-circle"></i>
+                Concluídos
+            </button>
+            <button class="tab-btn" data-tab="todos">
+                <i class="ph ph-list"></i>
+                Todos
+            </button>
+        </div>
+
+        <!-- Conteúdo das Tabs -->
+        <div id="solicitacoesContainer">
+            <!-- Será preenchido dinamicamente -->
+        </div>
+    </main>
+
+    <script src="../JS/auth.js"></script>
+    <script src="../JS/header.js"></script>
+    <script src="../JS/servicosManager.js"></script>
+    <script>
+        let currentTab = 'pendentes';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se é cuidador
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            
+            if (!userData.email || userData.tipo !== 'cuidador') {
+                console.warn('[SolicitacoesServicos] Acesso restrito a cuidadores');
+                window.location.href = '../../index.html';
+                return;
+            }
+
+            // Atualizar nome no header e dropdown
+            const headerUserName = document.getElementById('headerUserName');
+            const dropdownUserName = document.getElementById('dropdownUserName');
+            
+            const primeiroNome = userData.primeiroNome || userData.nome.split(' ')[0];
+            
+            if (headerUserName) headerUserName.textContent = primeiroNome;
+            if (dropdownUserName) dropdownUserName.textContent = userData.nome;
+            
+            // Atualizar foto do perfil
+            if (userData.photoURL) {
+                const headerAvatar = document.querySelector('.user-avatar-img');
+                const dropdownAvatar = document.querySelector('.dropdown-avatar');
+                
+                if (headerAvatar) headerAvatar.src = userData.photoURL;
+                if (dropdownAvatar) dropdownAvatar.src = userData.photoURL;
+            }
+
+            // Configurar dropdown menu
+            const userProfileBtn = document.getElementById('userProfileBtn');
+            const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+            
+            if (userProfileBtn && profileDropdownMenu) {
+                userProfileBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileDropdownMenu.classList.toggle('show');
+                });
+                
+                document.addEventListener('click', function(e) {
+                    if (!userProfileBtn.contains(e.target) && !profileDropdownMenu.contains(e.target)) {
+                        profileDropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+
+            // Configurar logout
+            const logoutBtn = document.getElementById('headerLogoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('cuidafast_isLoggedIn');
+                    window.location.href = '../../index.html';
+                });
+            }
+
+            // Configurar tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTab = this.dataset.tab;
+                    carregarSolicitacoes();
+                });
+            });
+
+            // Carregar solicitações iniciais
+            carregarSolicitacoes();
+        });
+
+        function carregarSolicitacoes() {
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            const servicos = ServicosManager.getServicosCuidador(userData.email);
+            
+            let filteredServicos = servicos;
+            
+            // Filtrar por tab
+            if (currentTab === 'pendentes') {
+                filteredServicos = servicos.filter(s => s.status === 'pendente');
+            } else if (currentTab === 'aceitos') {
+                filteredServicos = servicos.filter(s => s.status === 'aceito' || s.status === 'em_andamento');
+            } else if (currentTab === 'concluidos') {
+                filteredServicos = servicos.filter(s => s.status === 'concluido');
+            }
+            
+            // Ordenar por data (mais recentes primeiro)
+            filteredServicos.sort((a, b) => new Date(b.dataContratacao) - new Date(a.dataContratacao));
+            
+            renderizarSolicitacoes(filteredServicos);
+        }
+
+        function renderizarSolicitacoes(servicos) {
+            const container = document.getElementById('solicitacoesContainer');
+            
+            if (servicos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="ph ph-folder-open"></i>
+                        <h3>Nenhuma solicitação encontrada</h3>
+                        <p>Você não possui solicitações nesta categoria.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            servicos.forEach(servico => {
+                const iniciais = servico.clienteNome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const dataFormatada = new Date(servico.dataContratacao).toLocaleString('pt-BR');
+                
+                let statusClass = 'status-pendente';
+                let statusText = 'Pendente';
+                if (servico.status === 'aceito' || servico.status === 'em_andamento') {
+                    statusClass = 'status-aceito';
+                    statusText = servico.status === 'aceito' ? 'Aceito' : 'Em Andamento';
+                } else if (servico.status === 'concluido') {
+                    statusClass = 'status-concluido';
+                    statusText = 'Concluído';
+                }
+                
+                const tipoTexto = {
+                    'idoso': 'Cuidado de Idosos',
+                    'crianca': 'Cuidado Infantil',
+                    'pet': 'Cuidado de Pets'
+                }[servico.tipo] || servico.tipo;
+                
+                let iconClass = 'ph-clock';
+                if (servico.status === 'aceito' || servico.status === 'em_andamento') iconClass = 'ph-check-circle';
+                if (servico.status === 'concluido') iconClass = 'ph-check-circle-fill';
+                
+                html += `
+                    <div class="solicitacao-card ${servico.status}">
+                        <div class="solicitacao-icon ${servico.status}">
+                            <i class="ph ${iconClass}"></i>
+                        </div>
+                        <div class="solicitacao-content">
+                            <div class="solicitacao-header">
+                                <h3 class="solicitacao-title">${servico.clienteNome}</h3>
+                                <span class="solicitacao-badge ${servico.status}">${statusText}</span>
+                            </div>
+                            
+                            <div class="solicitacao-info">
+                                <div class="info-item">
+                                    <i class="ph ph-list"></i>
+                                    <span>${tipoTexto}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="ph ph-calendar"></i>
+                                    <span>${dataFormatada}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="ph ph-envelope"></i>
+                                    <span>${servico.clienteEmail}</span>
+                                </div>
+                            </div>
+                            
+                            ${servico.observacoes ? `
+                                <div class="info-item" style="margin-top: 0.5rem; color: #666;">
+                                    <i class="ph ph-note"></i>
+                                    <span><strong>Observações:</strong> ${servico.observacoes}</span>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="solicitacao-actions">
+                                ${servico.status === 'pendente' ? `
+                                    <button class="btn btn-success btn-sm" onclick="aceitarServico('${servico.id}')">
+                                        <i class="ph ph-check"></i> Aceitar
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="recusarServico('${servico.id}')">
+                                        <i class="ph ph-x"></i> Recusar
+                                    </button>
+                                ` : ''}
+                            
+                            ${(servico.status === 'aceito' || servico.status === 'em_andamento') ? `
+                                <button class="btn-concluir" onclick="concluirServicoModal('${servico.id}')">
+                                    <i class="ph ph-check-circle"></i> Concluir Serviço
+                                </button>
+                            ` : ''}
+                            
+                            ${servico.status === 'concluido' && servico.valorPago ? `
+                                <div class="info-row" style="color: #4caf50; font-weight: 600;">
+                                    <i class="ph ph-currency-dollar"></i>
+                                    Valor recebido: R$ ${servico.valorPago.toFixed(2)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function aceitarServico(servicoId) {
+            if (!confirm('Deseja aceitar esta solicitação de serviço?')) return;
+            
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            const servico = ServicosManager.aceitarServico(servicoId, userData.email);
+            
+            if (servico) {
+                alert('✅ Serviço aceito com sucesso!\n\nO cliente será notificado e as estatísticas do seu dashboard foram atualizadas.');
+                carregarSolicitacoes();
+            } else {
+                alert('❌ Erro ao aceitar serviço.');
+            }
+        }
+
+        function recusarServico(servicoId) {
+            if (!confirm('Deseja recusar esta solicitação? Esta ação não pode ser desfeita.')) return;
+            
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            const servico = ServicosManager.cancelarServico(servicoId, userData.email);
+            
+            if (servico) {
+                alert('Serviço recusado.');
+                carregarSolicitacoes();
+            } else {
+                alert('❌ Erro ao recusar serviço.');
+            }
+        }
+
+        function concluirServicoModal(servicoId) {
+            const valor = prompt('Digite o valor do serviço realizado (R$):');
+            
+            if (valor === null) return; // Cancelou
+            
+            const valorNum = parseFloat(valor.replace(',', '.'));
+            
+            if (isNaN(valorNum) || valorNum <= 0) {
+                alert('Valor inválido.');
+                return;
+            }
+            
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            const servico = ServicosManager.concluirServico(servicoId, userData.email, valorNum);
+            
+            if (servico) {
+                alert(`✅ Serviço concluído com sucesso!\n\nValor: R$ ${valorNum.toFixed(2)}\n\nAs estatísticas do seu dashboard foram atualizadas.`);
+                carregarSolicitacoes();
+            } else {
+                alert('❌ Erro ao concluir serviço.');
+            }
+        }
+    </script>
+</body>
+</html>

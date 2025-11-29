@@ -1,0 +1,338 @@
+/* Body styles removed - using main.css global styles */
+body {
+    overflow-x: hidden;
+  }
+  
+  /* ===== MAIN CONTAINER ===== */
+  main {
+    padding-top: 100px; /* Compensa a altura do header fixo */
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* ===== HERO ===== */
+  .hero-sobre {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 60px 10%;
+    gap: 40px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, #fffbe6, #fff);
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero-text {
+    flex: 1;
+    min-width: 300px;
+    max-width: 500px;
+  }
+  
+  .hero-text h1 {
+    font-size: 2.4rem;
+    color: #0E4F4F;
+    margin-bottom: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  .hero-text p {
+    font-size: 1.1rem;
+    color: #334155;
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+  
+  .hero-image {
+    flex: 1;
+    max-width: 450px;
+    width: 100%;
+    height: auto;
+    border-radius: 20px;
+    object-fit: cover;
+    animation: float 4s ease-in-out infinite;
+    margin: 0;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  
+  /* ===== PROBLEMA / SOLUÇÃO ===== */
+  .problem-solution {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    padding: 80px 10%;
+    flex-wrap: wrap;
+    background-color: #fff;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .info-box {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    padding: 30px;
+    flex: 1;
+    min-width: 300px;
+    max-width: 450px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .info-box:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  }
+  
+  .info-box h3 {
+    color: #0E4F4F;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+  }
+  
+  .info-box p {
+    color: #334155;
+    line-height: 1.6;
+    margin: 0;
+  }
+  
+  /* ===== VALORES ===== */
+  .valores {
+    text-align: center;
+    padding: 80px 10%;
+    background-color: #f7f9f3;
+    position: relative;
+    z-index: 1;
+    margin: 0;
+  }
+  
+  .valores h2 {
+    color: #0E4F4F;
+    margin-bottom: 50px;
+    font-size: 2.2rem;
+    font-weight: 700;
+  }
+  
+  .valores-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    align-items: flex-start;
+  }
+  
+  .valor-item {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px 20px;
+    width: 280px;
+    min-height: 300px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 1;
+  }
+  
+  .valor-item:hover {
+    transform: translateY(-5px);
+    background-color: #fef9e7;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+  
+  .valor-item i {
+    font-size: 2.5rem;
+    color: #0E4F4F;
+    margin-bottom: 15px;
+    display: block;
+  }
+  
+  .valor-item h4 {
+    color: #0E4F4F;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+  
+  .valor-item p {
+    color: #334155;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex-grow: 1;
+  }
+  
+  /* Estilo para a imagem dentro do valor-item */
+  .valor-item .img {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 15px;
+  }
+  
+  .valor-item .img img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 200px;
+    border-radius: 12px;
+    object-fit: cover;
+    display: block;
+  }
+  
+  /* ===== TIME ===== */
+  .team-section {
+    padding: 80px 10%;
+    background-color: #fff;
+    position: relative;
+    z-index: 1;
+    margin: 0;
+  }
+  
+  .team-section h2 {
+    text-align: center;
+    color: #0E4F4F;
+    margin-bottom: 50px;
+    font-size: 2.2rem;
+    font-weight: 700;
+  }
+  
+  .team-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 40px;
+    justify-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .team-member {
+    background: #fff;
+    padding: 20px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    max-width: 250px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .team-member:hover {
+    transform: translateY(-5px);
+    background-color: #f0fff7;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+  }
+  
+  .team-member img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    object-fit: cover;
+  }
+  
+  .team-member h3 {
+    color: #0E4F4F;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  
+  .team-member p {
+    color: #334155;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  
+  /* ===== RESPONSIVO ===== */
+  @media (max-width: 900px) {
+    main {
+      padding-top: 90px;
+    }
+    
+    .hero-sobre {
+      flex-direction: column;
+      text-align: center;
+      padding: 40px 5%;
+      gap: 30px;
+    }
+  
+    .hero-text {
+      max-width: 100%;
+    }
+    
+    .hero-text p {
+      margin: 0 auto;
+      max-width: 100%;
+    }
+    
+    .hero-image {
+      max-width: 100%;
+      margin: 0;
+    }
+    
+    .problem-solution {
+      padding: 60px 5%;
+      gap: 30px;
+    }
+    
+    .info-box {
+      min-width: 100%;
+      max-width: 100%;
+    }
+    
+    .valores {
+      padding: 60px 5%;
+    }
+    
+    .valores-grid {
+      gap: 30px;
+    }
+    
+    .valor-item {
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .team-section {
+      padding: 60px 5%;
+    }
+    
+    .team-container {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 30px;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .hero-text h1 {
+      font-size: 1.8rem;
+    }
+    
+    .valores h2,
+    .team-section h2 {
+      font-size: 1.8rem;
+    }
+    
+    .valor-item {
+      width: 100%;
+      padding: 25px 15px;
+    }
+  }
