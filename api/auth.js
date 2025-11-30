@@ -33,14 +33,48 @@ export default async function handler(req, res) {
   try {
     const { method, query, url } = req;
     
-    // Verifica a URL completa diretamente (como fazem api/mensagens.js e api/perfil.js)
-    const fullUrl = url || req.url || '';
+    console.log('[api/auth] === INÍCIO DO HANDLER ===');
+    console.log('[api/auth] Method:', method);
+    console.log('[api/auth] URL:', url);
+    console.log('[api/auth] req.url:', req.url);
+    console.log('[api/auth] Query:', query);
+    console.log('[api/auth] Headers:', {
+      'x-vercel-original-url': req.headers['x-vercel-original-url'],
+      'x-invoke-path': req.headers['x-invoke-path'],
+      'x-vercel-rewrite': req.headers['x-vercel-rewrite'],
+      'x-middleware-rewrite': req.headers['x-middleware-rewrite'],
+      'host': req.headers['host'],
+      'referer': req.headers['referer']
+    });
+    
+    // PRIORIDADE 1: Verifica se foi passado via query parameter (rota do vercel.json)
+    // Isso deve ser verificado PRIMEIRO porque é a forma mais confiável
+    if (query?.path === 'complete-profile' || query?.path === 'complete-cuidador-profile') {
+      if (method === 'POST') {
+        // Garantir req.body parseado
+        if (!req.body || typeof req.body === 'string') {
+          try {
+            req.body = await parseJsonBody(req);
+          } catch (err) {
+            console.warn('Failed to parse JSON body:', err);
+            return res.status(400).json({ error: 'Invalid JSON body' });
+          }
+        }
+        console.log('[api/auth] ✅ Rota complete-profile detectada via query.path, chamando controller');
+        return completeProfile(req, res);
+      }
+    }
+    
+    // PRIORIDADE 2: Verifica a URL completa diretamente (como fazem api/mensagens.js e api/perfil.js)
+    // Também verifica headers do Vercel que podem conter a URL original
+    const originalUrl = req.headers['x-vercel-original-url'] || req.headers['x-invoke-path'] || url || req.url || '';
+    const fullUrl = originalUrl;
     const urlPath = fullUrl.split('?')[0]; // Remove query string
     
-    console.log('[api/auth] URL completa:', fullUrl, 'urlPath:', urlPath, 'Method:', method, 'Query:', query);
+    console.log('[api/auth] URL processada - originalUrl:', originalUrl, 'urlPath:', urlPath);
     
-    // Verifica se é a rota complete-profile diretamente pela URL
-    if (urlPath === '/api/auth/complete-profile' && method === 'POST') {
+    // Verifica se é a rota complete-profile diretamente pela URL original
+    if ((urlPath === '/api/auth/complete-profile' || urlPath.includes('/complete-profile')) && method === 'POST') {
       // Garantir req.body parseado
       if (!req.body || typeof req.body === 'string') {
         try {
@@ -50,7 +84,7 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'Invalid JSON body' });
         }
       }
-      console.log('[api/auth] Rota complete-profile detectada pela URL, chamando controller');
+      console.log('[api/auth] ✅ Rota complete-profile detectada pela URL original, chamando controller');
       return completeProfile(req, res);
     }
     
@@ -138,8 +172,28 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'Invalid JSON body' });
         }
       }
-      console.log('[api/auth] Rota complete-profile encontrada pelo path, chamando controller');
+      console.log('[api/auth] ✅ Rota complete-profile encontrada pelo path extraído, chamando controller');
       return completeProfile(req, res);
+    }
+    
+    // FALLBACK FINAL: Se chegou até aqui e não encontrou a rota, mas a URL original contém complete-profile
+    // Isso pode acontecer se o Vercel não passou a URL corretamente
+    if (method === 'POST' && (originalUrl.includes('complete-profile') || urlPath.includes('complete-profile'))) {
+      console.log('[api/auth] ⚠️ FALLBACK: Tentando detectar complete-profile pela URL original');
+      // Garantir req.body parseado
+      if (!req.body || typeof req.body === 'string') {
+        try {
+          req.body = await parseJsonBody(req);
+        } catch (err) {
+          console.warn('Failed to parse JSON body:', err);
+          return res.status(400).json({ error: 'Invalid JSON body' });
+        }
+      }
+      // Verifica se o body contém dados típicos de complete-profile
+      if (req.body && (req.body.cpf || req.body.cpf_numero || req.body.data_nascimento || req.body.tipo === 'cuidador')) {
+        console.log('[api/auth] ✅ FALLBACK: Detectado complete-profile pelo conteúdo do body, chamando controller');
+        return completeProfile(req, res);
+      }
     }
 
     if (path === 'create-or-associate-user' && method === 'POST') {
