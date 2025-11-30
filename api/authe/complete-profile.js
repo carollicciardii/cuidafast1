@@ -114,6 +114,13 @@ export default async function handler(req, res) {
       }
     }
 
+    // Se front enviou um UUID em usuario_id, trate como auth_uid e zere usuario_id
+    if (usuario_id && looksLikeUUID(String(usuario_id))) {
+      console.log('[complete-profile] usuario_id parece UUID -> interpretando como auth_uid');
+      auth_uid = String(usuario_id);
+      usuario_id = undefined;
+    }
+
     // Se ainda não tiver tipo e tiver usuario_id numérico, busca no banco
     if (!userType && usuario_id && !looksLikeUUID(usuario_id)) {
       try {
@@ -201,14 +208,6 @@ export default async function handler(req, res) {
     if (cidade) upsertPayload.cidade = cidade;
     if (estado) upsertPayload.estado = estado;
     if (complemento) upsertPayload.complemento = complemento;
-
-    // Se o front enviou um UUID no campo usuario_id, provavelmente é um auth_uid:
-    if (usuario_id && looksLikeUUID(usuario_id)) {
-      // trata como auth_uid e usa o fluxo de upsert (OAuth)
-      console.log('[complete-profile] usuario_id parece UUID -> interpretando como auth_uid');
-      auth_uid = usuario_id;
-      usuario_id = undefined;
-    }
 
     // auth_uid separado do usuario_id (INTEGER)
     if (auth_uid) {

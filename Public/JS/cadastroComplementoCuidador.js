@@ -63,6 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // --- helper para detectar UUID v4 ---
+  function looksLikeUUID(v) {
+    return typeof v === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(v);
+  }
+
   // --- função helper para depurar respostas que não sejam JSON ---
   async function safeFetchJson(url, options) {
     const r = await fetch(url, options);
@@ -127,26 +132,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
       try {
         const API_URL = window.API_CONFIG?.AUTH || "/api/auth";
-        
-        // Prepara dados para envio - IMPORTANTE: envia tipo explicitamente
-// tenta converter usuarioId para número se possível
-let usuarioIdToSend = usuarioId;
-if (usuarioId !== undefined && usuarioId !== null) {
-  const maybeNum = Number(usuarioId);
-  if (!Number.isNaN(maybeNum) && Number.isInteger(maybeNum)) {
-    usuarioIdToSend = maybeNum;
-  } // caso contrário mantemos a string (uuid)
-}
 
-const payload = {
-  usuario_id: usuarioIdToSend,
-  tipo: 'cuidador',
-  cpf: cpf.replace(/\D/g, ''),
-  cpf_numero: cpf.replace(/\D/g, ''),
-  data_nascimento: dataNascimento,
-  photo_url: updatedData.photo_url || null
-};
+        // Prepara dados para envio - envia auth_uid quando for UUID, numero quando for inteiro
+        const payload = {
+          tipo: 'cuidador',
+          cpf: cpf.replace(/\D/g, ''),
+          cpf_numero: cpf.replace(/\D/g, ''),
+          data_nascimento: dataNascimento,
+          photo_url: updatedData.photo_url || null
+        };
 
+        // Decide como enviar o identificador
+        const idStr = String(usuarioId);
+        if (looksLikeUUID(idStr)) {
+          // se é UUID do Supabase/Google -> envia como auth_uid
+          payload.auth_uid = idStr;
+          console.log('[cadastroComplementoCuidador] Enviando auth_uid (UUID):', idStr);
+        } else {
+          // tenta enviar como número quando possível
+          const maybeNum = Number(usuarioId);
+          if (!Number.isNaN(maybeNum) && Number.isInteger(maybeNum)) {
+            payload.usuario_id = maybeNum;
+            console.log('[cadastroComplementoCuidador] Enviando usuario_id (num):', maybeNum);
+          } else {
+            // fallback: envia como string (se for algo estranho)
+            payload.usuario_id = usuarioId;
+            console.log('[cadastroComplementoCuidador] Enviando usuario_id (string fallback):', usuarioId);
+          }
+        }
 
         console.log('[cadastroComplementoCuidador] Enviando dados:', payload);
 
@@ -159,7 +172,7 @@ const payload = {
 
         if (!result.ok) {
           console.error('[cadastroComplementoCuidador] Erro do backend:', result.data || result.raw);
-          alert(result.data?.message || `Erro ${result.status}`);
+          alert(result.data?.message || result.data?.error || `Erro ${result.status}`);
           return;
         }
 
