@@ -178,104 +178,42 @@
   
   <script src="../JS/auth.js"></script>
   <script>
-    document.getElementById("btnContinuePayment")?.addEventListener("click", async () => {
-      const metodo = document.querySelector("input[name='payment']:checked")?.value;
+   document.getElementById("btnContinuePayment").addEventListener("click", async () => {
+  const metodo = document.querySelector("input[name='payment']:checked");
 
-      if (!metodo) {
-        alert("Selecione um método de pagamento.");
-        return;
-      }
+  if (!metodo) {
+    alert("Selecione um método de pagamento");
+    return;
+  }
 
-      if (metodo === "pix") {
-        try {
-          // Busca dados atualizados do usuário do banco
-          let userData = null;
-          if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
-              userData = await window.CuidaFastAuth.fetchUserDataFromDB();
-          }
-          
-          // Se não conseguiu buscar do banco, usa localStorage
-          if (!userData) {
-              try {
-                  userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
-              } catch (e) {
-                  userData = {};
-              }
-          }
-          
-          // Monta endereço completo
-          let endereco = userData.endereco;
-          if (!endereco && (userData.rua || userData.cidade)) {
-              endereco = {
-                  cep: userData.cep,
-                  rua: userData.rua,
-                  numero: userData.numero,
-                  complemento: userData.complemento,
-                  bairro: userData.bairro,
-                  cidade: userData.cidade,
-                  estado: userData.estado
-              };
-          }
-          
-          const userId = userData.id || userData.usuario_id || localStorage.getItem("userId") || null;
-          
-          const response = await fetch("/api/pagamento/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              valor: 105.90,
-              descricao: "Serviço CuidaFast",
-              idUsuario: userId,
-              // Dados completos do usuário para o pagamento (aceita tanto 'cliente' quanto 'usuario')
-              cliente: {
-                id: userId,
-                nome: userData.nome,
-                email: userData.email,
-                telefone: userData.telefone,
-                cpf: userData.cpf || userData.cpf_numero,
-                endereco: endereco
-              }
-            })
-          });
+  const body = {
+    valor: 120.00,   // <-- coloque o valor real
+    metodo: metodo.value
+  };
 
-          if (!response.ok) {
-            // Tenta ler a resposta como texto primeiro para ver o erro
-            const errorText = await response.text();
-            console.error('[Pagamento] Erro da API:', response.status, errorText);
-            
-            let errorData;
-            try {
-              errorData = JSON.parse(errorText);
-            } catch (e) {
-              errorData = { error: errorText || 'Erro desconhecido' };
-            }
-            
-            throw new Error(errorData.error || errorData.message || `Erro ${response.status}: ${errorText.substring(0, 100)}`);
-          }
-
-          const data = await response.json();
-
-          if (data.init_point) {
-            window.location.href = data.init_point; // redirecionamento para Mercado Pago
-          } else {
-            alert("Erro ao iniciar pagamento Pix");
-          }
-        } catch (err) {
-          console.error("Erro ao criar pagamento:", err);
-          alert("Erro ao conectar com o servidor.");
-        }
-      }
+  try {
+    const res = await fetch("/api/pagamento/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
     });
-      // Inicializar tooltips e popovers do Bootstrap
-      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl);
-      });
-      
-      var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-      var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-          return new bootstrap.Popover(popoverTriggerEl);
-      });
+
+    const json = await res.json();
+
+    if (!res.ok) {
+      console.error("Erro:", json);
+      alert("Erro ao criar pagamento");
+      return;
+    }
+
+    window.location.href = json.init_point;
+
+  } catch (err) {
+    console.error("Erro:", err);
+    alert("Erro ao conectar com o servidor");
+  }
+});
+
 
   </script>
 </body>
