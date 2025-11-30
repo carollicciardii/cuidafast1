@@ -1,0 +1,171 @@
+:root {
+    --primary: #1b475d;       /* azul CuidaFast */
+    --background: #fdf8ed;    /* fundo claro */
+    --box-bg: #fffdf6;        /* fundo da caixa */
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* HEADER */
+  .header {
+    width: 100%;
+    background: white;
+    border-bottom: 2px solid var(--primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
+  
+  .header .logo img {
+    height: 40px;
+  }
+  
+  .menu-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+  }
+  
+  .menu-icon span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: var(--primary);
+  }
+  
+  /* BODY e MAIN */
+  body {
+    background-color: var(--background);
+  }
+  
+  .main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding-top: 90px; /* espaço para não ficar por baixo do header */
+  }
+  
+  /* CAIXA DO FORMULÁRIO */
+  .form-container {
+    background: var(--box-bg);
+    width: 550px;
+    max-width: 95%;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .form-container h2 {
+    color: var(--primary);
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+  
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 20px;
+  }
+  
+  .tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: none;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--primary);
+    border-bottom: 3px solid transparent;
+  }
+  
+  .tab.active {
+    border-bottom: 3px solid var(--primary);
+  }
+  
+  /* FORM GRID */
+  .form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 20px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 5px;
+  }
+  
+  .form-group input {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+  
+  /* Campos maiores */
+  .form-group:nth-child(3) {
+    grid-column: span 1;
+  }
+  .form-group:nth-child(3) input {
+    width: 100%;
+  }
+  
+  /* BOTÕES */
+  .buttons {
+    grid-column: span 2;
+    display: flex;
+    justify-content: flex-start;
+    gap: 15px;
+    margin-top: 10px;
+  }
+  
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .btn-secondary {
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  /* RESPONSIVO: inputs em uma coluna no mobile */
+  @media (max-width: 600px) {
+    .form {
+      grid-template-columns: 1fr;
+    }
+    .buttons {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+  

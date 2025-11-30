@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contratar Cuidador - CuidaFast</title>
+  
+  <!-- Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="../CSS/styles.css">
+  <link rel="stylesheet" href="../CSS/header.css">
+  <link rel="stylesheet" href="../CSS/pages/contratarInTime.css">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+</head>
+<body class="client-home">
+  <!-- Header Moderno -->
+  <header class="modern-header">
+    <div class="header-container">
+      <!-- Logo Section -->
+      <div class="header-left">
+        <a href="homeCliente.html" class="logo-link">
+          <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+          <span class="logo-text"></span>
+        </a>
+      </div>
+      
+      <!-- Search Bar (Desktop) -->
+      <div class="header-center">
+        <div class="search-container">
+          <i class="ph ph-magnifying-glass search-icon"></i>
+          <input type="text" placeholder="Buscar cuidadores..." class="search-input" id="headerSearch">
+          <button class="search-btn" type="button">
+            <i class="ph ph-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- User Actions -->
+      <div class="header-right">
+        <!-- Notifications -->
+        <a href="notificacao.html" class="header-action-btn notification-btn active" id="notificationBtn">
+          <i class="ph ph-bell"></i>
+          <span class="notification-badge" style="display: none;">0</span>
+        </a>
+        
+        <!-- Messages -->
+        <a href="mensagens.html" class="header-action-btn message-btn" id="messageBtn">
+          <i class="ph ph-chat-circle"></i>
+          <span class="message-badge" style="display: none;">0</span>
+        </a>
+        
+        <!-- User Profile -->
+        <div class="user-profile-dropdown" id="userProfileDropdown">
+          <button class="user-profile-btn" id="userProfileBtn">
+            <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
+            <span class="user-name" id="headerUserName">João Silva</span>
+            <i class="ph ph-caret-down dropdown-arrow"></i>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div class="profile-dropdown-menu" id="profileDropdownMenu">
+            <div class="dropdown-header">
+              <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+              <div class="dropdown-user-info">
+                <h4>João Silva</h4>
+                <p>Cliente Premium</p>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a href="perfilCliente.html" class="dropdown-item">
+              <i class="ph ph-user"></i>
+              <span>Meu Perfil</span>
+            </a>
+            <a href="../HTML/configuracoes.html" class="dropdown-item">
+              <i class="ph ph-gear"></i>
+              <span>Configurações</span>
+            </a>
+            <a href="contratarInTime.html" class="dropdown-item">
+              <i class="ph ph-clock"></i>
+              <span>In-time</span>
+            </a>
+            <a href="#" class="dropdown-item">
+              <i class="ph ph-question"></i>
+              <span>Ajuda</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="../../index.html" class="dropdown-item logout-item" id="headerLogoutBtn">
+              <i class="ph ph-sign-out"></i>
+              <span>Sair</span>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+          <i class="ph ph-list"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="contratar-main">
+    <div class="contratar-container">
+      <div class="page-header">
+        <a href="homeCliente.html" class="back-btn">
+          <i class="ph ph-arrow-left"></i> Voltar
+        </a>
+        <h1>Contratar Cuidador</h1>
+        <p class="subtitle">Encontre o cuidador ideal para suas necessidades</p>
+      </div>
+
+      <section class="form-container">
+        <div class="section-header">
+          <i class="ph ph-map-pin"></i>
+          <h2>Local do Atendimento</h2>
+        </div>
+        
+        <div class="address-info" id="addressInfo">
+          <i class="ph ph-info"></i>
+          <p>Carregando seu endereço cadastrado...</p>
+        </div>
+        
+        <form id="addressForm">
+          <div class="linha">
+            <div class="campo">
+              <label for="cep"><i class="ph ph-map-trifold"></i> CEP</label>
+              <input type="text" id="cep" placeholder="00000-000" maxlength="9">
+            </div>
+            <div class="campo">
+              <label for="numero"><i class="ph ph-hash"></i> Número</label>
+              <input type="text" id="numero" placeholder="123">
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="campo campo-full">
+              <label for="rua"><i class="ph ph-road-horizon"></i> Rua</label>
+              <input type="text" id="rua" placeholder="Nome da rua">
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="campo">
+              <label for="complemento"><i class="ph ph-building"></i> Complemento</label>
+              <input type="text" id="complemento" placeholder="Apt, Bloco, etc (opcional)">
+            </div>
+            <div class="campo">
+              <label for="bairro"><i class="ph ph-map-pin-line"></i> Bairro</label>
+              <input type="text" id="bairro" placeholder="Bairro">
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="campo">
+              <label for="cidade"><i class="ph ph-buildings"></i> Cidade</label>
+              <input type="text" id="cidade" placeholder="Cidade">
+            </div>
+            <div class="campo campo-small">
+              <label for="estado"><i class="ph ph-flag"></i> Estado</label>
+              <input type="text" id="estado" placeholder="UF" maxlength="2">
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="selecionar">
+        <div class="section-header">
+          <i class="ph ph-user-focus"></i>
+          <h2>Tipo de Cuidador</h2>
+        </div>
+        <p class="section-description">Selecione o tipo de cuidador que você precisa</p>
+        
+        <div class="opcoes">
+          <label class="opcao">
+            <input type="radio" name="cuidador" value="idosos" required>
+            <div class="opcao-content">
+              <i class="ph ph-heartbeat icone"></i>
+              <span class="texto">Cuidador de Idosos</span>
+              <span class="descricao">Atendimento especializado para pessoas idosas</span>
+            </div>
+            <i class="ph ph-check-circle check-icon"></i>
+          </label>
+
+          <label class="opcao">
+            <input type="radio" name="cuidador" value="pet" required>
+            <div class="opcao-content">
+              <i class="ph ph-dog icone"></i>
+              <span class="texto">Cuidador de Pet</span>
+              <span class="descricao">Cuidados especiais para seu animal</span>
+            </div>
+            <i class="ph ph-check-circle check-icon"></i>
+          </label>
+
+          <label class="opcao">
+            <input type="radio" name="cuidador" value="crianca" required>
+            <div class="opcao-content">
+              <i class="ph ph-baby icone"></i>
+              <span class="texto">Cuidador Infantil</span>
+              <span class="descricao">Atendimento para bebês e crianças</span>
+            </div>
+            <i class="ph ph-check-circle check-icon"></i>
+          </label>
+        </div>
+      </section>
+
+      <div class="action-buttons">
+        <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+          <i class="ph ph-x"></i> Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" id="continuarBtn">
+          <a href="Pagamento.html"></a>
+          <i class="ph ph-check-circle"></i> Continuar
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Carregar endereço do cliente do localStorage ou banco
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('[ContratarInTime] Iniciando carregamento de dados');
+      
+      // Verificar se usuário está logado
+      const isLoggedIn = localStorage.getItem('cuidafast_isLoggedIn');
+      let userData = localStorage.getItem('cuidafast_user');
+      
+      if (isLoggedIn !== 'true' || !userData) {
+        alert('Você precisa estar logado para contratar um cuidador.');
+        window.location.href = '../../index.html';
+        return;
+      }
+
+      try {
+        let user = JSON.parse(userData);
+        
+        // Tenta buscar dados atualizados do banco primeiro
+        if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+          const updatedUser = await window.CuidaFastAuth.fetchUserDataFromDB();
+          if (updatedUser) {
+            user = updatedUser;
+          }
+        }
+        
+        console.log('[ContratarInTime] Dados do usuário:', user);
+        
+        // Atualizar nome do usuário no header
+        const headerUserName = document.getElementById('headerUserName');
+        if (headerUserName && user.nome) {
+          headerUserName.textContent = user.primeiroNome || user.nome.split(' ')[0];
+        }
+        
+        // Carregar endereço se existir (pode estar em user.endereco ou nos campos diretos)
+        let endereco = user.endereco;
+        
+        // Se não tiver objeto endereco, monta a partir dos campos diretos do banco
+        if (!endereco && (user.rua || user.cidade)) {
+          endereco = {};
+          if (user.rua) endereco.rua = user.rua;
+          if (user.numero) endereco.numero = user.numero;
+          if (user.complemento) endereco.complemento = user.complemento;
+          if (user.bairro) endereco.bairro = user.bairro;
+          if (user.cidade) endereco.cidade = user.cidade;
+          if (user.estado) endereco.estado = user.estado;
+          if (user.cep) endereco.cep = user.cep;
+        }
+        
+        if (endereco) {
+          console.log('[ContratarInTime] Endereço encontrado:', endereco);
+          
+          // Preencher campos
+          document.getElementById('cep').value = endereco.cep || '';
+          document.getElementById('rua').value = endereco.rua || '';
+          document.getElementById('numero').value = endereco.numero || '';
+          document.getElementById('complemento').value = endereco.complemento || '';
+          document.getElementById('bairro').value = endereco.bairro || '';
+          document.getElementById('cidade').value = endereco.cidade || '';
+          document.getElementById('estado').value = endereco.estado || '';
+          
+          // Mostrar mensagem de sucesso
+          const addressInfo = document.getElementById('addressInfo');
+          addressInfo.innerHTML = '<i class="ph ph-check-circle"></i><p>Endereço carregado com sucesso! Você pode editá-lo se necessário.</p>';
+          addressInfo.style.background = 'rgba(46, 204, 113, 0.1)';
+          addressInfo.style.borderColor = '#27ae60';
+          addressInfo.style.color = '#27ae60';
+        } else {
+          console.log('[ContratarInTime] Nenhum endereço cadastrado');
+          const addressInfo = document.getElementById('addressInfo');
+          addressInfo.innerHTML = '<i class="ph ph-warning"></i><p>Nenhum endereço cadastrado. Por favor, preencha os campos abaixo.</p>';
+          addressInfo.style.background = 'rgba(250, 213, 100, 0.15)';
+          addressInfo.style.borderColor = '#FAD564';
+          addressInfo.style.color = '#d4a017';
+        }
+      } catch (error) {
+        console.error('[ContratarInTime] Erro ao carregar endereço:', error);
+        const addressInfo = document.getElementById('addressInfo');
+        addressInfo.innerHTML = '<i class="ph ph-x-circle"></i><p>Erro ao carregar endereço. Preencha manualmente.</p>';
+        addressInfo.style.background = 'rgba(231, 76, 60, 0.1)';
+        addressInfo.style.borderColor = '#e74c3c';
+        addressInfo.style.color = '#e74c3c';
+      }
+    });
+
+    // Formatar CEP
+    document.addEventListener('DOMContentLoaded', function() {
+      const cepInput = document.getElementById('cep');
+      if (cepInput) {
+        cepInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.length > 5) {
+            value = value.slice(0, 5) + '-' + value.slice(5, 8);
+          }
+          e.target.value = value;
+        });
+      }
+    });
+
+    // Botão Continuar
+    document.addEventListener('DOMContentLoaded', function() {
+      const continuarBtn = document.getElementById('continuarBtn');
+      if (continuarBtn) {
+        continuarBtn.addEventListener('click', function() {
+          const tipoCuidador = document.querySelector('input[name="cuidador"]:checked');
+          
+          if (!tipoCuidador) {
+            alert('Por favor, selecione o tipo de cuidador.');
+            return;
+          }
+          
+          const cep = document.getElementById('cep').value;
+          const rua = document.getElementById('rua').value;
+          const numero = document.getElementById('numero').value;
+          const bairro = document.getElementById('bairro').value;
+          const cidade = document.getElementById('cidade').value;
+          const estado = document.getElementById('estado').value;
+          
+          if (!cep || !rua || !numero || !bairro || !cidade || !estado) {
+            alert('Por favor, preencha todos os campos de endereço obrigatórios.');
+            return;
+          }
+          
+          // Salvar dados da contratação
+          const contratacao = {
+            tipoCuidador: tipoCuidador.value,
+            endereco: { 
+              cep, 
+              rua, 
+              numero, 
+              complemento: document.getElementById('complemento').value, 
+              bairro, 
+              cidade, 
+              estado 
+            },
+            data: new Date().toISOString(),
+            status: 'pendente'
+          };
+          
+          localStorage.setItem('cuidafast_contratacao', JSON.stringify(contratacao));
+          console.log('[ContratarInTime] Contratação salva:', contratacao);
+          
+          // Redirecionar para página de pagamento
+          window.location.href = 'Pagamento.html';
+        });
+      }
+    });
+  </script>
+  
+  <!-- Header JS -->
+  <script src="../JS/header.js"></script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js";
+  
+    const SUPABASE_URL = "https://kgwepkcxmsoyebxczqwe.supabase.co";
+    const SUPABASE_ANON_KEY = "SUA_ANON_KEY_PUBLICA_AQUI";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+    // Ao carregar a página, Supabase já restaurou a sessão (após redirect OAuth)
+    (async () => {
+      const { data: { session, user } } = await supabase.auth.getSession();
+      if (user) {
+        console.log('Usuário autenticado via Supabase:', user.email);
+        // Guarda temporariamente para o JS do formulário usar
+        localStorage.setItem('cuidafast_oauth_user', JSON.stringify({
+          email: user.email,
+          nome: user.user_metadata?.full_name || null,
+          photo_url: user.user_metadata?.avatar_url || null
+        }));
+      }
+    })();
+  </script>
+  <title>Complete seu Cadastro - CuidaFast</title>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="../CSS/styles.css">
+  <link rel="stylesheet" href="../CSS/pages/cadastro.css">
+  <link rel="stylesheet" href="../CSS/pages/cadastroComplemento.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+</head>
+
+<body>
+  <div class="container-cadastro">
+    <div class="back">
+      <a href="javascript:history.back()" class="back-link">
+        <i class="ph ph-arrow-circle-left"></i>
+      </a>
+    </div>
+    
+    <h1>Complete seu Perfil</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+      Precisamos de mais algumas informações para personalizar sua experiência
+    </p>
+
+    <div class="info-box">
+      <i class="ph ph-info"></i>
+      <p>Essas informações nos ajudam a encontrar os melhores cuidadores próximos a você e garantir que você tenha a melhor experiência.</p>
+    </div>
+
+    <form id="form-complemento">
+      <div class="input-group">
+        <div class="form-row">
+          <div class="input-with-icon">
+            <i class="ph ph-calendar"></i>
+            <input 
+              type="date" 
+              id="dataNascimento" 
+              name="dataNascimento" 
+              placeholder="Data de Nascimento"
+              required 
+              max="2010-12-31"
+            />
+          </div>
+          <div class="input-with-icon">
+            <i class="ph ph-identification-card"></i>
+            <input 
+              type="text" 
+              id="cpf" 
+              name="cpf" 
+              placeholder="CPF" 
+              required 
+              maxlength="14"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Foto de Perfil (apenas se não cadastrou com Google) -->
+      <div class="form-group" id="photoUploadGroup" style="display: none;">
+        <label for="photoUpload" style="display: flex; align-items: center; gap: 0.5rem; color: var(--azul-escuro); font-weight: 600; margin-bottom: 0.5rem;">
+          <i class="ph ph-camera"></i>
+          Foto de Perfil
+        </label>
+        <div class="photo-upload-container">
+          <div class="photo-preview" id="photoPreview">
+            <i class="ph ph-user-circle" style="font-size: 4rem; color: #ccc;"></i>
+            <p>Nenhuma foto selecionada</p>
+          </div>
+          <input 
+            type="file" 
+            id="photoUpload" 
+            name="photoUpload" 
+            accept="image/*"
+            style="display: none;"
+          >
+          <button type="button" class="btn-secondary" id="selectPhotoBtn" style="margin-top: 1rem;">
+            <i class="ph ph-upload"></i>
+            Selecionar Foto
+          </button>
+          <p class="photo-hint" style="font-size: 0.8rem; color: #666; text-align: center; margin-top: 0.5rem;">
+            Arraste uma foto aqui ou clique em "Selecionar Foto"<br>
+            Formatos aceitos: JPG, PNG. Tamanho máximo: 5MB
+          </p>
+        </div>
+      </div>
+
+      <div class="divider"><span>Endereço</span></div>
+
+      <div class="input-group">
+        <div class="cep-row">
+          <button type="button" id="btnBuscarCep" class="btn-buscar-cep">
+            <i class="ph ph-magnifying-glass"></i>
+          </button>
+          <div class="input-with-icon">
+            <i class="ph ph-map-pin"></i>
+            <input 
+              type="text" 
+              id="cep" 
+              name="cep" 
+              placeholder="CEP" 
+              required 
+              maxlength="9"
+            />
+          </div>
+        </div>
+        
+        <div class="input-with-icon">
+          <i class="ph ph-hash"></i>
+          <input 
+            type="text" 
+            id="numero" 
+            name="numero" 
+            placeholder="Número" 
+            required 
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="input-with-icon">
+            <i class="ph ph-road-horizon"></i>
+            <input 
+              type="text" 
+              id="rua" 
+              name="rua" 
+              placeholder="Rua" 
+              required 
+            />
+          </div>
+          <div class="input-with-icon">
+            <i class="ph ph-building"></i>
+            <input 
+              type="text" 
+              id="complemento" 
+              name="complemento" 
+              placeholder="Complemento (opcional)" 
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="input-with-icon">
+            <i class="ph ph-map-trifold"></i>
+            <input 
+              type="text" 
+              id="bairro" 
+              name="bairro" 
+              placeholder="Bairro" 
+              required 
+            />
+          </div>
+          <div class="input-with-icon">
+            <i class="ph ph-buildings"></i>
+            <input 
+              type="text" 
+              id="cidade" 
+              name="cidade" 
+              placeholder="Cidade" 
+              required 
+            />
+          </div>
+        </div>
+        
+        <div class="input-with-icon uf-centered">
+          <i class="ph ph-flag"></i>
+          <input 
+            type="text" 
+            id="estado" 
+            name="estado" 
+            placeholder="UF" 
+            required 
+            maxlength="2"
+            style="text-transform: uppercase;"
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn">
+        Finalizar
+      </button>
+    </form>
+    
+    <br>
+    <p class="terms" style="text-align: center;">
+      Suas informações estão seguras e protegidas conosco.
+    </p>
+  </div>
+<script type="module" src="../JS/cadastroComplemento.js"></script>
+</body>
+</html>

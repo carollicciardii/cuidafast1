@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Serviços - CuidaFast</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            background: #FFFBEC;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            margin-bottom: 1.5rem;
+            border: 2px solid #1B475D;
+        }
+        .card-header {
+            background: #1B475D;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-custom {
+            background: #1B475D;
+            color: white;
+            border: none;
+        }
+        .btn-custom:hover {
+            background: #163947;
+            color: white;
+        }
+        .stats-box {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">
+            <i class="ph ph-test-tube"></i> Teste de Sistema de Serviços
+        </h1>
+        
+        <div class="alert alert-info">
+            <i class="ph ph-info"></i>
+            <strong>Instruções:</strong> Use esta página para simular a criação e aceitação de serviços. 
+            As estatísticas serão atualizadas automaticamente no dashboard do cuidador.
+        </div>
+
+        <!-- Card: Criar Serviço -->
+        <div class="card">
+            <div class="card-header">
+                <i class="ph ph-plus-circle"></i> Criar Novo Serviço
+            </div>
+            <div class="card-body">
+                <form id="criarServicoForm">
+                    <div class="mb-3">
+                        <label class="form-label">Email do Cuidador</label>
+                        <input type="email" class="form-control" id="cuidadorEmail" required>
+                        <small class="text-muted">Email do cuidador que receberá o serviço</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email do Cliente</label>
+                        <input type="email" class="form-control" id="clienteEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nome do Cliente</label>
+                        <input type="text" class="form-control" id="clienteNome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Serviço</label>
+                        <select class="form-select" id="tipoServico" required>
+                            <option value="idoso">Cuidado de Idosos</option>
+                            <option value="crianca">Cuidado Infantil</option>
+                            <option value="pet">Cuidado de Pets</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-custom">
+                        <i class="ph ph-check"></i> Criar Serviço
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Card: Serviços Pendentes -->
+        <div class="card">
+            <div class="card-header">
+                <i class="ph ph-clock"></i> Serviços Pendentes
+            </div>
+            <div class="card-body">
+                <div id="servicosPendentes">
+                    <p class="text-muted">Nenhum serviço pendente</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Estatísticas Atuais -->
+        <div class="card">
+            <div class="card-header">
+                <i class="ph ph-chart-line"></i> Estatísticas do Cuidador Logado
+            </div>
+            <div class="card-body">
+                <div id="estatisticasAtuais">
+                    <p class="text-muted">Faça login como cuidador para ver as estatísticas</p>
+                </div>
+                <button class="btn btn-custom mt-3" onclick="atualizarEstatisticas()">
+                    <i class="ph ph-arrows-clockwise"></i> Atualizar Estatísticas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/servicosManager.js"></script>
+    <script>
+        // Carregar serviços pendentes ao iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarServicosPendentes();
+            atualizarEstatisticas();
+            
+            // Auto-preencher com usuário logado se for cuidador
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            if (userData.tipo === 'cuidador') {
+                document.getElementById('cuidadorEmail').value = userData.email;
+            }
+        });
+
+        // Criar novo serviço
+        document.getElementById('criarServicoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const cuidadorEmail = document.getElementById('cuidadorEmail').value;
+            const clienteEmail = document.getElementById('clienteEmail').value;
+            const clienteNome = document.getElementById('clienteNome').value;
+            const tipoServico = document.getElementById('tipoServico').value;
+            
+            const servico = ServicosManager.criarServico(
+                cuidadorEmail,
+                clienteEmail,
+                clienteNome,
+                tipoServico
+            );
+            
+            alert('✅ Serviço criado com sucesso!\nID: ' + servico.id);
+            
+            // Limpar formulário
+            document.getElementById('clienteEmail').value = '';
+            document.getElementById('clienteNome').value = '';
+            
+            // Atualizar lista
+            carregarServicosPendentes();
+        });
+
+        // Carregar serviços pendentes
+        function carregarServicosPendentes() {
+            const servicos = ServicosManager.getServicos();
+            const pendentes = servicos.filter(s => s.status === 'pendente');
+            
+            const container = document.getElementById('servicosPendentes');
+            
+            if (pendentes.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nenhum serviço pendente</p>';
+                return;
+            }
+            
+            let html = '';
+            pendentes.forEach(servico => {
+                html += `
+                    <div class="stats-box mb-2">
+                        <strong>ID:</strong> ${servico.id}<br>
+                        <strong>Cliente:</strong> ${servico.clienteNome} (${servico.clienteEmail})<br>
+                        <strong>Cuidador:</strong> ${servico.cuidadorEmail}<br>
+                        <strong>Tipo:</strong> ${servico.tipo}<br>
+                        <strong>Data:</strong> ${new Date(servico.dataContratacao).toLocaleString('pt-BR')}<br>
+                        <button class="btn btn-success btn-sm mt-2" onclick="aceitarServico('${servico.id}', '${servico.cuidadorEmail}')">
+                            <i class="ph ph-check"></i> Aceitar Serviço
+                        </button>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="concluirServico('${servico.id}', '${servico.cuidadorEmail}')">
+                            <i class="ph ph-check-circle"></i> Concluir Serviço
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Aceitar serviço
+        function aceitarServico(servicoId, cuidadorEmail) {
+            const servico = ServicosManager.aceitarServico(servicoId, cuidadorEmail);
+            
+            if (servico) {
+                alert('✅ Serviço aceito com sucesso!\nAs estatísticas do dashboard foram atualizadas.');
+                carregarServicosPendentes();
+                atualizarEstatisticas();
+            } else {
+                alert('❌ Erro ao aceitar serviço');
+            }
+        }
+
+        // Concluir serviço diretamente (para teste)
+        function concluirServico(servicoId, cuidadorEmail) {
+            // Primeiro aceitar
+            ServicosManager.aceitarServico(servicoId, cuidadorEmail);
+            
+            // Depois concluir com valor simulado
+            const valor = Math.random() * 500 + 100; // R$ 100 a R$ 600
+            const servico = ServicosManager.concluirServico(servicoId, cuidadorEmail, valor);
+            
+            if (servico) {
+                // Adicionar avaliação aleatória
+                const nota = Math.floor(Math.random() * 2) + 4; // 4 ou 5 estrelas
+                ServicosManager.avaliarServico(servicoId, nota, 'Ótimo serviço!');
+                
+                alert(`✅ Serviço concluído com sucesso!\nValor: R$ ${valor.toFixed(2)}\nAvaliação: ${nota} estrelas\n\nAs estatísticas do dashboard foram atualizadas.`);
+                carregarServicosPendentes();
+                atualizarEstatisticas();
+            } else {
+                alert('❌ Erro ao concluir serviço');
+            }
+        }
+
+        // Atualizar estatísticas
+        function atualizarEstatisticas() {
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            const container = document.getElementById('estatisticasAtuais');
+            
+            if (!userData.email || userData.tipo !== 'cuidador') {
+                container.innerHTML = '<p class="text-muted">Faça login como cuidador para ver as estatísticas</p>';
+                return;
+            }
+            
+            const stats = ServicosManager.getEstatisticasCuidador(userData.email);
+            
+            container.innerHTML = `
+                <div class="stats-box">
+                    <h5>${userData.nome}</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Total de Serviços:</strong> ${stats.totalServicos}<br>
+                            <strong>Pendentes:</strong> ${stats.servicosPendentes}<br>
+                            <strong>Aceitos:</strong> ${stats.servicosAceitos}<br>
+                            <strong>Em Andamento:</strong> ${stats.servicosEmAndamento}<br>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Concluídos:</strong> ${stats.servicosConcluidos}<br>
+                            <strong>Cancelados:</strong> ${stats.servicosCancelados}<br>
+                            <strong>Receita Total:</strong> R$ ${stats.receitaTotal.toFixed(2)}<br>
+                            <strong>Média de Avaliações:</strong> ${stats.mediaAvaliacoes} ⭐ (${stats.totalAvaliacoes} avaliações)<br>
+                        </div>
+                    </div>
+                    <small class="text-muted">Última atualização: ${new Date(stats.ultimaAtualizacao).toLocaleString('pt-BR')}</small>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Processando login Google...</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f5;
+    }
+    .loading {
+      text-align: center;
+      padding: 2rem;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4CAF50;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>Processando login com Google...</p>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+    const SUPABASE_URL = "https://omvwicetojhqurdeuequ.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tdndpY2V0b2pocXVyZGV1ZXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MTI5MTEsImV4cCI6MjA3ODk4ODkxMX0.3XyOux7wjBIC2kIlmdSCTYzznzZOk5tJcHJJMA3Jggc";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function processCallback() {
+      try {
+        console.log('[callbackGoogle] Processando callback do OAuth...');
+
+        // O Supabase automaticamente processa o hash da URL (#access_token=...)
+        // e cria a sessão
+        const { data, error } = await supabase.auth.getSession();
+        const session = data?.session ?? null;
+        const user = session?.user ?? null;
+        console.log('[callbackGoogle] getSession raw data:', data);
+
+
+        if (error) {
+          console.error('[callbackGoogle] Erro ao obter sessão:', error);
+          alert('Erro ao processar login com Google. Por favor, tente novamente.');
+          window.location.href = '../HTML/cadastro.html';
+          return;
+        }
+
+        if (!user || !session) {
+          console.warn('[callbackGoogle] Usuário não autenticado após callback');
+          alert('Não foi possível completar o login com Google. Por favor, tente novamente.');
+          window.location.href = '../HTML/cadastro.html';
+          return;
+        }
+
+        console.log('[callbackGoogle] Usuário autenticado:', user.email);
+        console.log('[callbackGoogle] user_metadata completo:', user.user_metadata);
+        console.log('[callbackGoogle] user completo:', user);
+
+        // Recupera o tipo de usuário que foi escolhido antes do OAuth
+        const tipoUsuario = localStorage.getItem('cuidafast_tipoRegistro') || 'cliente';
+
+        // Prepara dados do usuário
+        // Tenta pegar foto do Google de diferentes campos possíveis
+        const photoUrl = user.user_metadata?.avatar_url || 
+                        user.user_metadata?.picture || 
+                        user.user_metadata?.avatar ||
+                        user.identities?.[0]?.identity_data?.avatar_url ||
+                        null;
+        
+        console.log('[callbackGoogle] Foto capturada do Google:', photoUrl);
+        
+        const userData = {
+          id: user.id,
+          email: user.email,
+          nome: user.user_metadata?.full_name || user.email.split('@')[0],
+          photo_url: photoUrl,
+          photoURL: photoUrl, // Também salva como photoURL para compatibilidade
+          tipo: tipoUsuario,
+          primeiroNome: (user.user_metadata?.full_name || user.email.split('@')[0]).split(' ')[0],
+          auth_uid: user.id
+        };
+
+        // Salva temporariamente no localStorage
+        localStorage.setItem('cuidafast_user', JSON.stringify(userData));
+        localStorage.setItem('cuidafast_isLoggedIn', 'true');
+
+        // Chama o backend para criar/atualizar o usuário no banco
+        const API_URL = window.API_CONFIG?.AUTH || "/api/auth";
+        
+        try {
+          const resp = await fetch(`${API_URL}/google-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: user.email,
+              nome: userData.nome,
+              foto_url: userData.photo_url || userData.photoURL,
+              tipo_usuario: tipoUsuario,
+              auth_uid: user.id
+            })
+          });
+
+          const result = await resp.json();
+
+          if (resp.ok && result.user) {
+            // Atualiza com dados do backend
+            const resolvedId = result.user.usuario_id || result.user.id;
+            // Prioriza foto do backend, depois do userData, depois do Google original
+            const finalPhotoUrl = result.user.photo_url || userData.photo_url || userData.photoURL || photoUrl;
+            
+            const backendUser = {
+              ...userData,
+              id: resolvedId,
+              usuario_id: resolvedId,
+              nome: result.user.nome || userData.nome,
+              email: result.user.email || userData.email,
+              telefone: result.user.telefone || null,
+              tipo: result.user.tipo || tipoUsuario,
+              photoURL: finalPhotoUrl,
+              photo_url: finalPhotoUrl,
+              primeiroNome: (result.user.nome || userData.nome || '').split(' ')[0]
+            };
+            localStorage.setItem('cuidafast_user', JSON.stringify(backendUser));
+            console.log('[callbackGoogle] Dados do backend salvos. Foto:', finalPhotoUrl);
+            console.log('[callbackGoogle] backendUser completo:', backendUser);
+          } else {
+            console.warn('[callbackGoogle] Backend não respondeu corretamente, usando dados do Supabase');
+          }
+        } catch (err) {
+          console.error('[callbackGoogle] Erro ao chamar backend:', err);
+          // Continua mesmo se o backend falhar, pois já temos os dados do Supabase
+        }
+
+        // Redireciona para a página de complemento conforme o tipo
+        if (tipoUsuario === 'cuidador') {
+          window.location.href = '../HTML/cadastroComplementoCuidador.html';
+        } else {
+          window.location.href = '../HTML/cadastroComplemento.html';
+        }
+
+      } catch (err) {
+        console.error('[callbackGoogle] Erro inesperado:', err);
+        alert('Erro ao processar login. Por favor, tente novamente.');
+        window.location.href = '/cadastro.html';
+      }
+    }
+
+    // Processa o callback quando a página carrega
+    document.addEventListener('DOMContentLoaded', processCallback);
+    
+    // Também tenta processar imediatamente (caso o DOM já esteja carregado)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', processCallback);
+    } else {
+      processCallback();
+    }
+    /* =========================
+   MINI VERIFICADOR ESPECÍFICO (para callback Google)
+   Cole no FINAL do seu <script type="module"> — NÃO remova nada do código acima.
+   ========================= */
+(function CuidafastMiniVerifier() {
+  const PREFIX = "[VERIFICADOR-CUIDAFAST]";
+  // salva originais
+  const _fetch = window.fetch.bind(window);
+  const _setItem = Storage.prototype.setItem;
+  const _getItem = Storage.prototype.getItem;
+
+  // 1) Handlers globais de erro
+  window.addEventListener("error", (ev) => {
+    console.error(`${PREFIX} Erro global capturado:`, ev.message || ev.error || ev);
+    if (ev.filename) console.debug(`${PREFIX} Origem: ${ev.filename}:${ev.lineno}:${ev.colno}`);
+  });
+  window.addEventListener("unhandledrejection", (ev) => {
+    console.error(`${PREFIX} Promise rejeitada (não tratada):`, ev.reason);
+  });
+
+  // 2) Wrap fetch para logar falhas (mantendo comportamento)
+  window.fetch = async function (...args) {
+    const [resource, init] = args;
+    try {
+      const res = await _fetch(resource, init);
+      if (!res.ok) {
+        console.warn(`${PREFIX} fetch retornou status não-ok ->`, resource, res.status, res.statusText);
+        // tenta ler corpo sem quebrar fluxo
+        try {
+          const clone = res.clone();
+          const text = await clone.text();
+          console.debug(`${PREFIX} Body da resposta (clone):`, text);
+        } catch (e) {
+          console.debug(`${PREFIX} Não foi possível ler body da resposta:`, e);
+        }
+      } else {
+        console.log(`${PREFIX} fetch OK ->`, resource, "status:", res.status);
+      }
+      return res;
+    } catch (err) {
+      console.error(`${PREFIX} Erro no fetch ->`, resource, err);
+      throw err; // relança para não alterar comportamento
+    }
+  };
+
+  // 3) Log para localStorage (sem alterá-lo). Apenas registra chaves relevantes.
+  Storage.prototype.setItem = function (key, value) {
+    try {
+      if (typeof key === "string" && key.startsWith("cuidafast_")) {
+        // evita logar valores sensíveis (não imprimir senhas)
+        const safeValue = (key.toLowerCase().includes("senha") || key.toLowerCase().includes("token"))
+          ? "(valor oculto)"
+          : value && typeof value === "string" && value.length > 200 ? value.slice(0, 200) + "…(cortado)" : value;
+        console.log(`${PREFIX} localStorage.setItem -> ${key}:`, safeValue);
+      }
+    } catch (e) {
+      console.debug(`${PREFIX} Erro ao logar setItem:`, e);
+    }
+    return _setItem.apply(this, arguments);
+  };
+  Storage.prototype.getItem = function (key) {
+    try {
+      if (typeof key === "string" && key.startsWith("cuidafast_")) {
+        console.log(`${PREFIX} localStorage.getItem -> ${key}`);
+      }
+    } catch (e) {
+      console.debug(`${PREFIX} Erro ao logar getItem:`, e);
+    }
+    return _getItem.apply(this, arguments);
+  };
+
+  // 4) Checagens específicas do seu fluxo (variáveis e supabase)
+  try {
+    console.group(`${PREFIX} Verificações iniciais`);
+    // Supabase constants (as consts no módulo)
+    try {
+      if (typeof SUPABASE_URL !== "undefined") {
+        console.log(`${PREFIX} SUPABASE_URL definido (length=${String(SUPABASE_URL).length})`);
+      } else {
+        console.warn(`${PREFIX} SUPABASE_URL NÃO definido no escopo do módulo`);
+      }
+    } catch (e) { console.debug(e); }
+
+    try {
+      if (typeof SUPABASE_ANON_KEY !== "undefined") {
+        console.log(`${PREFIX} SUPABASE_ANON_KEY presente (não exibo o valor por segurança).`);
+      } else {
+        console.warn(`${PREFIX} SUPABASE_ANON_KEY NÃO definido no escopo do módulo`);
+      }
+    } catch (e) { console.debug(e); }
+
+    try {
+      if (typeof supabase !== "undefined" && supabase && supabase.auth && typeof supabase.auth.getSession === "function") {
+        console.log(`${PREFIX} Cliente supabase detectado. auth.getSession disponível.`);
+      } else {
+        console.warn(`${PREFIX} Cliente supabase NÃO detectado ou auth.getSession ausente.`);
+      }
+    } catch (e) { console.debug(e); }
+
+    // API_URL detect
+    try {
+      const API_URL = window.API_CONFIG?.AUTH || "/api/auth";
+      console.log(`${PREFIX} API_URL calculada:`, API_URL);
+      if (!API_URL || API_URL === "/api/auth") {
+        console.warn(`${PREFIX} Atenção: API_URL padrão '/api/auth' está sendo usado — confirme se isso é intencional.`);
+      }
+    } catch (e) { console.debug(e); }
+
+    // URL hash (esperado no callback OAuth)
+    try {
+      const hash = window.location.hash || "";
+      if (hash.includes("access_token") || hash.includes("id_token") || hash.includes("refresh_token")) {
+        console.log(`${PREFIX} URL contém hash de OAuth (tokens) — supabase deverá processar isso automaticamente.`);
+      } else {
+        console.warn(`${PREFIX} URL NÃO contém hash de OAuth. Se o provedor retornou via hash, verifique redirect URI e método de resposta (implicit/PKCE).`);
+      }
+    } catch (e) { console.debug(e); }
+
+    console.groupEnd();
+  } catch (e) {
+    console.debug(`${PREFIX} Erro nas checagens iniciais:`, e);
+  }
+
+  // 5) Instrumentações específicas: monitorar chamadas a supabase.auth.getSession
+  try {
+    if (typeof supabase !== "undefined" && supabase && supabase.auth && typeof supabase.auth.getSession === "function") {
+      const origGetSession = supabase.auth.getSession.bind(supabase.auth);
+      supabase.auth.getSession = async function (...args) {
+        console.log(`${PREFIX} supabase.auth.getSession() chamado`);
+        const start = Date.now();
+        try {
+          const res = await origGetSession(...args);
+          const duration = Date.now() - start;
+          console.log(`${PREFIX} supabase.auth.getSession() resposta em ${duration}ms`, res);
+          if (res.error) {
+            console.warn(`${PREFIX} supabase.auth.getSession retornou error:`, res.error);
+          }
+          return res;
+        } catch (err) {
+          console.error(`${PREFIX} Erro ao chamar supabase.auth.getSession:`, err);
+          throw err;
+        }
+      };
+      console.log(`${PREFIX} Wrapped supabase.auth.getSession para logging.`);
+    }
+  } catch (e) {
+    console.debug(`${PREFIX} Não foi possível instrumentar supabase.auth.getSession:`, e);
+  }
+
+  // 6) Monitora envio ao backend /google-login (observa corpo e resposta)
+  (function monitorGoogleLogin() {
+    // intercepta chamadas fetch para detectar o endpoint /google-login
+    // já coberto pelo wrapper global, mas vamos adicionar um aviso específico
+    const originalFetch = window.fetch;
+    window.fetch = async function (resource, init) {
+      try {
+        // detecta se endpoint contém 'google-login'
+        const urlStr = typeof resource === "string" ? resource : (resource?.url || "");
+        if (urlStr.includes("/google-login")) {
+          console.log(`${PREFIX} Chamando endpoint /google-login ->`, urlStr);
+          if (init && init.body) {
+            try {
+              const bodyPreview = typeof init.body === "string" ? (init.body.length > 400 ? init.body.slice(0, 400) + "…(cortado)" : init.body) : "(body não-string)";
+              console.debug(`${PREFIX} Body (preview):`, bodyPreview);
+            } catch (e) {
+              console.debug(`${PREFIX} Não foi possível ler body do /google-login:`, e);
+            }
+          }
+        }
+      } catch (e) {
+        console.debug(`${PREFIX} Erro ao inspecionar fetch args:`, e);
+      }
+      // delega ao wrapper anterior (que já loga status)
+      return _fetch.apply(this, arguments);
+    };
+    console.log(`${PREFIX} Monitor do endpoint '/google-login' ativo.`);
+  })();
+
+  // 7) Inspeciona forms e redirecionamentos esperados
+  try {
+    const forms = document.querySelectorAll("form");
+    if (forms.length === 0) {
+      console.log(`${PREFIX} Nenhum <form> encontrado (sua página de callback pode não conter formulários — ok).`);
+    } else {
+      console.log(`${PREFIX} ${forms.length} form(s) encontrados na página.`);
+    }
+    // Redirecionamento esperado: cadastroComplemento(.html) conforme tipo
+    const tipoUsuario = (() => {
+      try { return localStorage.getItem('cuidafast_tipoRegistro') || 'cliente'; } catch (e) { return null; }
+    })();
+    console.log(`${PREFIX} tipoUsuario detectado no localStorage (preview):`, tipoUsuario);
+  } catch (e) {
+    console.debug(`${PREFIX} Erro ao checar forms/redirecionamento:`, e);
+  }
+
+  // 8) Exposição de utilitários para o console do dev
+  window.__cuidafastVerifier = {
+    summary() {
+      console.log(`${PREFIX} Resumo rápido:`);
+      try {
+        console.log(" - location.href:", window.location.href);
+        console.log(" - location.hash (preview):", (window.location.hash || "").slice(0, 200));
+        console.log(" - SUPABASE_URL:", typeof SUPABASE_URL !== "undefined" ? "(definido)" : "(não definido)");
+        console.log(" - SUPABASE_ANON_KEY:", typeof SUPABASE_ANON_KEY !== "undefined" ? "(definido)" : "(não definido)");
+        console.log(" - supabase:", typeof supabase !== "undefined" ? "presente" : "ausente");
+        console.log(" - localStorage keys (cuidafast_*):", Object.keys(localStorage).filter(k => k.startsWith("cuidafast_")));
+      } catch (e) {
+        console.debug(`${PREFIX} summary erro:`, e);
+      }
+      console.log(`${PREFIX} Use __cuidafastVerifier.fullCheck() para mais logs.`);
+    },
+    async fullCheck() {
+      console.log(`${PREFIX} Iniciando checagem completa...`);
+      try {
+        // tenta forçar chamada a supabase.auth.getSession para ver o resultado atual (não altera nada)
+        if (typeof supabase !== "undefined" && supabase && supabase.auth && typeof supabase.auth.getSession === "function") {
+          try {
+            const res = await supabase.auth.getSession();
+            console.log(`${PREFIX} Resultado getSession:`, res);
+          } catch (e) {
+            console.warn(`${PREFIX} getSession falhou durante fullCheck:`, e);
+          }
+        } else {
+          console.warn(`${PREFIX} supabase não disponível para fullCheck.`);
+        }
+      } catch (e) {
+        console.debug(`${PREFIX} fullCheck erro:`, e);
+      }
+      console.log(`${PREFIX} Checagem completa finalizada.`);
+    }
+  };
+
+  console.log(`${PREFIX} Mini verificador ativo. Use __cuidafastVerifier.summary() no console para um resumo.`);
+})();
+console.log("DEBUG SESSION = ", await supabase.auth.getSession());
+
+  </script>
+  
+</body>
+</html>
+

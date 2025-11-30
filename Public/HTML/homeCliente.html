@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Home Cliente - CuidaFast. Encontre cuidadores qualificados quando e onde precisar.">
+    <title>Home</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CSS - styles.css primeiro para ser a base -->
+    <link rel="stylesheet" href="../CSS/styles.css">
+    <link rel="stylesheet" href="../CSS/pages/homeCliente.css">
+</head>
+<body class="client-home">
+    <!-- Firebase SDK -->
+<script type="module">
+  // Importa SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+  // Configuração do seu projeto Firebase
+  const firebaseConfig = {
+  apiKey: "AIzaSyBsiC8RaCd-6bwuThixa1ZxFkK4JhHgfjk",
+  authDomain: "cuidafast-hub-af250.firebaseapp.com",
+  projectId: "cuidafast-hub-af250",
+  storageBucket: "cuidafast-hub-af250.firebasestorage.app",
+  messagingSenderId: "263800638065",
+  appId: "1:263800638065:web:9b655c9d3e3acea160e9d0",
+  measurementId: "G-701M8B5CZC"
+};
+  // Inicializa Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const messaging = getMessaging(app);
+
+  // Solicitar permissão para notificações
+  async function initFCM() {
+    try {
+      const token = await getToken(messaging, { vapidKey: "BAMeCbsVy0Wy1fqHjxiyHcviJhGUQC4S6VhLKC9FMgB8wJlYWYzW2EaEzqR8wY1SalKrwc0-D3aRotYl2VmHqwA" });
+      console.log("Token de notificação:", token);
+
+      // Aqui você pode salvar o token no Firestore
+      // ex: salvarTokens(token);
+    } catch (error) {
+      console.error("Erro ao obter token:", error);
+    }
+  }
+
+  // Receber notificações em primeiro plano
+  onMessage(messaging, (payload) => {
+    console.log("Notificação recebida:", payload);
+    alert(`Mensagem: ${payload.notification.title}`);
+  });
+
+  initFCM();
+</script>
+    <!-- Pop-up de confirmação de logout -->
+<div class="logout-popup" id="logoutPopup">
+  <div class="logout-popup-content">
+    <h3>Tem certeza que deseja sair?</h3>
+    <p>Você será redirecionado para a página inicial.</p>
+    <div class="logout-popup-buttons">
+      <button id="confirmLogout" class="confirm-btn">Sim, sair</button>
+      <button id="cancelLogout" class="cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+    <!-- Header Moderno -->
+    <header class="modern-header">
+        <div class="header-container">
+            <!-- Logo Section -->
+            <div class="header-left">
+                <a href="homeCliente.html" class="logo-link">
+                    <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+                    <span class="logo-text"></span>
+                </a>
+            </div>
+            
+            <!-- Search Bar (Desktop) -->
+            <div class="header-center">
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" placeholder="Buscar cuidadores..." class="search-input" id="headerSearch">
+                    <button class="search-btn" type="button">
+                        <i class="ph ph-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- User Actions -->
+            <div class="header-right">
+                <!-- Notifications -->
+                <button class="header-action-btn notification-btn active" id="notificationBtn">
+                    <i class="ph ph-bell"></i>
+                    <span class="notification-badge" style="display: none;">0</span>
+                </button>
+                
+                <!-- Messages -->
+                <button class="header-action-btn message-btn" id="messageBtn">
+                    <i class="ph ph-chat-circle"></i>
+                    <span class="message-badge" style="display: none;">0</span>
+                </button>
+                
+                <!-- User Profile -->
+                <div class="user-profile-dropdown" id="userProfileDropdown">
+                    <button class="user-profile-btn" id="userProfileBtn">
+                        <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
+                        <span class="user-name" id="headerUserName">Usuário</span>
+                        <i class="ph ph-caret-down dropdown-arrow"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                        <div class="dropdown-header">
+                            <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+                            <div class="dropdown-user-info">
+                                <h4 id="dropdownUserName">Usuário</h4>
+                                <p>Cliente</p>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="perfilCliente.html" class="dropdown-item">
+                            <i class="ph ph-user"></i>
+                            <span>Meu Perfil</span>
+                        </a>
+                        <a href="../HTML/configuracoes.html" class="dropdown-item">
+                            <i class="ph ph-gear"></i>
+                            <span>Configurações</span>
+                        </a>
+                        <a href="contratarInTime.html" class="dropdown-item">
+                            <i class="ph ph-clock"></i>
+                            <span>In-time</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-question"></i>
+                            <span>Ajuda</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="../../index.html" class="dropdown-item logout-item" id="headerLogoutBtn">
+                            <i class="ph ph-sign-out"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Search Bar -->
+        <div class="mobile-search-container" id="mobileSearchContainer">
+            <div class="mobile-search-wrapper">
+                <i class="ph ph-magnifying-glass search-icon"></i>
+                <input type="text" placeholder="Buscar cuidadores..." class="mobile-search-input">
+                <button class="mobile-search-btn" type="button">
+                    <i class="ph ph-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" class="client-main" role="main">
+        <div class="containerzin">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-content">
+                    <h1 class="welcome-title">Bem vindo, <span id="welcomeName">Cliente</span></h1>
+                    <p class="welcome-subtitle">Cuidados quando e onde precisar</p>
+                </div>
+            </section>
+
+            <!-- Caregivers Section -->
+            <div id="caregiversHeader" style="text-align: center; margin: 40px 0;">
+                <h2 style="font-size: 28px; font-weight: bold; color: var(--azul-escuro); margin-bottom: 20px;">Melhores sugestões de cuidadores para você!</h2>
+                <div class="buttons" style="margin-bottom: 40px;">
+                    <button type="button" class="btn primary" id="openFilterBtn">
+                        <i class="ph ph-funnel"></i>
+                        Filtros
+                    </button>
+                    <a href="servicos.html" class="btn outline" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i class="ph ph-calendar-plus"></i>
+                        Ver Serviços
+                    </a>
+                </div>
+            </div>
+
+            <!-- Dynamic caregivers container (cards rendered from JS) -->
+            <section class="servicos" id="caregiversContainer" aria-live="polite">
+                <!-- cards will be injected here -->
+            </section>
+
+            <div style="text-align: center; margin: 40px 0;">
+                <button type="button" class="btn primary" id="loadMoreBtn">
+                    Carregar mais cuidadores
+                    <i class="ph ph-arrow-down" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 justify-content-center">
+                    <div class="modal-filter-icon">
+                        <i class="ph ph-funnel"></i>
+                    </div>
+                    <h5 class="modal-title" id="filterModalLabel">Filtrar Cuidadores</h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-2" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="filter-group mb-4">
+                        <label class="filter-label mb-2 d-block">Especialidade</label>
+                        <div class="filter-options">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="elderly" id="elderlyCheck" checked>
+                                <label class="form-check-label" for="elderlyCheck">
+                                    Cuidado de Idosos
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="childcare" id="childcareCheck">
+                                <label class="form-check-label" for="childcareCheck">
+                                    Cuidado Infantil
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="petcare" id="petcareCheck">
+                                <label class="form-check-label" for="petcareCheck">
+                                    Cuidado de Pets
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group mb-4">
+                        <label class="filter-label mb-2 d-block">Avaliação mínima</label>
+                        <div class="rating-filter">
+                            <input type="range" class="form-range" id="ratingRange" min="0" max="5" step="0.5" value="4">
+                            <div class="rating-display d-flex align-items-center mt-2">
+                                <span id="ratingValue" class="me-2">4.0</span>
+                                <div class="stars" style="color: #FAD564;">
+                                    <i class="ph-fill ph-star"></i>
+                                    <i class="ph-fill ph-star"></i>
+                                    <i class="ph-fill ph-star"></i>
+                                    <i class="ph-fill ph-star"></i>
+                                    <i class="ph ph-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group mb-4">
+                        <label class="filter-label mb-2 d-block" for="distanceRange">Distância máxima</label>
+                        <div class="distance-filter">
+                            <input type="range" class="form-range" id="distanceRange" min="1" max="50" value="15">
+                            <div class="distance-display mt-2">
+                                <span id="distanceValue">15</span> km
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label mb-2 d-block">Preço por hora</label>
+                        <div class="price-filter">
+                            <div class="price-inputs d-flex align-items-center gap-2">
+                                <input type="number" class="form-control" id="minPrice" placeholder="Mín" min="0" value="20">
+                                <span>até</span>
+                                <input type="number" class="form-control" id="maxPrice" placeholder="Máx" min="0" value="80">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" id="clearFilters">Limpar filtros</button>
+                    <button type="button" class="btn btn-primary" id="applyFilters">Aplicar filtros</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/main.js"></script>
+    <script src="../JS/homeCliente.js"></script>
+    
+
+<!-- Auth System -->
+<!--<script src="../JS/auth.js"></script>-->
+<!-- <script src="../JS/header.js"></script>
+
+</body>
+</html>

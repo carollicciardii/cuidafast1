@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cadastro — CuidaFast</title>
+
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- API_CONFIG (seus backends) -->
+  <script>
+    // Backend proxy das rotas de autenticação (/api/auth/*)
+    window.API_CONFIG = { AUTH: "/api/auth" };
+  </script>
+  
+
+  <!-- ===== CSS adaptado (colado aqui para facilitar testes) ===== -->
+  <style>
+  :root{
+    --azul-escuro: #1B475D;
+    --creme: #fffaf0;
+    --amarelo: #FAD564;
+  }
+  * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin:0; padding:0; }
+  body { padding:20px; color:#000; background:var(--creme,#fff); }
+  .container-cadastro { max-width:420px; margin:0 auto; text-align:center; padding:16px; }
+  .back { text-align:left; margin-bottom:10px; cursor:pointer; }
+  .back-link { font-size:30px; text-decoration:none; color:var(--azul-escuro); display:inline-flex; align-items:center; gap:6px; }
+  h1 { margin-bottom:14px; font-size:24px; color:var(--azul-escuro); }
+  .divider { margin:18px 0; position:relative; }
+  .divider::before, .divider::after { content:""; height:1px; background:#ccc; position:absolute; top:50%; width:34%; }
+  .divider::before { left:0 } .divider::after { right:0 }
+  .divider span { background:var(--creme); padding:0 10px; color:#444; font-size:14px }
+  .toggle-container { display:flex; gap:10px; justify-content:center; margin-top:8px; }
+  .toggle-button { border:none; background:none; padding:10px 18px; border-radius:999px; font-weight:700; cursor:pointer; transition:all .18s; font-size:15px; }
+  .toggle-button.active { background-color:#2e6c6a; color:white; box-shadow:none; }
+  .toggle-button.inactive { color:#a0aab7; background:transparent; }
+  .social-icons { display:flex; justify-content:center; gap:18px; margin:12px 0 18px; }
+  .social-icons i { color:var(--azul-escuro); font-size:44px; cursor:pointer; }
+  .input-group { display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+  .input-group input { padding:12px; border-radius:10px; border:2px solid #e0e0e0; font-size:14px; background:white; color:#333; width:100%; }
+  .btn { display:block; text-align:center; background:var(--azul-escuro); color:#FFF; padding:14px; border:none; border-radius:999px; width:100%; font-weight:bold; cursor:pointer; margin-top:8px; font-size:16px; }
+  .terms { font-size:12px; color:#555; margin-top:14px; }
+  .terms a { color:#0071CE; text-decoration:none; }
+  .input-with-icon { position:relative; }
+  .small-note { font-size:13px; color:#666; margin-top:8px; }
+  /* small responsive */
+  @media (max-width:480px){ .container-cadastro { padding:12px } .social-icons i { font-size:40px } }
+  </style>
+</head>
+<body>
+  <div class="container-cadastro" role="main" aria-labelledby="titulo-cadastro">
+    <div class="back">
+      <a href="javascript:history.back()" class="back-link" title="Voltar">
+        <i class="ph ph-arrow-circle-left"></i>
+        Voltar
+      </a>
+    </div>
+
+    <h1 id="titulo-cadastro">Cadastre-se</h1>
+
+    <div class="divider"><span>Tipos de conta:</span></div>
+    <div class="toggle-container" role="tablist" aria-label="Tipo de conta">
+      <button id="btn-cuidador" class="toggle-button active" type="button" role="tab" aria-selected="true">Cuidador</button>
+      <button id="btn-cliente" class="toggle-button inactive" type="button" role="tab" aria-selected="false">Cliente</button>
+    </div>
+
+    <div class="divider"><span>Acesso rápido</span></div>
+
+   <div class="social-icons">
+  <i id="btn-google" class="ph-fill ph-google-logo" title="Google"></i>
+  <i class="ph-fill ph-facebook-logo" title="Facebook"></i>
+  <i class="ph-fill ph-twitter-logo" title="Twitter"></i>
+  <i class="ph-fill ph-squares-four" title="Microsoft"></i>
+</div>
+
+    <div class="divider"><span>Ou</span></div>
+
+    <form id="form-cadastro" novalidate>
+      <div class="input-group">
+        <input id="input-nome" name="nome" type="text" placeholder="Nome" autocomplete="name" required />
+        <input id="input-email" name="email" type="email" placeholder="E-mail" autocomplete="email" required />
+        <input id="input-telefone" name="telefone" type="tel" placeholder="Telefone" autocomplete="tel" />
+        <input id="input-senha" name="senha" type="password" placeholder="Senha" autocomplete="new-password" required />
+      </div>
+
+      <button type="submit" class="btn">Continuar</button>
+
+      <div class="small-note" aria-live="polite" id="cadastro-note">
+        Ao criar uma conta, você concorda com nossos <a href="#">Termos de Uso</a> e <a href="#">Políticas de Privacidade</a>.
+      </div>
+    </form>
+  </div>
+
+  <!-- Script: seu JS principal (mantive path que você usa) -->
+  <script type="module" src="../JS/cadastro.js"></script>
+</body>
+</html>

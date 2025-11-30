@@ -1,0 +1,155 @@
+/* reset básico */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html,body { height: 100%; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background-color: #3f3f3f; /* frame escuro ao redor da página */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color: #1b2f3a;
+}
+
+/* painel interno creme */
+.outer-frame { width: 100%; display: flex; justify-content: center; }
+.inner-panel {
+  width: 88%;
+  max-width: 1000px;
+  background: #fbf6ea; /* tom creme */
+  padding: 28px 40px 60px 40px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 0 rgba(0,0,0,0.03);
+  position: relative;
+}
+
+/* breadcrumb */
+.breadcrumb {
+  color: #8b8b8b;
+  font-size: 12px;
+  margin-bottom: 14px;
+  letter-spacing: 0.2px;
+}
+
+/* cabeçalho */
+.header { text-align: center; position: relative; padding-bottom: 18px; }
+.voltar {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  color: #1b2f3a;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+/* título principal */
+.header h1 {
+  font-size: 34px;
+  color: #174650; /* azul esverdeado */
+  font-weight: 700;
+  letter-spacing: 0.6px; /* aumenta sensação de espaçamento entre letras */
+  margin-bottom: 10px;
+  line-height: 1.05; /* reduz espaço vertical do título com a divider */
+}
+
+/* linha horizontal fina abaixo do título */
+.divider {
+  height: 2px;
+  width: 92%;
+  margin: 12px auto 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.02));
+  opacity: 0.35;
+}
+
+/* conteúdo central */
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* container do cartão central */
+.resumo-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 26px;
+}
+
+/* cartão branco */
+.resumo-card {
+  width: 420px;
+  background: #fffdf7;
+  border-radius: 8px;
+  padding: 36px 44px; /* aumentado para ter mais "respiração" */
+  box-shadow: 0 8px 0 rgba(0,0,0,0.06), 0 12px 20px rgba(0,0,0,0.06);
+  text-align: left;
+}
+
+/* título do card */
+.resumo-card h2 {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.4px;
+}
+
+/* separadores */
+.sep.thin {
+  border-bottom: 1px solid #e6e1d6;
+  margin: 12px 0 18px 0;
+  opacity: 0.9;
+}
+
+/* itens do resumo: mais espaçamento entre linhas e palavras */
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0; /* espaço entre as linhas do item */
+  font-size: 15px;
+  line-height: 1.9; /* aumenta espaçamento vertical entre linhas de texto */
+  word-spacing: 3px; /* espaçamento extra entre palavras (resolve "espaços entre as palavras") */
+  letter-spacing: 0.2px;
+  color: #1b2f3a;
+}
+
+/* rótulos e valores com alinhamentos finos */
+.label { font-weight: 500; }
+.value { font-weight: 600; }
+
+/* total com destaque */
+.total { margin-top: 12px; font-weight: 700; }
+
+/* botão estilizado central, posicionado próximo ao cartão */
+.continuar-btn {
+  margin-top: -8px; /* reduz distância para o cartão (fica mais próximo) */
+  background-color: #1b4a5a;
+  color: #ffffff;
+  border: none;
+  border-radius: 28px;
+  padding: 12px 68px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(27,74,90,0.18);
+  transition: transform .12s ease, box-shadow .12s ease;
+  letter-spacing: 0.6px;
+}
+
+/* hover sutil */
+.continuar-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(27,74,90,0.18); }
+
+/* responsividade simples */
+@media (max-width: 560px) {
+  .resumo-card { width: 92%; padding: 26px; }
+  .continuar-btn { padding: 12px 40px; }
+  .header h1 { font-size: 26px; }
+}

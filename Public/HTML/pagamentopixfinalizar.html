@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento Realizado - CuidaFast</title>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../CSS/styles.css" />
+  <link rel="stylesheet" href="../CSS/pages/homeCliente.css">
+  <link rel="stylesheet" href="../CSS/pages/pagamentopixfinalizar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="client-home">
+  <!-- Header Moderno -->
+  <header class="modern-header">
+      <div class="header-container">
+          <!-- Logo Section -->
+          <div class="header-left">
+              <a href="homeCliente.html" class="logo-link">
+                  <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+                  <span class="logo-text"></span>
+              </a>
+          </div>
+          
+          <!-- Espaço Central Vazio -->
+          <div class="header-center">
+          </div>
+          
+          <!-- User Actions -->
+          <div class="header-right">
+              <!-- Notifications -->
+              <button class="header-action-btn notification-btn active" id="notificationBtn">
+                  <i class="ph ph-bell"></i>
+                  <span class="notification-badge" style="display: none;">0</span>
+              </button>
+              
+              <!-- Messages -->
+              <button class="header-action-btn message-btn" id="messageBtn">
+                  <i class="ph ph-chat-circle"></i>
+                  <span class="message-badge" style="display: none;">0</span>
+              </button>
+              
+              <!-- User Profile -->
+              <div class="user-profile-dropdown" id="userProfileDropdown">
+                  <button class="user-profile-btn" id="userProfileBtn">
+                      <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
+                      <span class="user-name" id="headerUserName">João Silva</span>
+                      <i class="ph ph-caret-down dropdown-arrow"></i>
+                  </button>
+                  
+                  <!-- Dropdown Menu -->
+                  <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                      <div class="dropdown-header">
+                          <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+                          <div class="dropdown-user-info">
+                              <h4>João Silva</h4>
+                              <p>Cliente Premium</p>
+                          </div>
+                      </div>
+                      <div class="dropdown-divider"></div>
+                      <a href="#" class="dropdown-item">
+                          <i class="ph ph-user"></i>
+                          <span>Meu Perfil</span>
+                      </a>
+                      <a href="../HTML/configuracoes.html" class="dropdown-item">
+                          <i class="ph ph-gear"></i>
+                          <span>Configurações</span>
+                      </a>
+                      <a href="#" class="dropdown-item">
+                          <i class="ph ph-clock"></i>
+                          <span>Histórico</span>
+                      </a>
+                      <a href="#" class="dropdown-item">
+                          <i class="ph ph-question"></i>
+                          <span>Ajuda</span>
+                      </a>
+                      <div class="dropdown-divider"></div>
+                      <a href="#" class="dropdown-item logout-item" id="headerLogoutBtn">
+                          <i class="ph ph-sign-out"></i>
+                          <span>Sair</span>
+                      </a>
+                  </div>
+              </div>
+              
+              <!-- Mobile Menu Toggle -->
+              <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                  <i class="ph ph-list"></i>
+              </button>
+          </div>
+      </div>
+      
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="client-sidebar" id="clientSidebar">
+      <div class="sidebar-content">
+          <div class="sidebar-header">
+              <div class="user-info">
+                  <div class="user-avatar-large">
+       <img id="avatar" class="avatar" src="../assets/images.webp"
+           alt="cuidafast">
+                  </div>
+                  <div class="user-details">
+                      <h3 id="userName">João Silva</h3>
+                      <p>Cliente desde 2024</p>
+                  </div>
+              </div>
+          </div>
+          
+          <nav class="sidebar-nav">
+              <ul class="nav-list">
+                  <li class="nav-item">
+                      <a href="homeCliente.html" class="nav-link">
+                          <i class="ph ph-house" aria-hidden="true"></i>
+                          <span>Home</span>
+                      </a>
+                  </li>
+                  <li class="nav-item">
+                      <a href="../HTMLmensagens.html" class="nav-link">
+                          <i class="ph ph-chat-circle"></i>
+                          <span>Mensagens</span>
+                          <span class="nav-badge">3</span>
+                      </a>
+                  </li>
+                  <li class="nav-item">
+                      <a href="../HTML/notificacao.html" class="nav-link">
+                          <i class="ph ph-bell" aria-hidden="true"></i>
+                          <span>Notificações</span>
+                          <span class="nav-badge">5</span>
+                      </a>
+                  </li>
+                  <li class="nav-item">
+                      <a href="in-time.html" class="nav-link">
+                          <i class="ph ph-lightning"></i>
+                          <span>InTime</span>
+                      </a>
+                  </li>
+                  <li class="nav-item">
+                      <a href="../HTML/configuracoes.html" class="nav-link">
+                          <i class="ph ph-gear"></i>
+                          <span>Configurações</span>
+                      </a>
+                  </li>
+                  <li class="nav-item">
+                      <a href="#" class="nav-link" id="logoutBtn">
+                          <i class="ph ph-sign-out"></i>
+                          <span>Sair da conta</span>
+                      </a>
+                  </li>
+              </ul>
+          </nav>
+      </div>
+  </aside>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-container">
+    <!-- Conteúdo Principal Centralizado -->
+    <div class="main-content">
+      <div class="back-button">
+        <a href="javascript:history.back()" class="back-link">
+          <i class="ph ph-arrow-left"></i>
+          Voltar
+        </a>
+      </div>
+    
+      <div class="payment-card-centered">
+        <div class="success-content">
+          <!-- Ícone de Sucesso -->
+          <div class="success-icon">
+            <i class="ph ph-check-circle-fill" style="font-size: 4rem; color: #22C55E;"></i>
+          </div>
+          
+          <!-- Título e Subtítulo -->
+          <div class="success-header">
+            <h1 style="color: var(--azul-escuro); text-align: center; margin-bottom: 0.5rem; font-size: 1.5rem;">
+              Pagamento Realizado!
+            </h1>
+            <p style="color: var(--azul-escuro); text-align: center; margin-bottom: 2rem; font-size: 0.9rem;">
+              Seu pedido foi processado com sucesso. Você receberá uma confirmação em breve.
+            </p>
+          </div>
+          
+          <!-- Resumo do Pedido -->
+          <div class="order-summary-card">
+            <h3 style="color: var(--azul-escuro); margin-bottom: 1rem; text-align: center; font-size: 1.1rem;">
+              Resumo do Pedido #0001
+            </h3>
+            
+            <div class="summary-items">
+              <div class="summary-item">
+                <span style="color: var(--azul-escuro);">Serviço</span>
+                <span style="color: var(--azul-escuro); font-weight: 600;">R$95<sup>00</sup></span>
+              </div>
+              <div class="summary-item">
+                <span style="color: var(--azul-escuro);">Taxa</span>
+                <span style="color: var(--azul-escuro); font-weight: 600;">R$10<sup>90</sup></span>
+              </div>
+              <hr style="border-color: var(--azul-escuro); opacity: 0.3; margin: 0.75rem 0;">
+              <div class="summary-item total">
+                <span style="color: var(--azul-escuro); font-weight: 700;">Total Pago</span>
+                <span style="color: var(--azul-escuro); font-weight: 700; font-size: 1.1rem;">R$105<sup>90</sup></span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Informações do Pagamento -->
+          <div class="payment-details">
+            <div class="payment-method">
+              <i class="ph ph-currency-circle-dollar" style="color: var(--azul-escuro); font-size: 1.2rem;"></i>
+              <span style="color: var(--azul-escuro); font-weight: 600;">Pago via PIX</span>
+            </div>
+            <div class="payment-date">
+              <i class="ph ph-calendar" style="color: var(--azul-escuro); font-size: 1.2rem;"></i>
+              <span style="color: var(--azul-escuro);">01/10/2024 às 15:00</span>
+            </div>
+          </div>
+          
+          <!-- Botões de Ação -->
+          <div class="action-buttons">
+            <button class="btn-print" onclick="window.print()">
+              <i class="ph ph-printer"></i>
+              Imprimir Comprovante
+            </button>
+            <button class="btn-home" onclick="window.location.href='homeCliente.html'">
+              <i class="ph ph-house"></i>
+              Voltar ao Início
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../JS/auth.js"></script>
+  <script src="../JS/header.js"></script>
+  <script src="../../js/main.js"></script>
+  <script src="../JS/homeCliente.js"></script>
+  
+  <script>
+      // Inicializar tooltips e popovers do Bootstrap
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+      
+      var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+      var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+          return new bootstrap.Popover(popoverTriggerEl);
+      });
+  </script>
+</body>
+</html>

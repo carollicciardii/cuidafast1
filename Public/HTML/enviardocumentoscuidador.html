@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enviar Documentos - CuidaFast</title>
+  <link rel="stylesheet" href="../CSS/pages/enviardocumentoscuidador.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    .file-preview {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(27, 71, 93, 0.05);
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .file-preview.show {
+      display: flex;
+    }
+    
+    .file-preview-icon {
+      font-size: 2.5rem;
+      color: var(--azul-escuro);
+    }
+    
+    .file-preview-info {
+      flex: 1;
+    }
+    
+    .file-preview-name {
+      font-weight: 600;
+      color: var(--azul-escuro);
+      margin-bottom: 0.25rem;
+    }
+    
+    .file-preview-size {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    
+    .file-preview-remove {
+      background: none;
+      border: none;
+      color: #e74c3c;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    
+    .file-preview-remove:hover {
+      background: rgba(231, 76, 60, 0.1);
+      transform: scale(1.1);
+    }
+    
+    .file-preview-image {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--azul-escuro);
+    }
+    
+    .upload-status {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .upload-status.success {
+      background: rgba(46, 204, 113, 0.1);
+      color: #27ae60;
+      display: block;
+    }
+    
+    .upload-status.error {
+      background: rgba(231, 76, 60, 0.1);
+      color: #e74c3c;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="back">
+      <a href="cadastrocuidadortipo.html" class="back-link">
+        <i class="ph ph-arrow-circle-left"></i>
+      </a>
+    </div>
+    <h1>Cadastre-se</h1>
+    <h2>Documentos Necessários</h2>
+
+    <!-- Upload RG/CNH -->
+    <div class="upload-box">
+      <p><strong>RG ou CNH</strong><br>Arquivo em PDF ou imagem (máx. 5MB)</p>
+      <label class="upload-btn">
+        <i class="ph ph-upload"></i> Fazer Upload
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" id="rg-cnh">
+      </label>
+      <div class="upload-status" id="status-rg"></div>
+      <div class="file-preview" id="preview-rg">
+        <img class="file-preview-image" id="img-rg" style="display:none;">
+        <i class="ph ph-file-pdf file-preview-icon" id="icon-rg"></i>
+        <div class="file-preview-info">
+          <div class="file-preview-name" id="name-rg"></div>
+          <div class="file-preview-size" id="size-rg"></div>
+        </div>
+        <button class="file-preview-remove" id="remove-rg" type="button">
+          <i class="ph ph-x-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Upload Feedback -->
+    <div class="upload-box">
+      <p><strong>Envie-nos feedback que já recebeu</strong><br>Avaliações de clientes (não obrigatório)</p>
+      <label class="upload-btn">
+        <i class="ph ph-upload"></i> Fazer Upload
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" id="feedback" multiple>
+      </label>
+      <div class="upload-status" id="status-feedback"></div>
+      <div class="file-preview" id="preview-feedback">
+        <img class="file-preview-image" id="img-feedback" style="display:none;">
+        <i class="ph ph-file-pdf file-preview-icon" id="icon-feedback"></i>
+        <div class="file-preview-info">
+          <div class="file-preview-name" id="name-feedback"></div>
+          <div class="file-preview-size" id="size-feedback"></div>
+        </div>
+        <button class="file-preview-remove" id="remove-feedback" type="button">
+          <i class="ph ph-x-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Botão Finalizar -->
+    <button class="continue-btn" id="btn-finalizar">
+      <i class="ph ph-check-circle"></i> Finalizar
+    </button>
+
+    <!-- Termos -->
+    <p class="termos">
+      Ao criar uma conta, você concorda com nossos
+      <a href="#">Termos de Uso</a> e <a href="#">Políticas de Privacidade</a>
+    </p>
+  </div>
+
+  <script>
+    // Função para formatar tamanho do arquivo
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    // Função para validar arquivo
+    function validateFile(file) {
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      
+      if (file.size > maxSize) {
+        return { valid: false, error: 'Arquivo muito grande. Máximo 5MB.' };
+      }
+      
+      if (!allowedTypes.includes(file.type)) {
+        return { valid: false, error: 'Tipo de arquivo não permitido.' };
+      }
+      
+      return { valid: true };
+    }
+
+    // Função para mostrar preview do arquivo
+    function showFilePreview(file, previewId, imgId, iconId, nameId, sizeId, statusId) {
+      const validation = validateFile(file);
+      const statusEl = document.getElementById(statusId);
+      
+      if (!validation.valid) {
+        statusEl.textContent = validation.error;
+        statusEl.className = 'upload-status error';
+        return false;
+      }
+      
+      statusEl.textContent = '✓ Arquivo carregado com sucesso!';
+      statusEl.className = 'upload-status success';
+      
+      const preview = document.getElementById(previewId);
+      const img = document.getElementById(imgId);
+      const icon = document.getElementById(iconId);
+      const name = document.getElementById(nameId);
+      const size = document.getElementById(sizeId);
+      
+      preview.classList.add('show');
+      name.textContent = file.name;
+      size.textContent = formatFileSize(file.size);
+      
+      // Se for imagem, mostrar preview
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          img.src = e.target.result;
+          img.style.display = 'block';
+          icon.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        img.style.display = 'none';
+        icon.style.display = 'block';
+      }
+      
+      return true;
+    }
+
+    // Upload RG/CNH
+    const rgInput = document.getElementById('rg-cnh');
+    let rgFile = null;
+    
+    rgInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const success = showFilePreview(file, 'preview-rg', 'img-rg', 'icon-rg', 'name-rg', 'size-rg', 'status-rg');
+        if (success) {
+          rgFile = file;
+        } else {
+          rgInput.value = '';
+        }
+      }
+    });
+
+    // Remover RG/CNH
+    document.getElementById('remove-rg').addEventListener('click', function() {
+      rgInput.value = '';
+      rgFile = null;
+      document.getElementById('preview-rg').classList.remove('show');
+      document.getElementById('status-rg').className = 'upload-status';
+    });
+
+    // Upload Feedback
+    const feedbackInput = document.getElementById('feedback');
+    let feedbackFile = null;
+    
+    feedbackInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const success = showFilePreview(file, 'preview-feedback', 'img-feedback', 'icon-feedback', 'name-feedback', 'size-feedback', 'status-feedback');
+        if (success) {
+          feedbackFile = file;
+        } else {
+          feedbackInput.value = '';
+        }
+      }
+    });
+
+    // Remover Feedback
+    document.getElementById('remove-feedback').addEventListener('click', function() {
+      feedbackInput.value = '';
+      feedbackFile = null;
+      document.getElementById('preview-feedback').classList.remove('show');
+      document.getElementById('status-feedback').className = 'upload-status';
+    });
+
+    // Finalizar cadastro
+    document.getElementById('btn-finalizar').addEventListener('click', function() {
+      if (!rgFile) {
+        console.warn('[EnviarDocumentos] RG/CNH não enviado');
+        // Destacar campo obrigatório
+        document.querySelector('.upload-box').style.borderColor = '#f44336';
+        setTimeout(() => {
+          document.querySelector('.upload-box').style.borderColor = '';
+        }, 2000);
+        return;
+      }
+      
+      // Salvar informação dos documentos no localStorage
+      const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+      userData.documentos = {
+        rgCnh: rgFile.name,
+        feedback: feedbackFile ? feedbackFile.name : null,
+        dataEnvio: new Date().toISOString()
+      };
+      userData.cadastroCompleto = true;
+      localStorage.setItem('cuidafast_user', JSON.stringify(userData));
+      
+      console.log('[EnviarDocumentos] Documentos enviados com sucesso');
+      window.location.href = '../HTML/dashboard-cuidador.html';
+    });
+  </script>
+</body>
+</html>

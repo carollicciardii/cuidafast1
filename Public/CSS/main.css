@@ -1,0 +1,28 @@
+:root {
+  --bege: #FFFBEC;
+  --creme: #f5efe0;
+  --creme-claro: #FFFBED;
+  --azul-escuro: #1B475D;
+  --verde-escuro: rgba(142, 189, 157, 0.5);
+  --verde-claro: rgba(211, 220, 124, 0.5);
+  --amarelo: rgba(250, 213, 100, 0.5);
+  --amarelo-sólido: #FAD564;
+  --cinza-input: #D9D9D9;
+  --footer-bg: #2f5563;
+  --footer-text: #ffffff;
+  --footer-text-light: #e6e6e6;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-strong: rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bege) !important;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete seu Cadastro - CuidaFast</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+  <link rel="stylesheet" href="../CSS/styles.css">
+  <link rel="stylesheet" href="../CSS/pages/cadastroComplementoCuidador.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Botão Voltar -->
+    <div class="back">
+      <a href="javascript:history.back()" class="back-link">
+        <i class="ph ph-arrow-circle-left"></i>
+      </a>
+    </div>
+
+    <!-- Formulário -->
+    <main class="form-container">
+      <div class="form-header">
+        <h1>Complete seu Cadastro</h1>
+        <p>Precisamos de mais algumas informações para finalizar</p>
+      </div>
+
+      <!-- Info Box -->
+      <div class="info-box">
+        <i class="ph ph-info"></i>
+        <p>Essas informações são necessárias para validar sua identidade e garantir a segurança da plataforma.</p>
+      </div>
+      
+      <form id="complementForm">
+        <!-- CPF -->
+        <div class="form-group">
+          <label for="cpf">
+            <i class="ph ph-identification-card"></i>
+            CPF
+          </label>
+          <input 
+            type="text" 
+            id="cpf" 
+            name="cpf" 
+            placeholder="000.000.000-00"
+            maxlength="14"
+            required
+          >
+        </div>
+
+        <!-- Data de Nascimento -->
+        <div class="form-group">
+          <label for="dataNascimento">
+            <i class="ph ph-calendar"></i>
+            Data de Nascimento
+          </label>
+          <input 
+            type="date" 
+            id="dataNascimento" 
+            name="dataNascimento" 
+            required
+          >
+        </div>
+
+        <!-- Foto de Perfil (apenas se não cadastrou com Google) -->
+        <div class="form-group" id="photoUploadGroup" style="display: none;">
+          <label for="photoUpload">
+            <i class="ph ph-camera"></i>
+            Foto de Perfil
+          </label>
+          <div class="photo-upload-container">
+            <div class="photo-preview" id="photoPreview">
+              <i class="ph ph-user-circle" style="font-size: 4rem; color: #ccc;"></i>
+              <p>Nenhuma foto selecionada</p>
+            </div>
+            <input 
+              type="file" 
+              id="photoUpload" 
+              name="photoUpload" 
+              accept="image/*"
+              style="display: none;"
+            >
+            <button type="button" class="btn btn-secondary" id="selectPhotoBtn">
+              <i class="ph ph-upload"></i>
+              Selecionar Foto
+            </button>
+            <p class="photo-hint">Formatos aceitos: JPG, PNG. Tamanho máximo: 5MB</p>
+          </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            Continuar
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script src="../JS/cadastroComplementoCuidador.js"></script>
+</body>
+</html>

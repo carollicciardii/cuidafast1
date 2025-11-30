@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tipo de Serviço - CuidaFast</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
+  <link rel="stylesheet" href="../CSS/pages/cadastrocuidadortipo.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Botão Voltar -->
+    <div class="back">
+      <a href="javascript:history.back()" class="back-link">
+        <i class="ph ph-arrow-circle-left"></i>
+      </a>
+    </div>
+
+    <!-- Formulário -->
+    <main class="form-container">
+      <div class="form-header">
+        <h1>Qual serviço você vai fornecer?</h1>
+        <p>Selecione um ou mais tipos de cuidado que você oferece</p>
+      </div>
+
+      <form id="servicoForm">
+        <div class="service-cards">
+          <label class="service-card">
+            <input type="checkbox" name="servico" value="idoso" id="servico-idoso">
+            <div class="card-content">
+              <i class="ph ph-user"></i>
+              <div>
+                <span class="card-title">Cuidador de Idoso</span>
+                <p>Oferecer serviços de cuidado a pessoas idosas</p>
+              </div>
+            </div>
+          </label>
+
+          <label class="service-card">
+            <input type="checkbox" name="servico" value="pet" id="servico-pet">
+            <div class="card-content">
+              <i class="ph ph-dog"></i>
+              <div>
+                <span class="card-title">Cuidador de Pet</span>
+                <p>Serviços relacionados a pets: petwalker, petsitter</p>
+              </div>
+            </div>
+          </label>
+
+          <label class="service-card">
+            <input type="checkbox" name="servico" value="infantil" id="servico-infantil">
+            <div class="card-content">
+              <i class="ph ph-baby"></i>
+              <div>
+                <span class="card-title">Cuidador Infantil</span>
+                <p>Oferecer serviços de cuidados infantil</p>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Botão Continuar -->
+        <button type="submit" class="btn-submit">
+          Continuar
+          <i class="ph ph-arrow-right"></i>
+        </button>
+
+        <!-- Termos -->
+        <p class="terms">
+          Ao continuar, você concorda com nossos 
+          <a href="#">Termos de Uso</a> e 
+          <a href="#">Políticas de Privacidade</a>
+        </p>
+      </form>
+    </main>
+  </div>
+
+  <script src="../JS/cadastrocuidadortipo.js"></script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+/* ===== VARIÁVEIS DE CORES ===== */
+/* Removido redefinição de variáveis - usando as do header.css */
+
+/* Body background removed - using main.css global styles */
+body {
+  margin: 0;
+  padding-top: 90px; /* espaço para header fixo */
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+/* ===== HEADER - Usando estilos do components.css ===== */
+/* Removido para evitar conflitos com components.css */
+
+/* ===== Sidebar ===== */
+.client-sidebar {
+  position: fixed;
+  top: 70px;
+  right: -300px;
+  width: 300px;
+  height: calc(100vh - 70px);
+  background: var(--bege);
+  border-left: 1px solid var(--cinza-claro);
+  transition: right 0.3s ease;
+  z-index: 999;
+  overflow-y: auto;
+}
+
+.client-sidebar.open {
+  right: 0;
+}
+
+.sidebar-content {
+  padding: 2rem 0;
+}
+
+.sidebar-header {
+  padding: 0 2rem 2rem;
+  border-bottom: 1px solid var(--cinza-claro);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-avatar-large {
+  width: 60px;
+  height: 60px;
+  background: var(--azul-escuro);
+  color: var(--bege);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.user-details h3 {
+  color: var(--azul-escuro);
+  margin-bottom: 0.25rem;
+  font-size: 1.125rem;
+}
+
+.user-details p {
+  color: var(--cinza-escuro);
+  font-size: 0.875rem;
+}
+
+.sidebar-nav {
+  padding-top: 2rem;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  margin-bottom: 0.5rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  text-decoration: none;
+  color: var(--cinza-escuro);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav-link:hover,
+.nav-item.active .nav-link {
+  background: var(--creme);
+  color: var(--azul-escuro);
+}
+
+.nav-link i {
+  font-size: 1.25rem;
+}
+
+.nav-badge {
+  background: var(--verde-escuro);
+  color: var(--bege);
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  margin-left: auto;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* container principal */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.info-card {
+  width: 360px;
+  padding: 20px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  text-align: left;
+  font-size: 16px;
+}
+
+.info-card b {
+  font-size: 17px;
+}
+
+#map {
+  width: 480px;
+  height: 360px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+}
+
+.footer {
+  margin-top: 40px;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.footer button {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-agendamento {
+  background: var(--azul-escuro);
+  color: white;
+  box-shadow: 0 4px 12px rgba(27, 71, 93, 0.2);
+}
+
+.btn-agendamento:hover {
+  background: #163947;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(27, 71, 93, 0.3);
+}
+
+.btn-intime {
+  background: var(--azul-escuro);
+  color: white;
+  box-shadow: 0 4px 12px rgba(27, 71, 93, 0.2);
+}
+
+.btn-intime:hover {
+  background: #163947;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(27, 71, 93, 0.3);
+}
+
+.ph-icon {
+  font-size: 32px;
+  color: black;
+}

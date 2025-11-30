@@ -1,0 +1,307 @@
+/* Usar os mesmos estilos das outras páginas de pagamento */
+/* Body background removed - using main.css global styles */
+body {
+    margin: 0;
+    padding: 0;
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Layout principal */
+.main-container {
+  display: flex;
+  min-height: calc(100vh - 120px);
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  padding-top: 140px;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.payment-card-centered {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--sombra-card);
+  border: 1px solid rgba(27, 71, 93, 0.1);
+  transition: var(--transicao-normal);
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.payment-card-centered:hover {
+  box-shadow: var(--sombra-forte);
+  transform: translateY(-2px);
+}
+
+/* Conteúdo de sucesso */
+.success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.success-icon {
+  margin-bottom: 0.5rem;
+}
+
+.success-header {
+  margin-bottom: 1rem;
+}
+
+/* Resumo do pedido */
+.order-summary-card {
+  width: 100%;
+  background: var(--branco);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(27, 71, 93, 0.1);
+  box-shadow: var(--sombra-card);
+}
+
+.summary-items {
+  margin-top: 1rem;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.summary-item.total {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  font-size: 1rem;
+}
+
+/* Detalhes do pagamento */
+.payment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  background: var(--branco);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(27, 71, 93, 0.1);
+}
+
+.payment-method,
+.payment-date {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+/* Botões de ação */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 1rem;
+}
+
+.btn-print,
+.btn-home {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transicao-normal);
+}
+
+.btn-print {
+  background: transparent;
+  color: var(--azul-escuro);
+  border: 2px solid var(--azul-escuro);
+}
+
+.btn-print:hover {
+  background: var(--azul-escuro);
+  color: var(--branco);
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-forte);
+}
+
+.btn-home {
+  background: var(--azul-escuro);
+  color: var(--branco);
+}
+
+.btn-home:hover {
+  background: var(--azul-escuro-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-forte);
+}
+
+/* Botão voltar */
+.back-button {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 20;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--azul-escuro, #1B475D);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0;
+}
+
+.back-link:hover {
+  color: var(--amarelo, #FAD564);
+  transform: translateX(-4px);
+}
+
+.back-link i {
+  font-size: 1.2rem;
+}
+
+/* Profile Dropdown Menu - Fix transparency */
+.profile-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: #FFFBEC !important;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(27, 71, 93, 0.1);
+    min-width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1001;
+}
+
+.user-profile-dropdown.open .profile-dropdown-menu,
+.profile-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--creme);
+}
+
+.dropdown-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.dropdown-user-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--azul-escuro);
+}
+
+.dropdown-user-info p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.875rem;
+    color: var(--verde-escuro);
+    font-weight: 500;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--creme);
+    margin: 0.5rem 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    text-decoration: none;
+    color: var(--azul-escuro);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background: var(--creme);
+    color: var(--azul-escuro);
+}
+
+.dropdown-item i {
+    font-size: 1.125rem;
+    width: 20px;
+}
+
+.logout-item {
+    color: #ff4757;
+}
+
+.logout-item:hover {
+    background: rgba(255, 71, 87, 0.1);
+    color: #ff4757;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+    padding-top: 6rem;
+  }
+  
+  .back-button {
+    top: 1rem;
+    left: 1rem;
+  }
+  
+  .payment-card-centered {
+    padding: 1.5rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .success-content {
+    gap: 1.25rem;
+  }
+  
+  .order-summary-card,
+  .payment-details {
+    padding: 1.25rem;
+  }
+}

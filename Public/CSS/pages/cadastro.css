@@ -1,0 +1,174 @@
+
+* {
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Body background removed - using main.css global styles */
+  body {
+    padding: 20px;
+    color: #000;
+  }
+  
+  .container-cadastro {
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .back {
+    text-align: left;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+
+.back-link {
+  font-size: 30px;
+  text-decoration: none;
+  text-decoration: none;
+  color: var(--azul-escuro); /* opcional: mantém a cor herdada, sem azul padrão */
+  }
+
+  h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: var(--azul-escuro);
+  }
+  
+  .options {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  
+  .option {
+    background: var(--creme);         /* mesmo fundo da página */
+    padding: 15px;
+    flex: 1;
+    border-radius: 12px;
+    border: 2px solid #000;      /* borda preta */
+    box-shadow: none;            /* sem sombra */
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+  
+  
+  .option:hover {
+    border-color: #003B4A; /* tom azul escuro no hover */
+  }
+  
+  
+  .option input {
+    margin-right: 8px;
+  }
+  
+  .divider {
+    margin: 20px 0;
+    position: relative;
+  }
+  
+  .divider::before,
+  .divider::after {
+    content: "";
+    height: 1px;
+    background: #ccc;
+    position: absolute;
+    top: 50%;
+    width: 35%;
+
+  }
+  
+  .divider::before {
+    left: 0;
+  }
+  
+  .divider::after {
+    right: 0;
+  }
+  
+  .divider span {
+    background: var(--creme);
+    padding: 0 10px;
+    color: #444;
+  }
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 10px 0 20px;
+}
+
+.social-icons i {
+  color: var(--azul-escuro);
+  font-size: 47px;
+  cursor: pointer;
+}
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"] {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    background-color: var(--creme)
+  }
+  
+ .btn {
+  display: block;              /* faz o botão se comportar como bloco */
+  text-align: center;          /* centraliza o texto dentro */
+  background: var(--azul-escuro);
+  color: #FFF;
+  padding: 14px;
+  border: none;
+  border-radius: 999px;
+  width: 100%;                 /* ocupa toda a largura */
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  text-decoration: none;       /* remove sublinhado do link */
+  font-size: 16px;
+}
+
+  
+  .terms {
+    font-size: 12px;
+    color: #555;
+  }
+  
+  .terms a {
+    color: #0071CE;
+    text-decoration: none;
+  }
+  
+
+.toggle-button {
+  border: none;
+  background: none;
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  font-size: 16px;
+}
+
+.active {
+  background-color: #2e6c6a; /* Verde escuro */
+  color: white;
+}
+
+.inactive {
+  color: #a0aab7;
+}
