@@ -16,7 +16,7 @@ module.exports = async function handler(req, res) {
       req.on('data', chunk => { data += chunk; });
       req.on('end', () => {
         try {
-          resolve(data ? JSON.parse(data) : {});
+          resolve(JSON.parse(data || '{}'));
         } catch (err) {
           reject(err);
         }

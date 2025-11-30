@@ -176,7 +176,7 @@ export const login = async (req, res) => {
 -------------------------------------------*/
 export const googleLogin = async (req, res) => {
   try {
-    const { email, nome, foto_url, tipo_usuario, auth_uid } = req.body || {};
+    const { email, nome, foto_url, tipo_usuario } = req.body || {};
 
     if (!email) {
       return res.status(400).json({ message: 'Email obrigatório' });
