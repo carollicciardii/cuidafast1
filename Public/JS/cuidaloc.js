@@ -6,10 +6,13 @@
   // Dependência: inclua no HTML antes deste script:
   // <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   // e defina no HTML <script> window.SUPABASE_URL = '...'; window.SUPABASE_ANON_KEY = '...';
-  if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-    console.error('SUPABASE_URL ou SUPABASE_ANON_KEY não definidos em window.');
-  }
-  const supabase = supabaseJs.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+  console.error('SUPABASE_URL ou SUPABASE_ANON_KEY não definidos em window.');
+}
+const supabase = window.supabase && window.supabase.createClient
+  ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+  : null;
+if (!supabase) console.error('Supabase UMD não encontrado. Verifique se carregou supabase.min.js');
 
   const map = L.map('map').setView([-23.5505, -46.6333], 15);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
