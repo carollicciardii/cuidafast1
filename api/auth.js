@@ -187,6 +187,10 @@ export default async function handler(req, res) {
     }
     
     console.log('[api/auth] Path extraído:', path);
+    if (urlPath.endsWith('/user-data')) {
+      path = 'user-data';
+  }
+  
 
     // Health check: GET /api/auth  OR GET /api/auth/
     if (!path || path === '') {
