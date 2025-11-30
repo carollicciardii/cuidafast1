@@ -1,7 +1,63 @@
 // api/auth/[...slug].js
-import authController from '../../back-end/api/controllers/authController.js';
-import createOrAssociateUser from '../create-or-associate-user.js';
-import { completeProfile } from '../../back-end/api/controllers/completeProfileController.js';
+// Importações dinâmicas para evitar problemas de resolução de caminhos no Vercel
+let authController = null;
+let createOrAssociateUser = null;
+let completeProfile = null;
+
+// Carrega os módulos dinamicamente
+async function loadModules() {
+  if (!authController) {
+    try {
+      // Tenta primeiro com ../back-end (caminho relativo a partir de api/)
+      let authModule;
+      try {
+        authModule = await import('../back-end/api/controllers/authController.js');
+      } catch (err1) {
+        // Se falhar, tenta com ../../back-end
+        try {
+          authModule = await import('../../back-end/api/controllers/authController.js');
+        } catch (err2) {
+          console.error('Erro ao carregar authController (tentativas esgotadas):', err1, err2);
+          throw err2;
+        }
+      }
+      authController = authModule.default;
+    } catch (err) {
+      console.error('Erro ao carregar authController:', err);
+      throw err;
+    }
+  }
+  if (!createOrAssociateUser) {
+    try {
+      const createModule = await import('./create-or-associate-user.js');
+      createOrAssociateUser = createModule.default;
+    } catch (err) {
+      console.error('Erro ao carregar createOrAssociateUser:', err);
+      throw err;
+    }
+  }
+  if (!completeProfile) {
+    try {
+      // Tenta primeiro com ../back-end (caminho relativo a partir de api/)
+      let completeModule;
+      try {
+        completeModule = await import('../back-end/api/controllers/completeProfileController.js');
+      } catch (err1) {
+        // Se falhar, tenta com ../../back-end
+        try {
+          completeModule = await import('../../back-end/api/controllers/completeProfileController.js');
+        } catch (err2) {
+          console.error('Erro ao carregar completeProfile (tentativas esgotadas):', err1, err2);
+          throw err2;
+        }
+      }
+      completeProfile = completeModule.completeProfile;
+    } catch (err) {
+      console.error('Erro ao carregar completeProfile:', err);
+      throw err;
+    }
+  }
+}
 
 async function parseJsonBody(req) {
   // se já parsed (Next.js pode ter parseado), retorna
@@ -31,6 +87,9 @@ async function parseJsonBody(req) {
 
 export default async function handler(req, res) {
   try {
+    // Carrega os módulos se ainda não foram carregados
+    await loadModules();
+    
     const { method, query, url } = req;
     
     console.log('[api/auth] === INÍCIO DO HANDLER ===');
