@@ -1,3 +1,4 @@
+// api/authe/complete-profile.js
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import UsuarioModel from '../../back-end/api/models/UsuarioModel.js';
@@ -15,6 +16,11 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE) {
 
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
 
+// helper para detectar UUID v4 (aceita letras maiúsculas/minúsculas)
+function looksLikeUUID(v) {
+  return typeof v === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(v);
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
@@ -30,21 +36,31 @@ export default async function handler(req, res) {
 
     // Se houver token, pega ID do Google, nome e email
     if (token) {
-      const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
-      if (userErr || !userData?.user) {
-        console.warn('getUser error:', userErr, userData);
-        return res.status(401).json({ error: 'Token inválido' });
+      if (!supabaseAdmin) {
+        console.error('Supabase client não inicializado. Verifique as variáveis de ambiente.');
+        return res.status(500).json({ error: 'Configuração do servidor inválida' });
       }
-      const saUser = userData.user;
-      auth_uid = saUser.id;
 
-      nomeFromAuth =
-        saUser.user_metadata?.full_name ||
-        saUser.user_metadata?.name ||
-        saUser.user_metadata?.given_name ||
-        (saUser.email ? saUser.email.split('@')[0] : null);
+      try {
+        const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
+        if (userErr || !userData?.user) {
+          console.warn('getUser error:', userErr, userData);
+          return res.status(401).json({ error: 'Token inválido' });
+        }
+        const saUser = userData.user;
+        auth_uid = saUser.id;
 
-      emailFromAuth = saUser.email || null;
+        nomeFromAuth =
+          saUser.user_metadata?.full_name ||
+          saUser.user_metadata?.name ||
+          saUser.user_metadata?.given_name ||
+          (saUser.email ? saUser.email.split('@')[0] : null);
+
+        emailFromAuth = saUser.email || null;
+      } catch (err) {
+        console.error('Erro ao buscar usuário do Supabase:', err);
+        return res.status(500).json({ error: 'Erro ao validar token', message: err.message });
+      }
     }
 
     // Extrai dados do body
@@ -84,14 +100,11 @@ export default async function handler(req, res) {
     } = req.body || {};
 
     // Detecta tipo de usuário
-    // 1. Pelo campo tipo explícito (prioridade máxima)
-    // 2. Pela presença de dados específicos do cuidador
-    // 3. Pelo tipo do usuário existente no banco
     let userType = tipo;
     
     console.log('[complete-profile] Tipo recebido no payload:', tipo);
     console.log('[complete-profile] usuario_id recebido:', usuario_id);
-    
+
     // Se não tiver tipo explícito, tenta detectar pelos dados
     if (!userType) {
       if (tipos_cuidado || descricao || valor_hora || especialidades || experiencia || 
@@ -101,8 +114,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // Se ainda não tiver tipo e tiver usuario_id, busca no banco
-    if (!userType && usuario_id) {
+    // Se ainda não tiver tipo e tiver usuario_id numérico, busca no banco
+    if (!userType && usuario_id && !looksLikeUUID(usuario_id)) {
       try {
         const numericUsuarioId = Number(usuario_id);
         if (Number.isInteger(numericUsuarioId)) {
@@ -135,7 +148,6 @@ export default async function handler(req, res) {
     ]);
 
     const upsertPayload = {};
-    
     // Processa campos permitidos do restBody
     for (const [k, v] of Object.entries(restBody)) {
       if (v === undefined || v === null) continue;
@@ -155,8 +167,8 @@ export default async function handler(req, res) {
       upsertPayload.email = emailFromAuth;
     } else if (emailDoPayload && emailDoPayload.trim() !== '') {
       upsertPayload.email = emailDoPayload.trim();
-    } else if (!usuario_id) {
-      // Email só é obrigatório se não tiver usuario_id
+    } else if (!usuario_id && !auth_uid) {
+      // Email só é obrigatório se não tiver usuario_id nem auth_uid
       return res.status(400).json({ error: 'Email é obrigatório' });
     }
 
@@ -190,6 +202,14 @@ export default async function handler(req, res) {
     if (estado) upsertPayload.estado = estado;
     if (complemento) upsertPayload.complemento = complemento;
 
+    // Se o front enviou um UUID no campo usuario_id, provavelmente é um auth_uid:
+    if (usuario_id && looksLikeUUID(usuario_id)) {
+      // trata como auth_uid e usa o fluxo de upsert (OAuth)
+      console.log('[complete-profile] usuario_id parece UUID -> interpretando como auth_uid');
+      auth_uid = usuario_id;
+      usuario_id = undefined;
+    }
+
     // auth_uid separado do usuario_id (INTEGER)
     if (auth_uid) {
       upsertPayload.auth_uid = auth_uid;
@@ -205,9 +225,8 @@ export default async function handler(req, res) {
       upsertPayload.usuario_id = numericUsuarioId;
     }
 
-    // FLUXO 1: Se tiver usuario_id, usa Models (cadastro tradicional)
+    // FLUXO 1: Se tiver usuario_id numérico, usa Models (cadastro tradicional)
     if (numericUsuarioId) {
-      // Verifica se o usuário existe
       let usuario;
       try {
         usuario = await UsuarioModel.getById(numericUsuarioId);
@@ -219,18 +238,10 @@ export default async function handler(req, res) {
       if (!usuario) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
-      
-      // Se o usuário já tem tipo definido e não foi passado no payload, usa o tipo existente
-      if (!userType && usuario.tipo) {
-        userType = usuario.tipo;
-      }
 
       // Atualiza dados do usuário usando Model
-      const updateUsuario = {
-        tipo: userType
-      };
+      const updateUsuario = { tipo: userType };
       
-      // Adiciona campos permitidos do upsertPayload
       if (upsertPayload.nome) updateUsuario.nome = upsertPayload.nome;
       if (upsertPayload.telefone !== undefined) updateUsuario.telefone = upsertPayload.telefone;
       if (upsertPayload.data_nascimento) updateUsuario.data_nascimento = upsertPayload.data_nascimento;
@@ -282,11 +293,9 @@ export default async function handler(req, res) {
           }
         } catch (err) {
           console.error('Erro ao atualizar/criar cuidador:', err);
-          // Não retorna erro aqui, apenas loga, pois o usuário já foi atualizado
         }
       } else if (userType === 'cliente') {
         try {
-          // Atualiza dados do cliente se necessário
           const clienteData = {};
           if (historico_contratacoes !== undefined && historico_contratacoes !== null) clienteData.historico_contratacoes = historico_contratacoes;
           if (preferencias !== undefined && preferencias !== null) clienteData.preferencias = preferencias;
@@ -306,7 +315,6 @@ export default async function handler(req, res) {
           }
         } catch (err) {
           console.error('Erro ao atualizar/criar cliente:', err);
-          // Não retorna erro aqui, apenas loga, pois o usuário já foi atualizado
         }
       }
 
@@ -338,78 +346,88 @@ export default async function handler(req, res) {
         }
       } catch (err) {
         console.warn('Erro ao buscar dados específicos do tipo:', err);
-        // Não falha a requisição, apenas não retorna os dados específicos
       }
 
       return res.status(200).json(responseData);
     }
 
-    // FLUXO 2: Se não tiver usuario_id, usa Supabase upsert (OAuth/Google)
-    // Upsert: prioridade de conflito -> auth_uid (quando existir) ou email (único)
-    const upsertKey = auth_uid ? 'auth_uid' : 'email';
-
-    const { data, error } = await supabaseAdmin
-      .from('usuario')
-      .upsert(upsertPayload, { onConflict: upsertKey })
-      .select();
-
-    if (error) {
-      console.error('Supabase upsert error:', error);
-      return res.status(500).json({ error: 'Erro ao gravar usuário', details: error });
+    // FLUXO 2: Se não tiver usuario_id numérico, usa Supabase upsert (OAuth/Google)
+    if (!supabaseAdmin) {
+      console.error('Supabase client não inicializado. Verifique as variáveis de ambiente.');
+      return res.status(500).json({ error: 'Configuração do servidor inválida' });
     }
 
-    if (!data || data.length === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado para upsert' });
-    }
+    // Se auth_uid foi preenchido (se veio token ou veio como UUID via usuario_id),
+    // prioriza upsert por auth_uid, caso contrário por email.
+    const upsertKey = upsertPayload.auth_uid ? 'auth_uid' : 'email';
 
-    const usuarioCriado = data[0];
-    const usuarioIdFinal = usuarioCriado.usuario_id;
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('usuario')
+        .upsert(upsertPayload, { onConflict: upsertKey })
+        .select();
 
-    // Cria/atualiza registros nas tabelas específicas
-    if (userType === 'cuidador') {
-      const cuidadorData = {};
-      if (tipos_cuidado !== undefined) cuidadorData.tipos_cuidado = tipos_cuidado;
-      if (descricao !== undefined) cuidadorData.descricao = descricao;
-      if (valor_hora !== undefined) cuidadorData.valor_hora = valor_hora;
-      if (especialidades !== undefined) cuidadorData.especialidades = especialidades;
-      if (experiencia !== undefined) cuidadorData.experiencia = experiencia;
-      if (horarios_disponiveis !== undefined) cuidadorData.horarios_disponiveis = horarios_disponiveis;
-      if (idiomas !== undefined) cuidadorData.idiomas = idiomas;
-      if (formacao !== undefined) cuidadorData.formacao = formacao;
-      if (local_trabalho !== undefined) cuidadorData.local_trabalho = local_trabalho;
+      if (error) {
+        console.error('Supabase upsert error:', error);
+        return res.status(500).json({ error: 'Erro ao gravar usuário', details: error.message || error });
+      }
 
-      try {
-        const cuidadorExistente = await CuidadorModel.getById(usuarioIdFinal);
-        if (cuidadorExistente) {
-          if (Object.keys(cuidadorData).length > 0) {
-            await CuidadorModel.update(usuarioIdFinal, cuidadorData);
+      if (!data || data.length === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado para upsert' });
+      }
+
+      const usuarioCriado = data[0];
+      const usuarioIdFinal = usuarioCriado.usuario_id;
+
+      // Cria/atualiza registros nas tabelas específicas
+      if (userType === 'cuidador') {
+        const cuidadorData = {};
+        if (tipos_cuidado !== undefined) cuidadorData.tipos_cuidado = tipos_cuidado;
+        if (descricao !== undefined) cuidadorData.descricao = descricao;
+        if (valor_hora !== undefined) cuidadorData.valor_hora = valor_hora;
+        if (especialidades !== undefined) cuidadorData.especialidades = especialidades;
+        if (experiencia !== undefined) cuidadorData.experiencia = experiencia;
+        if (horarios_disponiveis !== undefined) cuidadorData.horarios_disponiveis = horarios_disponiveis;
+        if (idiomas !== undefined) cuidadorData.idiomas = idiomas;
+        if (formacao !== undefined) cuidadorData.formacao = formacao;
+        if (local_trabalho !== undefined) cuidadorData.local_trabalho = local_trabalho;
+
+        try {
+          const cuidadorExistente = await CuidadorModel.getById(usuarioIdFinal);
+          if (cuidadorExistente) {
+            if (Object.keys(cuidadorData).length > 0) {
+              await CuidadorModel.update(usuarioIdFinal, cuidadorData);
+            }
+          } else {
+            await CuidadorModel.create({
+              usuario_id: usuarioIdFinal,
+              ...cuidadorData
+            });
           }
-        } else {
-          await CuidadorModel.create({
-            usuario_id: usuarioIdFinal,
-            ...cuidadorData
-          });
+        } catch (err) {
+          console.warn('Erro ao atualizar cuidador:', err);
         }
-      } catch (err) {
-        console.warn('Erro ao atualizar cuidador:', err);
-      }
-    } else if (userType === 'cliente') {
-      try {
-        const clienteExistente = await ClienteModel.getById(usuarioIdFinal);
-        if (!clienteExistente) {
-          await ClienteModel.create({
-            usuario_id: usuarioIdFinal
-          });
+      } else if (userType === 'cliente') {
+        try {
+          const clienteExistente = await ClienteModel.getById(usuarioIdFinal);
+          if (!clienteExistente) {
+            await ClienteModel.create({
+              usuario_id: usuarioIdFinal
+            });
+          }
+        } catch (err) {
+          console.warn('Erro ao atualizar cliente:', err);
         }
-      } catch (err) {
-        console.warn('Erro ao atualizar cliente:', err);
       }
-    }
 
-    return res.status(200).json({ user: usuarioCriado });
+      return res.status(200).json({ user: usuarioCriado });
+    } catch (err) {
+      console.error('Erro no upsert do Supabase:', err);
+      return res.status(500).json({ error: 'Erro ao processar requisição', message: err.message });
+    }
 
   } catch (err) {
     console.error('complete-profile unexpected error:', err);
-    return res.status(500).json({ error: 'Internal server error', message: err.message });
+    return res.status(500).json({ error: 'Internal server error', message: err.message || 'Erro desconhecido' });
   }
 }

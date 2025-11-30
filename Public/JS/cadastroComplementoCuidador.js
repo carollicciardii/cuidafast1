@@ -129,14 +129,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const API_URL = window.API_CONFIG?.AUTH || "/api/auth";
         
         // Prepara dados para envio - IMPORTANTE: envia tipo explicitamente
-        const payload = {
-          usuario_id: usuarioId,
-          tipo: 'cuidador', // Garante que seja identificado como cuidador
-          cpf: cpf.replace(/\D/g, ''), // Remove formatação
-          cpf_numero: cpf.replace(/\D/g, ''),
-          data_nascimento: dataNascimento,
-          photo_url: updatedData.photo_url || null
-        };
+// tenta converter usuarioId para número se possível
+let usuarioIdToSend = usuarioId;
+if (usuarioId !== undefined && usuarioId !== null) {
+  const maybeNum = Number(usuarioId);
+  if (!Number.isNaN(maybeNum) && Number.isInteger(maybeNum)) {
+    usuarioIdToSend = maybeNum;
+  } // caso contrário mantemos a string (uuid)
+}
+
+const payload = {
+  usuario_id: usuarioIdToSend,
+  tipo: 'cuidador',
+  cpf: cpf.replace(/\D/g, ''),
+  cpf_numero: cpf.replace(/\D/g, ''),
+  data_nascimento: dataNascimento,
+  photo_url: updatedData.photo_url || null
+};
+
 
         console.log('[cadastroComplementoCuidador] Enviando dados:', payload);
 
