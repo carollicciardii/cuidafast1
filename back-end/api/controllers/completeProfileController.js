@@ -1,19 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import UsuarioModel from '../models/UsuarioModel.js';
 import ClienteModel from '../models/ClienteModel.js';
 import CuidadorModel from '../models/CuidadorModel.js';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Tenta carregar .env do config, mas no Vercel usa variáveis de ambiente direto
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.join(__dirname, '../../config/.env') });
+}
 
 // ENV vars
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
+const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE) {
   console.error('Missing SUPABASE env vars. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE.');
 }
 
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+// Cria o cliente apenas se as variáveis estiverem definidas (similar ao authController)
+const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_ROLE ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE) : null;
 
 export async function completeProfile(req, res) {
   if (req.method !== 'POST') {
@@ -30,21 +39,31 @@ export async function completeProfile(req, res) {
 
     // Se houver token, pega ID do Google, nome e email
     if (token) {
-      const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
-      if (userErr || !userData?.user) {
-        console.warn('getUser error:', userErr, userData);
-        return res.status(401).json({ error: 'Token inválido' });
+      if (!supabaseAdmin) {
+        console.error('Supabase client não inicializado. Verifique as variáveis de ambiente.');
+        return res.status(500).json({ error: 'Configuração do servidor inválida' });
       }
-      const saUser = userData.user;
-      auth_uid = saUser.id;
+      
+      try {
+        const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
+        if (userErr || !userData?.user) {
+          console.warn('getUser error:', userErr, userData);
+          return res.status(401).json({ error: 'Token inválido' });
+        }
+        const saUser = userData.user;
+        auth_uid = saUser.id;
 
-      nomeFromAuth =
-        saUser.user_metadata?.full_name ||
-        saUser.user_metadata?.name ||
-        saUser.user_metadata?.given_name ||
-        (saUser.email ? saUser.email.split('@')[0] : null);
+        nomeFromAuth =
+          saUser.user_metadata?.full_name ||
+          saUser.user_metadata?.name ||
+          saUser.user_metadata?.given_name ||
+          (saUser.email ? saUser.email.split('@')[0] : null);
 
-      emailFromAuth = saUser.email || null;
+        emailFromAuth = saUser.email || null;
+      } catch (err) {
+        console.error('Erro ao buscar usuário do Supabase:', err);
+        return res.status(500).json({ error: 'Erro ao validar token', message: err.message });
+      }
     }
 
     // Extrai dados do body
@@ -345,72 +364,83 @@ export async function completeProfile(req, res) {
     }
 
     // FLUXO 2: Se não tiver usuario_id, usa Supabase upsert (OAuth/Google)
+    // Verifica se o cliente Supabase está disponível
+    if (!supabaseAdmin) {
+      console.error('Supabase client não inicializado. Verifique as variáveis de ambiente.');
+      return res.status(500).json({ error: 'Configuração do servidor inválida' });
+    }
+    
     // Upsert: prioridade de conflito -> auth_uid (quando existir) ou email (único)
     const upsertKey = auth_uid ? 'auth_uid' : 'email';
 
-    const { data, error } = await supabaseAdmin
-      .from('usuario')
-      .upsert(upsertPayload, { onConflict: upsertKey })
-      .select();
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('usuario')
+        .upsert(upsertPayload, { onConflict: upsertKey })
+        .select();
 
-    if (error) {
-      console.error('Supabase upsert error:', error);
-      return res.status(500).json({ error: 'Erro ao gravar usuário', details: error });
-    }
+      if (error) {
+        console.error('Supabase upsert error:', error);
+        return res.status(500).json({ error: 'Erro ao gravar usuário', details: error.message || error });
+      }
 
-    if (!data || data.length === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado para upsert' });
-    }
+      if (!data || data.length === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado para upsert' });
+      }
 
-    const usuarioCriado = data[0];
-    const usuarioIdFinal = usuarioCriado.usuario_id;
+      const usuarioCriado = data[0];
+      const usuarioIdFinal = usuarioCriado.usuario_id;
 
-    // Cria/atualiza registros nas tabelas específicas
-    if (userType === 'cuidador') {
-      const cuidadorData = {};
-      if (tipos_cuidado !== undefined) cuidadorData.tipos_cuidado = tipos_cuidado;
-      if (descricao !== undefined) cuidadorData.descricao = descricao;
-      if (valor_hora !== undefined) cuidadorData.valor_hora = valor_hora;
-      if (especialidades !== undefined) cuidadorData.especialidades = especialidades;
-      if (experiencia !== undefined) cuidadorData.experiencia = experiencia;
-      if (horarios_disponiveis !== undefined) cuidadorData.horarios_disponiveis = horarios_disponiveis;
-      if (idiomas !== undefined) cuidadorData.idiomas = idiomas;
-      if (formacao !== undefined) cuidadorData.formacao = formacao;
-      if (local_trabalho !== undefined) cuidadorData.local_trabalho = local_trabalho;
+      // Cria/atualiza registros nas tabelas específicas
+      if (userType === 'cuidador') {
+        const cuidadorData = {};
+        if (tipos_cuidado !== undefined) cuidadorData.tipos_cuidado = tipos_cuidado;
+        if (descricao !== undefined) cuidadorData.descricao = descricao;
+        if (valor_hora !== undefined) cuidadorData.valor_hora = valor_hora;
+        if (especialidades !== undefined) cuidadorData.especialidades = especialidades;
+        if (experiencia !== undefined) cuidadorData.experiencia = experiencia;
+        if (horarios_disponiveis !== undefined) cuidadorData.horarios_disponiveis = horarios_disponiveis;
+        if (idiomas !== undefined) cuidadorData.idiomas = idiomas;
+        if (formacao !== undefined) cuidadorData.formacao = formacao;
+        if (local_trabalho !== undefined) cuidadorData.local_trabalho = local_trabalho;
 
-      try {
-        const cuidadorExistente = await CuidadorModel.getById(usuarioIdFinal);
-        if (cuidadorExistente) {
-          if (Object.keys(cuidadorData).length > 0) {
-            await CuidadorModel.update(usuarioIdFinal, cuidadorData);
+        try {
+          const cuidadorExistente = await CuidadorModel.getById(usuarioIdFinal);
+          if (cuidadorExistente) {
+            if (Object.keys(cuidadorData).length > 0) {
+              await CuidadorModel.update(usuarioIdFinal, cuidadorData);
+            }
+          } else {
+            await CuidadorModel.create({
+              usuario_id: usuarioIdFinal,
+              ...cuidadorData
+            });
           }
-        } else {
-          await CuidadorModel.create({
-            usuario_id: usuarioIdFinal,
-            ...cuidadorData
-          });
+        } catch (err) {
+          console.warn('Erro ao atualizar cuidador:', err);
         }
-      } catch (err) {
-        console.warn('Erro ao atualizar cuidador:', err);
-      }
-    } else if (userType === 'cliente') {
-      try {
-        const clienteExistente = await ClienteModel.getById(usuarioIdFinal);
-        if (!clienteExistente) {
-          await ClienteModel.create({
-            usuario_id: usuarioIdFinal
-          });
+      } else if (userType === 'cliente') {
+        try {
+          const clienteExistente = await ClienteModel.getById(usuarioIdFinal);
+          if (!clienteExistente) {
+            await ClienteModel.create({
+              usuario_id: usuarioIdFinal
+            });
+          }
+        } catch (err) {
+          console.warn('Erro ao atualizar cliente:', err);
         }
-      } catch (err) {
-        console.warn('Erro ao atualizar cliente:', err);
       }
-    }
 
-    return res.status(200).json({ user: usuarioCriado });
+      return res.status(200).json({ user: usuarioCriado });
+    } catch (err) {
+      console.error('Erro no upsert do Supabase:', err);
+      return res.status(500).json({ error: 'Erro ao processar requisição', message: err.message });
+    }
 
   } catch (err) {
     console.error('complete-profile unexpected error:', err);
-    return res.status(500).json({ error: 'Internal server error', message: err.message });
+    return res.status(500).json({ error: 'Internal server error', message: err?.message || 'Erro desconhecido' });
   }
 }
 

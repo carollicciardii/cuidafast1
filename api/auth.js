@@ -61,7 +61,12 @@ export default async function handler(req, res) {
           }
         }
         console.log('[api/auth] ✅ Rota complete-profile detectada via query.path, chamando controller');
-        return completeProfile(req, res);
+        try {
+          return await completeProfile(req, res);
+        } catch (err) {
+          console.error('[api/auth] Erro ao executar completeProfile:', err);
+          return res.status(500).json({ error: 'Erro interno do servidor', message: err?.message || 'Erro desconhecido' });
+        }
       }
     }
     
@@ -85,7 +90,12 @@ export default async function handler(req, res) {
         }
       }
       console.log('[api/auth] ✅ Rota complete-profile detectada pela URL original, chamando controller');
-      return completeProfile(req, res);
+      try {
+        return await completeProfile(req, res);
+      } catch (err) {
+        console.error('[api/auth] Erro ao executar completeProfile:', err);
+        return res.status(500).json({ error: 'Erro interno do servidor', message: err?.message || 'Erro desconhecido' });
+      }
     }
     
     // Extrai o path da URL para outras rotas
@@ -173,7 +183,12 @@ export default async function handler(req, res) {
         }
       }
       console.log('[api/auth] ✅ Rota complete-profile encontrada pelo path extraído, chamando controller');
-      return completeProfile(req, res);
+      try {
+        return await completeProfile(req, res);
+      } catch (err) {
+        console.error('[api/auth] Erro ao executar completeProfile:', err);
+        return res.status(500).json({ error: 'Erro interno do servidor', message: err?.message || 'Erro desconhecido' });
+      }
     }
     
     // FALLBACK FINAL: Se chegou até aqui e não encontrou a rota, mas a URL original contém complete-profile
@@ -192,7 +207,12 @@ export default async function handler(req, res) {
       // Verifica se o body contém dados típicos de complete-profile
       if (req.body && (req.body.cpf || req.body.cpf_numero || req.body.data_nascimento || req.body.tipo === 'cuidador')) {
         console.log('[api/auth] ✅ FALLBACK: Detectado complete-profile pelo conteúdo do body, chamando controller');
-        return completeProfile(req, res);
+        try {
+          return await completeProfile(req, res);
+        } catch (err) {
+          console.error('[api/auth] Erro ao executar completeProfile:', err);
+          return res.status(500).json({ error: 'Erro interno do servidor', message: err?.message || 'Erro desconhecido' });
+        }
       }
     }
 
