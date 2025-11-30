@@ -3,7 +3,7 @@
 let authController = null;
 let createOrAssociateUser = null;
 let completeProfile = null;
-let localizacaoController = null; // ADICIONADO: controller de localização (em back-end/api/controllers/localizacaoController.js)
+let localizacaoController = null;
 
 // Carrega os módulos dinamicamente
 async function loadModules() {
@@ -59,7 +59,7 @@ async function loadModules() {
     }
   }
 
-  // ADICIONADO: tenta carregar localizacaoController (não falha todo o handler se não existir)
+  // carrega localizacaoController se existir (em back-end)
   if (!localizacaoController) {
     try {
       let locModule;
@@ -69,8 +69,7 @@ async function loadModules() {
         try {
           locModule = await import('../../back-end/api/controllers/localizacaoController.js');
         } catch (err2) {
-          // Se não existir, apenas deixa null — rotas de localização não estarão disponíveis
-          console.warn('localizacaoController não encontrado nas tentativas:', err1, err2);
+          // não throw — pode ser que o arquivo ainda não exista
           locModule = null;
         }
       }
@@ -160,62 +159,38 @@ export default async function handler(req, res) {
     
     console.log('[api/auth] URL processada - originalUrl:', originalUrl, 'urlPath:', urlPath);
 
-    // ADICIONADO: roteamento para /api/localizacao/* (encaminha para localizacaoController)
+    // ROTAS ADICIONADAS: /api/localizacao/*
     if (urlPath && urlPath.includes('/api/localizacao')) {
-      // Se não carregou o controller, responde erro claro
       if (!localizacaoController) {
-        console.error('[api/auth] localizacaoController não disponível (arquivo não encontrado)');
         return res.status(500).json({ error: 'localizacao controller não disponível' });
       }
 
-      // POST /api/localizacao/cuidador  -> upsert localização do cuidador
+      // POST /api/localizacao/cuidador
       if (method === 'POST' && urlPath.endsWith('/localizacao/cuidador')) {
-        // Garantir body parseado
         if (!req.body || typeof req.body === 'string') {
-          try {
-            req.body = await parseJsonBody(req);
-          } catch (err) {
-            console.warn('Failed to parse JSON body (localizacao POST):', err);
-            return res.status(400).json({ error: 'Invalid JSON body' });
-          }
+          try { req.body = await parseJsonBody(req); } catch (err) { return res.status(400).json({ error: 'Invalid JSON body' }); }
         }
-        console.log('[api/auth] Rota detectada /api/localizacao/cuidador → localizacaoController.upsertCuidador');
-        try {
-          return await localizacaoController.upsertCuidador(req, res);
-        } catch (err) {
-          console.error('[api/auth] Erro ao executar localizacaoController.upsertCuidador:', err);
-          return res.status(500).json({ error: 'Erro interno' });
-        }
+        console.log('[api/auth] Rota localizacao POST -> upsertCuidador');
+        try { return await localizacaoController.upsertCuidador(req, res); } catch (err) { console.error(err); return res.status(500).json({ error: 'Erro interno' }); }
       }
 
-      // GET /api/localizacao/cliente/{id}  -> get cliente location
+      // GET /api/localizacao/cliente/{id}
       if (method === 'GET' && urlPath.includes('/localizacao/cliente')) {
-        console.log('[api/auth] Rota detectada /api/localizacao/cliente → localizacaoController.getClienteLocation');
-        try {
-          return await localizacaoController.getClienteLocation(req, res);
-        } catch (err) {
-          console.error('[api/auth] Erro ao executar localizacaoController.getClienteLocation:', err);
-          return res.status(500).json({ error: 'Erro interno' });
-        }
+        console.log('[api/auth] Rota localizacao GET cliente -> getClienteLocation');
+        try { return await localizacaoController.getClienteLocation(req, res); } catch (err) { console.error(err); return res.status(500).json({ error: 'Erro interno' }); }
       }
 
-      // GET /api/localizacao/cuidador?auth_uid=... or ?usuario_id=...
+      // GET /api/localizacao/cuidador?auth_uid=...
       if (method === 'GET' && urlPath.includes('/localizacao/cuidador')) {
-        console.log('[api/auth] Rota detectada /api/localizacao/cuidador (GET) → localizacaoController.getCuidadorLocationByAuthUid');
-        try {
-          return await localizacaoController.getCuidadorLocationByAuthUid(req, res);
-        } catch (err) {
-          console.error('[api/auth] Erro ao executar localizacaoController.getCuidadorLocationByAuthUid:', err);
-          return res.status(500).json({ error: 'Erro interno' });
-        }
+        console.log('[api/auth] Rota localizacao GET cuidador -> getCuidadorLocationByAuthUid');
+        try { return await localizacaoController.getCuidadorLocationByAuthUid(req, res); } catch (err) { console.error(err); return res.status(500).json({ error: 'Erro interno' }); }
       }
 
-      // Se nenhuma das rotas de localizacao bateu
-      return res.status(404).json({ error: 'rota de localizacao não encontrada', urlPath });
+      return res.status(404).json({ error: 'rota de localizacao não encontrada' });
     }
     
-    console.log('[api/auth] URL processada - originalUrl (continua):', originalUrl, 'urlPath:', urlPath);
-    
+    console.log('[api/auth] URL processada - (não localizacao) continue roteamento original');
+
     // Verifica se é a rota complete-profile diretamente pela URL original
     if ((urlPath === '/api/auth/complete-profile' || urlPath.includes('/complete-profile')) && method === 'POST') {
       // Garantir req.body parseado
@@ -266,10 +241,6 @@ export default async function handler(req, res) {
     }
     
     console.log('[api/auth] Path extraído:', path);
-    if (urlPath.endsWith('/user-data')) {
-      path = 'user-data';
-  }
-  
 
     // Health check: GET /api/auth  OR GET /api/auth/
     if (!path || path === '') {
