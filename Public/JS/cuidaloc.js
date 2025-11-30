@@ -1,5 +1,5 @@
-// cuidaloc.js - Página do Cuidador
-// Requer: Firebase compat (app+firestore), FirebaseConfig.js fornecendo firebase.initializeApp e const db
+// Public/JS/cuidaloc.js
+// Página do Cuidador — publica posição no Firestore (se usar) e no endpoint server-side (via /api/auth/localizacao/cuidador)
 
 (function () {
   const map = L.map('map').setView([-23.5505, -46.6333], 15);
@@ -9,7 +9,6 @@
 
   const statusEl = document.getElementById('status');
 
-  // Helpers
   const km = (m) => (m / 1000).toFixed(2);
   function haversine(lat1, lng1, lat2, lng2) {
     const R = 6371e3;
@@ -20,34 +19,17 @@
     return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  // Identify caregiver and linked client
+  // URL params / user id
   const params = new URLSearchParams(location.search);
   const usuarioId = Number(localStorage.getItem('usuario_id')) || Number(params.get('id')) || null;
-  const view = (params.get('view') || '').toLowerCase(); // '' | 'cliente'
+  const view = (params.get('view') || '').toLowerCase();
   let cuidadorUid = null;
   let clienteUid = null;
 
-  // Markers
   let cuidadorMarker = null;
   let clienteMarker = null;
 
-  function setStatus(msg) {
-    if (statusEl) statusEl.textContent = msg;
-  }
-
-  async function fetchVinculoDoCuidador() {
-    if (!usuarioId) return null;
-    const res = await fetch(`/api/vinculo/cuidador/${usuarioId}`);
-    if (!res.ok) return null;
-    return res.json();
-  }
-
-  async function fetchVinculoDoCliente() {
-    if (!usuarioId) return null;
-    const res = await fetch(`/api/vinculo/cliente/${usuarioId}`);
-    if (!res.ok) return null;
-    return res.json();
-  }
+  function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
 
   function upsertCuidadorMarker(lat, lng) {
     const icon = L.divIcon({
@@ -77,38 +59,52 @@
     }
   }
 
+  // authFetch: utiliza Firebase token via firebase.auth().currentUser
   async function authFetch(url, options = {}, retry = true) {
     const user = firebase.auth().currentUser;
     if (!user) throw new Error('Não autenticado');
     const token = await user.getIdToken();
-    const res = await fetch(url, {
-      ...options,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options.headers || {}) },
-    });
+    const res = await fetch(url, { ...options, headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}`, ...(options.headers||{}) } });
     if (res.status === 401 && retry) {
       const fresh = await user.getIdToken(true);
-      return fetch(url, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${fresh}`, ...(options.headers || {}) } });
+      return fetch(url, { ...options, headers: { 'Content-Type':'application/json', Authorization: `Bearer ${fresh}`, ...(options.headers||{}) } });
     }
     return res;
   }
 
-  async function postarLocalizacao(lat, lng) {
+  // Envia para backend (via /api/auth/localizacao/cuidador)
+  async function postarLocalizacaoServer(lat, lng) {
     try {
-      await authFetch('/api/localizacao/cuidador', {
+      // autenticação via Firebase token (authFetch) garante que backend consiga verificar
+      const res = await authFetch('/api/auth/localizacao/cuidador', {
         method: 'POST',
-        body: JSON.stringify({ lat, lng })
+        body: JSON.stringify({ lat: Number(lat), lng: Number(lng), usuario_id: usuarioId })
       });
+      if (!res.ok) {
+        const t = await res.text().catch(()=>null);
+        console.warn('postarLocalizacaoServer falhou', res.status, t);
+      }
     } catch (e) {
-      console.error('Falha ao enviar localização do cuidador', e);
+      console.warn('Falha ao enviar localização para o servidor:', e.message || e);
     }
   }
 
+  // Escreve também no Firestore se estiver disponível (mantém seu fluxo atual)
+  async function postarLocalizacaoFirestore(lat, lng) {
+    try {
+      if (!window.db || !firebase.auth().currentUser) return;
+      const uid = firebase.auth().currentUser.uid;
+      await db.collection('localizacoes').collection('cuidadores').doc(uid).set({
+        lat, lng, atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge:true });
+    } catch (e) {
+      console.warn('Firestore erro ao postar localização:', e);
+    }
+  }
+
+  // Subscrição da casa do cliente (via Firestore compat path)
   function subscribeClienteHouse(uid) {
     if (!uid || !window.firebase || !window.firebase.firestore) return;
-    db.collection('localizacoes').doc('clientes'); // ensure path comp
-    const ref = db.collection('localizacoes').doc('clientes');
-    // compat path style: localizacoes/clientes/{uid}
-    db.collection('localizacoes').doc('clientes');
     db.collection('localizacoes').collection('clientes').doc(uid).onSnapshot((doc) => {
       const d = doc.data();
       if (!d) return;
@@ -116,78 +112,77 @@
     });
   }
 
-   function subscribeCuidadorRealtime(uid) {
-    if (!uid || !window.firebase || !window.firebase.firestore) return;
-    db.collection('localizacoes').collection('cuidadores').doc(uid).onSnapshot((doc) => {
-      const d = doc.data();
-      if (!d) return;
-      upsertCuidadorMarker(d.lat, d.lng);
-      map.setView([d.lat, d.lng], 15);
-      if (clienteMarker) {
-        const dist = haversine(d.lat, d.lng, clienteMarker.getLatLng().lat, clienteMarker.getLatLng().lng);
-        setStatus(`Distância até o cliente: ${km(dist)} km`);
-      }
-    });
+  // Subscrição via backend realtime NÃO é implementada aqui;
+  // o backend (Supabase) pode notificar clientes via Realtime ou clientes podem fazer polling.
+  // Aqui usamos Firestore realtime para mostrar cliente, e postamos no servidor também.
+  async function fetchVinculoDoCuidador() {
+    if (!usuarioId) return null;
+    try {
+      const res = await fetch(`/api/vinculo/cuidador/${usuarioId}`);
+      if (!res.ok) return null;
+      return res.json();
+    } catch (e) { return null; }
   }
 
   async function carregarCasaDoClientePorAPI(id) {
     try {
-      const res = await fetch(`/api/localizacao/cliente/${id}`);
+      const res = await fetch(`/api/auth/localizacao/cliente/${id}`);
       if (!res.ok) return;
       const json = await res.json();
-      if (json && json.coordinates) {
-        upsertClienteMarker(json.coordinates.lat, json.coordinates.lng);
+      if (json && json.lat !== undefined && json.lng !== undefined) {
+        upsertClienteMarker(json.lat, json.lng);
       }
     } catch (e) {
-      console.warn('Falha ao obter localização do cliente por API');
+      // ignora
     }
   }
 
   async function init() {
     setStatus('Inicializando...');
     try {
-      await new Promise((resolve) => firebase.auth().onAuthStateChanged((u)=>{ if(u) resolve(); else window.location.href = '../../index.html'; }));
-      if (view === 'cliente') {
-        const vinc = await fetchVinculoDoCliente();
-        if (vinc && vinc.cuidador_firebase_uid) {
-          cuidadorUid = vinc.cuidador_firebase_uid;
-          subscribeCuidadorRealtime(cuidadorUid);
-        }
-        await carregarCasaDoClientePorAPI(usuarioId);
-        setStatus('Aguardando localização do cuidador...');
-      } else {
-        const vinculo = await fetchVinculoDoCuidador();
-        if (vinculo && vinculo.cliente_firebase_uid) {
-          clienteUid = vinculo.cliente_firebase_uid;
-          subscribeClienteHouse(clienteUid);
-        } else if (vinculo && vinculo.coordinates) {
-          upsertClienteMarker(vinculo.coordinates.lat, vinculo.coordinates.lng);
-        }
-        setStatus('Ativando geolocalização...');
-      }
-    } catch (e) {
-      console.warn('Sem vínculo do cuidador encontrado ainda.');
-    }
+      await new Promise((resolve)=> firebase.auth().onAuthStateChanged((u)=>{ if(u) resolve(); else window.location.href='../../index.html'; }));
+    } catch(e){ console.warn('Auth init fail', e); return; }
 
     if (view === 'cliente') {
-      return; // Cliente não envia geolocalização neste fluxo
+      // se o cuidador estiver visualizando como cliente, não enviamos geolocalização aqui
+      setStatus('Visualizando como cliente');
+      return;
     }
 
+    // Fluxo cuidador: encontra vínculo e subscreve à casa do cliente no Firestore (se houver),
+    // e habilita envio de localização por geolocation.watchPosition()
+    try {
+      const vinc = await fetchVinculoDoCuidador();
+      if (vinc && vinc.cliente_firebase_uid) {
+        clienteUid = vinc.cliente_firebase_uid;
+        subscribeClienteHouse(clienteUid);
+      } else if (vinc && vinc.coordinates) {
+        upsertClienteMarker(vinc.coordinates.lat, vinc.coordinates.lng);
+      }
+    } catch (e) {
+      console.warn('Erro ao obter vínculo do cuidador', e);
+    }
+
+    // Habilita geolocation
     if (!navigator.geolocation) {
       setStatus('Geolocalização não suportada.');
       return;
     }
 
     let lastSent = 0;
-    navigator.geolocation.watchPosition((pos) => {
+    navigator.geolocation.watchPosition(async (pos) => {
       const { latitude, longitude } = pos.coords;
       upsertCuidadorMarker(latitude, longitude);
       map.setView([latitude, longitude], 15);
 
+      // postar para Firestore local (compat)
+      try { await postarLocalizacaoFirestore(latitude, longitude); } catch (e){}
+
       const now = Date.now();
-      if (now - lastSent > 10000) { // 10s
+      // envia para servidor a cada 10s (evita spam)
+      if (now - lastSent > 10000) {
         lastSent = now;
-        postarLocalizacao(latitude, longitude);
+        await postarLocalizacaoServer(latitude, longitude);
       }
 
       if (clienteMarker) {
@@ -200,16 +195,18 @@
       console.error(err);
       setStatus('Não foi possível obter a sua posição. Permita o acesso ao GPS.');
     }, { enableHighAccuracy: true });
-  }
 
-  const simulateBtn = document.getElementById('simulateBtn');
-  if (simulateBtn) {
-    simulateBtn.addEventListener('click', async () => {
-      const lat = -23.55 + (Math.random() * 0.02);
-      const lng = -46.63 + (Math.random() * 0.02);
-      upsertCuidadorMarker(lat, lng);
-      await postarLocalizacao(lat, lng);
-    });
+    // Botão de simulação (mantido)
+    const simulateBtn = document.getElementById('simulateBtn');
+    if (simulateBtn) {
+      simulateBtn.addEventListener('click', async () => {
+        const lat = -23.55 + (Math.random() * 0.02);
+        const lng = -46.63 + (Math.random() * 0.02);
+        upsertCuidadorMarker(lat, lng);
+        try { await postarLocalizacaoFirestore(lat, lng); } catch(e){}
+        await postarLocalizacaoServer(lat, lng);
+      });
+    }
   }
 
   init();
