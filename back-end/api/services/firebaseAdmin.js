@@ -25,7 +25,6 @@ if (!getApps().length) {
     console.log('✅ Firebase Admin inicializado com sucesso');
   } catch (error) {
     console.error('❌ Erro ao inicializar Firebase Admin:', error.message);
-    // Fallback para desenvolvimento local
     app = initializeApp({
       projectId: process.env.FIREBASE_PROJECT_ID || 'cuidafast-hub-af250'
     });
