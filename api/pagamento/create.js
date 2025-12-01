@@ -71,23 +71,43 @@ function parseBody(req) {
   });
 }
 
-export default async function handler(req, res) {
-  // Garante que sempre retornamos JSON, mesmo em caso de erro fatal
-  const sendJsonError = (status, error, message) => {
+// Wrapper para garantir que sempre retornamos JSON, mesmo em erros fatais
+function safeJsonResponse(res, status, data) {
+  try {
+    if (!res.headersSent) {
+      res.status(status);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.json(data);
+    }
+  } catch (e) {
+    console.error('[Pagamento] Erro ao enviar resposta JSON:', e);
     try {
       if (!res.headersSent) {
         res.status(status);
         res.setHeader('Content-Type', 'application/json');
-        res.json({ error, message });
+        res.end(JSON.stringify(data));
       }
-    } catch (e) {
-      console.error('[Pagamento] Erro ao enviar resposta de erro:', e);
+    } catch (finalError) {
+      console.error('[Pagamento] Erro fatal ao enviar resposta:', finalError);
     }
+  }
+}
+
+export default async function handler(req, res) {
+  // Garante que sempre retornamos JSON, mesmo em caso de erro fatal
+  const sendJsonError = (status, error, message) => {
+    return safeJsonResponse(res, status, { error, message });
   };
 
-  const { method, url } = req;
-
+  // Wrapper global para capturar qualquer erro não tratado
   try {
+    const { method, url } = req || {};
+    
+    if (!method || !url) {
+      return sendJsonError(400, 'Requisição inválida', 'Method ou URL não fornecidos');
+    }
+
     // Carrega o controller dinamicamente
     let pagamentoController;
     try {
@@ -140,33 +160,19 @@ export default async function handler(req, res) {
       return await pagamentoController.criarPagamentoPIX(req, res);
     }
 
-    return res.status(405).json({ error: "Método não permitido" });
+    return safeJsonResponse(res, 405, { error: "Método não permitido" });
   } catch (err) {
     console.error("[Pagamento] Erro interno:", err);
     console.error("[Pagamento] Stack trace:", err.stack);
     
     // Sempre retorna JSON válido, mesmo em caso de erro
-    if (!res.headersSent) {
-      try {
-        return res.status(500).json({ 
-          error: "Erro interno no servidor", 
-          message: err?.message || "Erro desconhecido",
-          type: err?.name || "Error",
-          details: process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'development' 
-            ? err.stack 
-            : undefined
-        });
-      } catch (jsonError) {
-        console.error("[Pagamento] Erro crítico ao enviar resposta JSON:", jsonError);
-        // Última tentativa: enviar JSON simples
-        try {
-          res.status(500);
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: "Erro interno no servidor", message: "Erro ao processar requisição" }));
-        } catch (finalError) {
-          console.error("[Pagamento] Erro fatal - não foi possível enviar resposta:", finalError);
-        }
-      }
-    }
+    return safeJsonResponse(res, 500, { 
+      error: "Erro interno no servidor", 
+      message: err?.message || "Erro desconhecido",
+      type: err?.name || "Error",
+      details: process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'development' 
+        ? err.stack 
+        : undefined
+    });
   }
 }
