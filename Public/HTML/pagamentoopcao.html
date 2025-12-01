@@ -198,19 +198,49 @@
       body: JSON.stringify(body)
     });
 
-    const json = await res.json();
-
-    if (!res.ok) {
-      console.error("Erro:", json);
-      alert("Erro ao criar pagamento");
+    // Verifica se a resposta é JSON válido
+    let json;
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        json = await res.json();
+      } catch (parseError) {
+        console.error("Erro ao parsear JSON:", parseError);
+        const text = await res.text();
+        console.error("Resposta do servidor (texto):", text);
+        alert("Erro: Resposta inválida do servidor. Verifique o console para mais detalhes.");
+        return;
+      }
+    } else {
+      const text = await res.text();
+      console.error("Resposta não é JSON:", text);
+      alert("Erro: Servidor retornou resposta inválida. Verifique o console para mais detalhes.");
       return;
     }
 
-    window.location.href = json.init_point;
+    if (!res.ok) {
+      console.error("Erro do servidor:", json);
+      const errorMsg = json.error || json.message || "Erro ao criar pagamento";
+      alert(`Erro: ${errorMsg}`);
+      return;
+    }
+
+    if (!json.init_point && !json.pagamento?.ticket_url && !json.pagamento?.qr_code_base64) {
+      console.error("Resposta sem init_point:", json);
+      alert("Erro: Resposta do servidor não contém link de pagamento");
+      return;
+    }
+
+    const paymentUrl = json.init_point || json.pagamento?.ticket_url || json.pagamento?.qr_code_base64;
+    if (paymentUrl) {
+      window.location.href = paymentUrl;
+    } else {
+      alert("Erro: Não foi possível obter o link de pagamento");
+    }
 
   } catch (err) {
-    console.error("Erro:", err);
-    alert("Erro ao conectar com o servidor");
+    console.error("Erro na requisição:", err);
+    alert(`Erro ao conectar com o servidor: ${err.message}`);
   }
 });
 

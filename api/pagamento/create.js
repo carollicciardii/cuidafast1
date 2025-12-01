@@ -1,5 +1,40 @@
 // api/pagamento/create.js
-import pagamentoController from "../../../back-end/api/controllers/pagamentoController.js";
+// Importação dinâmica para evitar problemas de resolução de caminhos no Vercel
+let pagamentoControllerPromise = null;
+
+async function loadPagamentoController() {
+  if (!pagamentoControllerPromise) {
+    pagamentoControllerPromise = (async () => {
+      let pagamentoModule;
+      const paths = [
+        "../../back-end/api/controllers/pagamentoController.js",
+        "../back-end/api/controllers/pagamentoController.js",
+        "../../../back-end/api/controllers/pagamentoController.js"
+      ];
+      
+      let lastError = null;
+      for (const path of paths) {
+        try {
+          console.log(`[Pagamento] Tentando carregar de: ${path}`);
+          pagamentoModule = await import(path);
+          console.log(`[Pagamento] ✅ Sucesso ao carregar de: ${path}`);
+          break;
+        } catch (err) {
+          console.warn(`[Pagamento] ❌ Falha ao carregar de ${path}:`, err.message);
+          lastError = err;
+        }
+      }
+      
+      if (!pagamentoModule) {
+        console.error("[Pagamento] Erro ao carregar pagamentoController - todas as tentativas falharam");
+        throw new Error(`Não foi possível carregar pagamentoController. Último erro: ${lastError?.message}`);
+      }
+      
+      return pagamentoModule.default || pagamentoModule;
+    })();
+  }
+  return pagamentoControllerPromise;
+}
 
 function parseBody(req) {
   return new Promise((resolve, reject) => {
@@ -34,6 +69,9 @@ export default async function handler(req, res) {
   const { method, url } = req;
 
   try {
+    // Carrega o controller dinamicamente
+    const pagamentoController = await loadPagamentoController();
+    
     const body = await parseBody(req);
     req.body = body;
 
@@ -73,7 +111,22 @@ export default async function handler(req, res) {
 
     return res.status(405).json({ error: "Método não permitido" });
   } catch (err) {
-    console.error("Erro em /api/pagamento:", err);
-    return res.status(500).json({ error: "Erro interno no servidor", message: err?.message });
+    console.error("[Pagamento] Erro interno:", err);
+    // Sempre retorna JSON válido, mesmo em caso de erro
+    try {
+      return res.status(500).json({ 
+        error: "Erro interno no servidor", 
+        message: err?.message || "Erro desconhecido",
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      });
+    } catch (jsonError) {
+      // Se falhar ao enviar JSON, tenta enviar texto simples
+      console.error("[Pagamento] Erro ao enviar resposta JSON:", jsonError);
+      if (!res.headersSent) {
+        res.status(500);
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: "Erro interno no servidor" }));
+      }
+    }
   }
 }
