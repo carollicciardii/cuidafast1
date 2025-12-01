@@ -40,6 +40,35 @@
   let clienteMarker = null;
   let cuidadorMarker = null;
 
+  /* FALLBACK fetch helper:
+     - tenta a URL original
+     - se retornar 404 e houver alternativas (passadas no segundo argumento), tenta elas sequencialmente
+     - útil para endpoints que podem aceitar query ou path param (/api/x?id=123 vs /api/x/123) */
+  async function fetchWithAlternatives(originalUrl, options = {}, alternatives = []) {
+    try {
+      const r = await fetch(originalUrl, options);
+      if (r.status !== 404) return r;
+      // se 404 e alternativas fornecidas, tenta em ordem
+      for (const alt of alternatives) {
+        try {
+          const r2 = await fetch(alt, options);
+          if (r2.status !== 404) return r2;
+        } catch (e) { /* next */ }
+      }
+      // retorna o primeiro 404 (original)
+      return new Response('', { status: 404, statusText: 'Not Found' });
+    } catch (err) {
+      // falha de rede, tenta alternativas
+      for (const alt of alternatives) {
+        try {
+          const r2 = await fetch(alt, options);
+          if (r2.status !== 404) return r2;
+        } catch (e) { /* next */ }
+      }
+      throw err;
+    }
+  }
+
   async function authFetch(url, options = {}, retry = true) {
     // Usa supabase para obter sessão (front-end)
     if (!supabase) throw new Error('Supabase não inicializado');
@@ -85,9 +114,13 @@
   async function loadClienteAndCenter() {
     if (!usuarioId) return;
     try {
-      const res = await fetch(`/api/localizacao/cliente/${usuarioId}`);
+      // tenta path padrão que implementamos: /api/localizacao/cliente/{id}
+      const url1 = `/api/localizacao/cliente/${usuarioId}`;
+      // alternativas: query param
+      const urlAlt = `/api/localizacao/cliente?id=${usuarioId}`;
+      const res = await fetchWithAlternatives(url1, {}, [urlAlt]);
       if (!res.ok) {
-        console.warn('cliente location não encontrada', await res.text());
+        console.warn('cliente location não encontrada', res.status);
         return;
       }
       const json = await res.json();
@@ -105,7 +138,10 @@
   async function getVinculoCuidador() {
     if (!usuarioId) return null;
     try {
-      const res = await fetch(`/api/vinculo/cliente/${usuarioId}`);
+      // duas formas possíveis: path param ou query
+      const url1 = `/api/vinculo/cliente/${usuarioId}`;
+      const urlAlt = `/api/vinculo/cliente?id=${usuarioId}`;
+      const res = await fetchWithAlternatives(url1, {}, [urlAlt]);
       if (!res.ok) return null;
       const v = await res.json();
       return v;
@@ -122,7 +158,9 @@
     if (pollTimer) clearInterval(pollTimer);
     async function poll() {
       try {
-        const res = await fetch(`/api/localizacao/cuidador?auth_uid=${encodeURIComponent(authUid)}`);
+        const urlBase = `/api/localizacao/cuidador?auth_uid=${encodeURIComponent(authUid)}`;
+        const alt1 = `/api/localizacao/cuidador/${encodeURIComponent(authUid)}`;
+        const res = await fetchWithAlternatives(urlBase, {}, [alt1]);
         if (!res.ok) {
           // console.warn('cuidador location poll non-ok', res.status);
           return;
@@ -159,17 +197,22 @@
       const vinc = await getVinculoCuidador();
       if (!vinc) return;
       // procura auth uid do cuidador no vínculo
-      const authUid = vinc.cuidador_firebase_uid || vinc.cuidador_auth_uid || null;
+      const authUid = vinc.cuidador_firebase_uid || vinc.cuidador_auth_uid || vinc.cuidador_id || null;
       const linkCuidadorId = vinc.cuidador_id || null;
 
-      if (authUid) {
+      if (authUid && typeof authUid === 'string' && authUid.includes('-')) {
+        // parece UUID -> usar polling por auth_uid
+        await startCuidadorPolling(authUid);
+      } else if (authUid) {
+        // se for um identificador sem UUID, ainda podemos tentar
         await startCuidadorPolling(authUid);
       } else if (linkCuidadorId) {
         // Se não tiver authUid mas tiver apenas o id interno, tenta buscar localizacao por usuario_id (pode-se adaptar endpoint)
-        // Implementação alternativa: /api/localizacao/cuidador?usuario_id=...
         async function pollByUsuarioId() {
           try {
-            const res = await fetch(`/api/localizacao/cuidador?usuario_id=${encodeURIComponent(linkCuidadorId)}`);
+            const url1 = `/api/localizacao/cuidador?usuario_id=${encodeURIComponent(linkCuidadorId)}`;
+            const urlAlt = `/api/localizacao/cuidador/${encodeURIComponent(linkCuidadorId)}`;
+            const res = await fetchWithAlternatives(url1, {}, [urlAlt]);
             if (!res.ok) return;
             const j = await res.json();
             if (j && j.coordinates) {
@@ -184,6 +227,66 @@
     } catch (err) {
       console.warn('init servicos error', err);
     }
+  })();
+
+  // --- ADICIONAL: exemplos de chamadas que estavam falhando (user-data, notificacoes, mensagens)
+  // coloquei retries para tentar formatos alternativos caso o backend aceite path ou query
+
+  async function tryLoadUserData(usuarioId) {
+    if (!usuarioId) return null;
+    const u1 = `/api/auth/user-data?id=${usuarioId}`;
+    const u2 = `/api/auth/user-data/${usuarioId}`;
+    try {
+      const r = await fetchWithAlternatives(u1, {}, [u2]);
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (e) {
+      console.warn('user-data fetch failed', e);
+      return null;
+    }
+  }
+
+  async function tryLoadNotificacoes(usuarioId) {
+    if (!usuarioId) return null;
+    const u1 = `/api/notificacoes/usuario/${usuarioId}/nao-lidas`;
+    const u2 = `/api/notificacoes/usuario?id=${usuarioId}&filter=nao-lidas`;
+    try {
+      const r = await fetchWithAlternatives(u1, {}, [u2]);
+      if (!r.ok) return [];
+      return await r.json();
+    } catch (e) {
+      console.warn('notificacoes fetch failed', e);
+      return [];
+    }
+  }
+
+  async function tryLoadConversas(usuarioId) {
+    if (!usuarioId) return [];
+    const u1 = `/api/mensagens/conversas/${usuarioId}`;
+    const u2 = `/api/mensagens/conversas?id=${usuarioId}`;
+    try {
+      const r = await fetchWithAlternatives(u1, {}, [u2]);
+      if (!r.ok) return [];
+      return await r.json();
+    } catch (e) {
+      console.warn('conversas fetch failed', e);
+      return [];
+    }
+  }
+
+  // Se quiser acionar manualmente (debug) - comentar/descomentar:
+  (async function debugLoads() {
+    try {
+      if (!usuarioId) return;
+      const ud = await tryLoadUserData(usuarioId);
+      if (!ud) console.warn('user-data não encontrada');
+      const nots = await tryLoadNotificacoes(usuarioId);
+      const conv = await tryLoadConversas(usuarioId);
+      // logs apenas para debug, não altera fluxo UI
+      console.log('debug user-data:', ud);
+      console.log('debug notificacoes:', nots);
+      console.log('debug conversas:', conv);
+    } catch (e) {}
   })();
 
 })();
