@@ -1,5 +1,5 @@
 // api/pagamento/create.js
-import pagamentoController from "../../controllers/pagamentoController.js";
+import pagamentoController from "../../../back-end/api/controllers/pagamentoController.js";
 
 function parseBody(req) {
   return new Promise((resolve, reject) => {

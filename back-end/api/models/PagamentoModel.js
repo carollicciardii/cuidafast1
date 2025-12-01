@@ -1,11 +1,8 @@
-const supabase = require('./db');
+import supabase from './db.js';
 
 class PagamentoModel {
   static async getAll() {
-    const { data, error } = await supabase
-      .from('pagamento')
-      .select('*');
-    
+    const { data, error } = await supabase.from('pagamento').select('*');
     if (error) throw error;
     return data || [];
   }
@@ -16,14 +13,25 @@ class PagamentoModel {
       .select('*')
       .eq('id', id)
       .single();
-    
+
     if (error && error.code !== 'PGRST116') throw error;
     return data || null;
   }
 
   static async create(pagamento) {
-    const { consulta_id, contratar_id, cliente_id, cuidador_id, data_pagamento, valor, metodo_pagamento, status, referencia } = pagamento;
-    
+    const {
+      consulta_id,
+      contratar_id,
+      cliente_id,
+      cuidador_id,
+      data_pagamento,
+      valor,
+      metodo_pagamento,
+      status,
+      referencia,
+      external_reference
+    } = pagamento;
+
     const { data, error } = await supabase
       .from('pagamento')
       .insert({
@@ -35,7 +43,8 @@ class PagamentoModel {
         valor,
         metodo_pagamento,
         status,
-        referencia
+        referencia,
+        external_reference
       })
       .select('id')
       .single();
@@ -46,7 +55,7 @@ class PagamentoModel {
 
   static async update(id, pagamento) {
     const { data_pagamento, valor, metodo_pagamento, status, referencia } = pagamento;
-    
+
     const { data, error } = await supabase
       .from('pagamento')
       .update({
@@ -65,16 +74,12 @@ class PagamentoModel {
   }
 
   static async delete(id) {
-    const { data, error } = await supabase
-      .from('pagamento')
-      .delete()
-      .eq('id', id)
-      .select();
+    const { data, error } = await supabase.from('pagamento').delete().eq('id', id).select();
 
     if (error) throw error;
     return data ? data.length : 0;
   }
 }
 
-module.exports = PagamentoModel;
+export default PagamentoModel;
 

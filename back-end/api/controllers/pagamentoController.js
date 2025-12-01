@@ -1,5 +1,5 @@
 // controllers/pagamentoController.js
-import mercadopagoService from "../services/mercadopago.service.js";
+import mercadopagoService from "../services/mercadoPagoService.js";
 import PagamentoModel from "../models/PagamentoModel.js"; // assume existe
 import supabase from "../models/db.js"; // supabase client (mesma fonte do PagamentoModel)
 
