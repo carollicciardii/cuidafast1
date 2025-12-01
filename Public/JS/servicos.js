@@ -1,24 +1,16 @@
 // Public/JS/servicos.js
-// Página do Cliente — busca casa do cliente e posição do cuidador via backend (Supabase-authenticated).
-// Polling de 5s para "ao vivo" caso não tenha realtime.
-
-(async function () {
-  // Dependência: inclua no HTML antes deste script:
-  // <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  // e defina window.SUPABASE_URL e window.SUPABASE_ANON_KEY
+// mapa e polling do cuidador (cliente vê casa + cuidador em tempo próximo)
+(function () {
+  // inicialização do supabase (UMD expõe window.supabase)
   if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
     console.error('SUPABASE_URL ou SUPABASE_ANON_KEY não definidos em window.');
   }
-if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-  console.error('SUPABASE_URL ou SUPABASE_ANON_KEY não definidos em window.');
-}
-// UMD do supabase expõe `supabase.createClient`
-const supabase = window.supabase && window.supabase.createClient
-  ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
-  : null;
-if (!supabase) console.error('Supabase UMD não encontrado. Verifique se carregou supabase.min.js');
+  const supabase = window.supabase && window.supabase.createClient
+    ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+    : null;
+  if (!supabase) console.error('Supabase UMD não encontrado. Verifique se carregou supabase.min.js');
 
-
+  // inicializa mapa
   const map = L.map('map').setView([-23.5505, -46.6333], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -43,23 +35,24 @@ if (!supabase) console.error('Supabase UMD não encontrado. Verifique se carrego
   }
 
   const usuarioId = Number(localStorage.getItem('usuario_id')) || Number(new URLSearchParams(location.search).get('id')) || null;
+  let clienteUid = null;
+  let cuidadorUid = null;
   let clienteMarker = null;
   let cuidadorMarker = null;
-  let pollingInterval = null;
-
-  async function getAuthToken() {
-    const { data } = await supabase.auth.getSession();
-    return data?.session?.access_token || null;
-  }
 
   async function authFetch(url, options = {}, retry = true) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Não autenticado (supabase session ausente)');
+    // Usa supabase para obter sessão (front-end)
+    if (!supabase) throw new Error('Supabase não inicializado');
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Não autenticado');
     const res = await fetch(url, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options.headers||{}) } });
     if (res.status === 401 && retry) {
-      try { await supabase.auth.refreshSession(); } catch(e){}
-      const freshToken = (await supabase.auth.getSession()).data?.session?.access_token;
-      return fetch(url, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${freshToken}`, ...(options.headers||{}) } });
+      // tenta forçar refresh do token
+      await supabase.auth.getSession({ forceRefresh: true });
+      const { data: newSession } = await supabase.auth.getSession();
+      const fresh = newSession?.session?.access_token;
+      return fetch(url, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${fresh}`, ...(options.headers||{}) } });
     }
     return res;
   }
@@ -88,77 +81,109 @@ if (!supabase) console.error('Supabase UMD não encontrado. Verifique se carrego
     }
   }
 
-  async function fetchClienteCasaPorAPI(id) {
-    try {
-      // usa authFetch para garantir autorização
-      const res = await authFetch(`/api/auth/localizacao/cliente/${id}`);
-      if (!res.ok) return;
-      const json = await res.json();
-      if (json && json.lat !== undefined && json.lng !== undefined) {
-        upsertClienteMarker(json.lat, json.lng);
-        map.setView([json.lat, json.lng], 15);
-      }
-    } catch (e) {
-      console.warn('fetchClienteCasaPorAPI erro', e);
-    }
-  }
-
-  async function subscribePairedCaregiver() {
+  // pega casa do cliente (irá chamar /api/localizacao/cliente/{usuarioId})
+  async function loadClienteAndCenter() {
     if (!usuarioId) return;
     try {
-      const res = await fetch(`/api/vinculo/cliente/${usuarioId}`);
-      if (!res.ok) return;
-      const v = await res.json();
-      if (!v.cuidador_id && !v.cuidador_firebase_uid) return;
-      const cuidadorUid = v.cuidador_firebase_uid || v.cuidador_id;
-      if (!cuidadorUid) return;
-      // fallback polling (5s)
-      await fetchCuidadorViaAPIAndStartPolling(cuidadorUid);
-    } catch (e) {
-      console.warn('subscribePairedCaregiver erro', e);
+      const res = await fetch(`/api/localizacao/cliente/${usuarioId}`);
+      if (!res.ok) {
+        console.warn('cliente location não encontrada', await res.text());
+        return;
+      }
+      const json = await res.json();
+      if (json && json.coordinates) {
+        upsertClienteMarker(json.coordinates.lat, json.coordinates.lng);
+        map.setView([json.coordinates.lat, json.coordinates.lng], 15);
+        updateDistanceIfPossible();
+      }
+    } catch (err) {
+      console.warn('Erro ao carregar casa do cliente', err);
     }
   }
 
-  async function fetchCuidadorViaAPIAndStartPolling(authUidOrUsuarioId) {
-    clearInterval(pollingInterval);
-    async function getOnce() {
+  // pega vínculo -> cuidadores vinculados ao cliente
+  async function getVinculoCuidador() {
+    if (!usuarioId) return null;
+    try {
+      const res = await fetch(`/api/vinculo/cliente/${usuarioId}`);
+      if (!res.ok) return null;
+      const v = await res.json();
+      return v;
+    } catch (err) {
+      console.warn('Erro ao buscar vinculo', err);
+      return null;
+    }
+  }
+
+  // polling para localização do cuidador pelo auth_uid (a cada 5s)
+  let pollTimer = null;
+  async function startCuidadorPolling(authUid) {
+    if (!authUid) return;
+    if (pollTimer) clearInterval(pollTimer);
+    async function poll() {
       try {
-        // tenta por auth_uid primeiro
-        const res = await authFetch(`/api/auth/localizacao/cuidador?auth_uid=${encodeURIComponent(authUidOrUsuarioId)}`);
+        const res = await fetch(`/api/localizacao/cuidador?auth_uid=${encodeURIComponent(authUid)}`);
         if (!res.ok) {
-          // tenta por usuario_id
-          const res2 = await authFetch(`/api/auth/localizacao/cuidador?usuario_id=${encodeURIComponent(authUidOrUsuarioId)}`);
-          if (!res2.ok) return;
-          const j2 = await res2.json();
-          if (j2 && j2.lat !== undefined && j2.lng !== undefined) {
-            upsertCuidadorMarker(j2.lat, j2.lng, j2.atualizado_em || j2.updated_at);
-            updateDistanceIfPossible();
-          }
+          // console.warn('cuidador location poll non-ok', res.status);
           return;
         }
         const j = await res.json();
-        if (j && j.lat !== undefined && j.lng !== undefined) {
-          upsertCuidadorMarker(j.lat, j.lng, j.atualizado_em || j.updated_at);
+        if (j && j.coordinates) {
+          upsertCuidadorMarker(j.coordinates.lat, j.coordinates.lng, j.updated_at || j.updatedAt);
           updateDistanceIfPossible();
         }
-      } catch (e) {}
+      } catch (err) {
+        console.warn('Erro no poll do cuidador', err);
+      }
     }
-    await getOnce();
-    pollingInterval = setInterval(getOnce, 5000);
+    // primeira chamada imediata
+    await poll();
+    pollTimer = setInterval(poll, 5000); // 5s
   }
 
-  // init
   (async function init(){
-    // Verifica sessão supabase
-  const { data } = await supabase.auth.getSession();
+    try {
+      // só para checar autenticação de cliente: se usar outra lógica, adapte aqui
+      if (!supabase) {
+        console.warn('supabase não inicializado, algumas features podem não funcionar');
+      } else {
+        const { data } = await supabase.auth.getSession();
+        if (!data?.session && !usuarioId) {
+          // sem sessão e sem id, redireciona para login (comentado se quiser manter)
+          // window.location.href = '../../index.html';
+        }
+      }
 
-    if (!data?.session) {
-      window.location.href = '../../index.html';
-      return;
+      await loadClienteAndCenter();
+
+      const vinc = await getVinculoCuidador();
+      if (!vinc) return;
+      // procura auth uid do cuidador no vínculo
+      const authUid = vinc.cuidador_firebase_uid || vinc.cuidador_auth_uid || null;
+      const linkCuidadorId = vinc.cuidador_id || null;
+
+      if (authUid) {
+        await startCuidadorPolling(authUid);
+      } else if (linkCuidadorId) {
+        // Se não tiver authUid mas tiver apenas o id interno, tenta buscar localizacao por usuario_id (pode-se adaptar endpoint)
+        // Implementação alternativa: /api/localizacao/cuidador?usuario_id=...
+        async function pollByUsuarioId() {
+          try {
+            const res = await fetch(`/api/localizacao/cuidador?usuario_id=${encodeURIComponent(linkCuidadorId)}`);
+            if (!res.ok) return;
+            const j = await res.json();
+            if (j && j.coordinates) {
+              upsertCuidadorMarker(j.coordinates.lat, j.coordinates.lng, j.updated_at || j.updatedAt);
+              updateDistanceIfPossible();
+            }
+          } catch (err) {}
+        }
+        await pollByUsuarioId();
+        setInterval(pollByUsuarioId, 5000);
+      }
+    } catch (err) {
+      console.warn('init servicos error', err);
     }
-
-    await fetchClienteCasaPorAPI(usuarioId);
-    await subscribePairedCaregiver();
   })();
 
 })();
