@@ -146,7 +146,25 @@ async function criarPagamentoPIX(req, res) {
     });
   } catch (error) {
     console.error("[PagamentoController] Erro ao criar pagamento PIX:", error);
-    return res.status(500).json({ error: "Erro interno ao processar pagamento", message: error.message });
+    console.error("[PagamentoController] Stack:", error.stack);
+    
+    // Garante que sempre retorna JSON válido
+    if (!res.headersSent) {
+      try {
+        return res.status(500).json({ 
+          error: "Erro interno ao processar pagamento", 
+          message: error.message || "Erro desconhecido",
+          type: error.name || "Error"
+        });
+      } catch (jsonError) {
+        console.error("[PagamentoController] Erro ao enviar resposta JSON:", jsonError);
+        if (!res.headersSent) {
+          res.status(500);
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: "Erro interno ao processar pagamento" }));
+        }
+      }
+    }
   }
 }
 

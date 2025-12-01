@@ -188,33 +188,41 @@
 
   const body = {
     valor: 120.00,   // <-- coloque o valor real
-    metodo: metodo.value
+    metodo: metodo.value,
+    descricao: "Pagamento de serviço CuidaFast" // Descrição obrigatória
   };
 
   try {
+    console.log("[Pagamento] Enviando requisição:", body);
     const res = await fetch("/api/pagamento/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
 
+    console.log("[Pagamento] Status da resposta:", res.status, res.statusText);
+    console.log("[Pagamento] Content-Type:", res.headers.get("content-type"));
+
+    // Tenta ler a resposta como texto primeiro para debug
+    const responseText = await res.text();
+    console.log("[Pagamento] Resposta (texto):", responseText.substring(0, 500));
+
     // Verifica se a resposta é JSON válido
     let json;
     const contentType = res.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {
       try {
-        json = await res.json();
+        json = JSON.parse(responseText);
       } catch (parseError) {
-        console.error("Erro ao parsear JSON:", parseError);
-        const text = await res.text();
-        console.error("Resposta do servidor (texto):", text);
-        alert("Erro: Resposta inválida do servidor. Verifique o console para mais detalhes.");
+        console.error("[Pagamento] Erro ao parsear JSON:", parseError);
+        console.error("[Pagamento] Resposta completa:", responseText);
+        alert(`Erro: Resposta inválida do servidor (${res.status}). Verifique o console para mais detalhes.`);
         return;
       }
     } else {
-      const text = await res.text();
-      console.error("Resposta não é JSON:", text);
-      alert("Erro: Servidor retornou resposta inválida. Verifique o console para mais detalhes.");
+      console.error("[Pagamento] Resposta não é JSON. Content-Type:", contentType);
+      console.error("[Pagamento] Resposta completa:", responseText);
+      alert(`Erro: Servidor retornou resposta inválida (${res.status}). Verifique o console para mais detalhes.`);
       return;
     }
 
