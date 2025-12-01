@@ -6,28 +6,34 @@ async function loadPagamentoController() {
   if (!pagamentoControllerPromise) {
     pagamentoControllerPromise = (async () => {
       let pagamentoModule;
-      const paths = [
-        "../../back-end/api/controllers/pagamentoController.js",
-        "../back-end/api/controllers/pagamentoController.js",
-        "../../../back-end/api/controllers/pagamentoController.js"
-      ];
       
-      let lastError = null;
-      for (const path of paths) {
+      // Tenta primeiro com caminho relativo a partir de api/pagamento/ (../../back-end)
+      // De api/pagamento/create.js para back-end/api/controllers = ../../back-end/api/controllers
+      try {
+        console.log('[Pagamento] Tentando carregar de: ../../back-end/api/controllers/pagamentoController.js');
+        pagamentoModule = await import('../../back-end/api/controllers/pagamentoController.js');
+        console.log('[Pagamento] ✅ Sucesso ao carregar de: ../../back-end');
+      } catch (primaryError) {
+        // Se falhar, tenta com caminho a partir de api/ (../back-end) - mesmo padrão do auth.js
         try {
-          console.log(`[Pagamento] Tentando carregar de: ${path}`);
-          pagamentoModule = await import(path);
-          console.log(`[Pagamento] ✅ Sucesso ao carregar de: ${path}`);
-          break;
-        } catch (err) {
-          console.warn(`[Pagamento] ❌ Falha ao carregar de ${path}:`, err.message);
-          lastError = err;
+          console.log('[Pagamento] Tentando carregar de: ../back-end/api/controllers/pagamentoController.js');
+          pagamentoModule = await import('../back-end/api/controllers/pagamentoController.js');
+          console.log('[Pagamento] ✅ Sucesso ao carregar de: ../back-end');
+        } catch (fallbackError) {
+          // Último fallback: tenta caminho alternativo
+          try {
+            console.log('[Pagamento] Tentando carregar de: ../../../back-end/api/controllers/pagamentoController.js');
+            pagamentoModule = await import('../../../back-end/api/controllers/pagamentoController.js');
+            console.log('[Pagamento] ✅ Sucesso ao carregar de: ../../../back-end');
+          } catch (lastError) {
+            console.error('[Pagamento] Falha ao carregar controller (todas tentativas):', {
+              primary: primaryError.message,
+              fallback: fallbackError.message,
+              last: lastError.message
+            });
+            throw new Error(`Não foi possível carregar pagamentoController. Último erro: ${lastError.message}`);
+          }
         }
-      }
-      
-      if (!pagamentoModule) {
-        console.error("[Pagamento] Erro ao carregar pagamentoController - todas as tentativas falharam");
-        throw new Error(`Não foi possível carregar pagamentoController. Último erro: ${lastError?.message}`);
       }
       
       return pagamentoModule.default || pagamentoModule;
