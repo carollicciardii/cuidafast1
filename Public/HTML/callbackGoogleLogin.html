@@ -6,32 +6,10 @@
   <title>Processando login Google...</title>
   <link rel="icon" type="image/svg+xml" href="../assets/icone_verde.svg">
   <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: #f5f5f5;
-    }
-    .loading {
-      text-align: center;
-      padding: 2rem;
-    }
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #4CAF50;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 1rem;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    body { display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; font-family:Inter, sans-serif; background:#f5f5f5; }
+    .loading { text-align:center; padding:2rem; }
+    .spinner { border:4px solid #f3f3f3; border-top:4px solid #4CAF50; border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; margin:0 auto 1rem; }
+    @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
   </style>
 </head>
 <body>
@@ -43,7 +21,7 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-    // --- CONFIGURE AQUI (mantive as suas chaves) ---
+    // --- ajuste suas keys aqui se precisar ---
     const SUPABASE_URL = "https://omvwicetojhqurdeuequ.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tdndpY2V0b2pocXVyZGV1ZXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MTI5MTEsImV4cCI6MjA3ODk4ODkxMX0.3XyOux7wjBIC2kIlmdSCTYzznzZOk5tJcHJJMA3Jggc";
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -52,136 +30,98 @@
       try {
         console.log('[callbackGoogleLogin] Processando callback do OAuth...');
 
-        // IMPORTANTE: tenta processar o hash/query da URL (quando o Supabase devolve a sessão no redirect)
-        // getSessionFromUrl() é importante quando o provedor retorna tokens no fragment/hash.
+        // tenta processar token do hash da URL (caso necessário)
         if (typeof supabase.auth.getSessionFromUrl === 'function') {
           try {
-            const fromUrl = await supabase.auth.getSessionFromUrl({ storeSession: true });
-            console.log('[callbackGoogleLogin] getSessionFromUrl result:', fromUrl);
+            await supabase.auth.getSessionFromUrl({ storeSession: true });
           } catch (e) {
-            // não falha se não suportado — seguimos para getSession normal
             console.warn('[callbackGoogleLogin] getSessionFromUrl falhou (seguindo):', e?.message || e);
           }
         }
 
-        // Pega sessão atual (após processamento)
         const { data, error } = await supabase.auth.getSession();
         const session = data?.session ?? null;
         const user = session?.user ?? null;
         console.log('[callbackGoogleLogin] getSession raw data:', data);
 
-        if (error) {
-          console.error('[callbackGoogleLogin] Erro ao obter sessão:', error);
-          alert('Erro ao processar login com Google. Por favor, tente novamente.');
+        if (error || !user || !session) {
+          console.error('[callbackGoogleLogin] Sessão inválida:', error);
+          alert('Não foi possível completar o login com Google. Tente novamente.');
           window.location.href = '../index.html';
           return;
         }
 
-        if (!user || !session) {
-          console.warn('[callbackGoogleLogin] Usuário não autenticado após callback');
-          alert('Não foi possível completar o login com Google. Por favor, tente novamente.');
-          window.location.href = '../index.html';
-          return;
-        }
-
-        console.log('[callbackGoogleLogin] Usuário autenticado:', user.email);
-
-        // Prepara dados do usuário para enviar ao backend
-        const userData = {
+        // Prepara dados a enviar ao backend
+        const payload = {
           email: user.email,
           nome: user.user_metadata?.full_name || (user.email ? user.email.split('@')[0] : ''),
           foto_url: user.user_metadata?.avatar_url || null,
-          // adicionados para compatibilidade com backends que esperam token/uid
           auth_uid: user.id || null,
           access_token: session.access_token || null,
-          refresh_token: session.refresh_token || null,
+          refresh_token: session.refresh_token || null
         };
 
-        // Chama o backend para login/criação
-        const API_URL = window.API_CONFIG?.AUTH || "/api/auth";
+        const API_URL = window.API_CONFIG?.AUTH || "/api/authe";
         const fullUrl = `${API_URL}/google-login`;
-        console.log('[callbackGoogleLogin] Chamando API:', fullUrl, userData);
+        console.log('[callbackGoogleLogin] Chamando API:', fullUrl, payload);
 
-        try {
-          const resp = await fetch(fullUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(userData)
-          });
+        // Envia também no header Authorization (compatibilidade)
+        const headers = {
+          "Content-Type": "application/json"
+        };
+        if (session.access_token) headers.Authorization = `Bearer ${session.access_token}`;
 
-          console.log('[callbackGoogleLogin] Resposta da API:', resp.status, resp.statusText);
+        const resp = await fetch(fullUrl, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(payload)
+        });
 
-          if (!resp.ok) {
-            // tenta parsear o JSON de erro, se possível; senão pega texto cru
-            let errorText = '';
-            try {
-              const errJson = await resp.json();
-              errorText = JSON.stringify(errJson);
-            } catch (parseErr) {
-              try {
-                errorText = await resp.text();
-              } catch (tErr) {
-                errorText = `Status ${resp.status} sem corpo legível`;
-              }
-            }
-            console.error('[callbackGoogleLogin] Erro da API (detalhe):', errorText);
-            alert('Erro no servidor: ' + (errorText || resp.statusText));
-            // opcional: redirecionar para página inicial
-            window.location.href = '../index.html';
-            return;
+        console.log('[callbackGoogleLogin] Resposta da API:', resp.status, resp.statusText);
+
+        if (!resp.ok) {
+          let errorText = '';
+          try { const j = await resp.json(); errorText = JSON.stringify(j); }
+          catch (e) { try { errorText = await resp.text(); } catch (t) { errorText = `Status ${resp.status}`; } }
+          console.error('[callbackGoogleLogin] Erro da API (detalhe):', errorText);
+          alert('Erro no servidor: ' + (errorText || resp.statusText));
+          window.location.href = '../index.html';
+          return;
+        }
+
+        const result = await resp.json();
+        console.log('[callbackGoogleLogin] Resultado:', result);
+
+        if (result.user) {
+          const backendUser = {
+            id: result.user.usuario_id || result.user.id,
+            usuario_id: result.user.usuario_id || result.user.id,
+            nome: result.user.nome || payload.nome,
+            email: user.email,
+            telefone: result.user.telefone || null,
+            tipo: result.user.tipo || 'cliente',
+            photoURL: payload.foto_url,
+            primeiroNome: (result.user.nome || payload.nome).split(' ')[0],
+            auth_uid: user.id,
+            loginGoogle: true
+          };
+
+          // salva token (backend ou supabase)
+          if (result.accessToken || result.access_token) {
+            localStorage.setItem('cuidafast_token', result.accessToken || result.access_token);
+          } else if (session.access_token) {
+            localStorage.setItem('cuidafast_token', session.access_token);
           }
 
-          const result = await resp.json();
-          console.log('[callbackGoogleLogin] Resultado:', result);
+          localStorage.setItem('cuidafast_user', JSON.stringify(backendUser));
+          localStorage.setItem('cuidafast_isLoggedIn', 'true');
 
-          if (result.user) {
-            // Atualiza com dados do backend
-            const backendUser = {
-              id: result.user.usuario_id || result.user.id,
-              usuario_id: result.user.usuario_id || result.user.id,
-              nome: result.user.nome || userData.nome,
-              email: user.email,
-              telefone: result.user.telefone || null,
-              tipo: result.user.tipo || 'cliente',
-              photoURL: userData.foto_url,
-              primeiroNome: (result.user.nome || userData.nome).split(' ')[0],
-              auth_uid: user.id,
-              loginGoogle: true
-            };
-
-            // Salvar token de acesso se fornecido pelo backend
-            if (result.accessToken || result.access_token) {
-              localStorage.setItem('cuidafast_token', result.accessToken || result.access_token);
-            } else if (session.access_token) {
-              // salva token do supabase como fallback
-              localStorage.setItem('cuidafast_token', session.access_token);
-            }
-
-            localStorage.setItem('cuidafast_user', JSON.stringify(backendUser));
-            localStorage.setItem('cuidafast_isLoggedIn', 'true');
-
-            // Redireciona baseado no tipo retornado pelo backend
-            const tipoUsuario = backendUser.tipo || 'cliente';
-
-            if (tipoUsuario === 'cuidador') {
-              window.location.href = 'dashboard-cuidador.html';
-            } else {
-              window.location.href = 'homeCliente.html';
-            }
-          } else {
-            console.warn('[callbackGoogleLogin] Backend não retornou user:', result);
-            alert('Erro ao fazer login: ' + (result.message || 'Resposta inválida do servidor'));
-            window.location.href = '../index.html';
-          }
-        } catch (err) {
-          console.error('[callbackGoogleLogin] Erro ao chamar backend:', err);
-          const errorMsg = err.message || 'Erro desconhecido';
-          console.error('[callbackGoogleLogin] Detalhes do erro:', {
-            message: errorMsg,
-            stack: err.stack,
-            url: fullUrl
-          });
-          alert('Erro ao conectar com o servidor: ' + errorMsg);
+          const tipoUsuario = backendUser.tipo || 'cliente';
+          if (tipoUsuario === 'cuidador') window.location.href = 'dashboard-cuidador.html';
+          else window.location.href = 'homeCliente.html';
+        } else {
+          console.warn('[callbackGoogleLogin] Backend não retornou user:', result);
+          alert('Erro ao fazer login: ' + (result.message || 'Resposta inválida do servidor'));
           window.location.href = '../index.html';
         }
 
@@ -192,13 +132,11 @@
       }
     }
 
-    // Processa o callback quando a página carrega
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', processCallback);
     } else {
       processCallback();
     }
   </script>
-
 </body>
 </html>

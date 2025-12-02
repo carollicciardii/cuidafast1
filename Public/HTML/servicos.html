@@ -108,7 +108,7 @@
       <!-- Logo Section -->
       <div class="header-left">
         <a href="homeCliente.html" class="logo-link">
-          <img id="logo" src="../assets/images.webp" alt="Logotipo CuidaFast" class="logo" />
+          <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
           <span class="logo-text"></span>
         </a>
       </div>
@@ -142,7 +142,7 @@
         <div class="user-profile-dropdown" id="userProfileDropdown">
           <button class="user-profile-btn" id="userProfileBtn">
             <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
-            <span class="user-name" id="headerUserName">João Silva</span>
+            <span class="user-name" id="headerUserName">Usuario</span>
             <i class="ph ph-caret-down dropdown-arrow"></i>
           </button>
 
@@ -151,7 +151,7 @@
             <div class="dropdown-header">
               <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
               <div class="dropdown-user-info">
-                <h4>João Silva</h4>
+                <h4>Usuario</h4>
                 <p>Cliente Premium</p>
               </div>
             </div>
@@ -189,15 +189,15 @@
   </header>
 
   <!-- CONTEÚDO PRINCIPAL -->
-  <h2>Sheila chegou para cuidar de João</h2>
+  <h2>Cristiano chegou para cuidar de João</h2>
 
   <div class="container">
     <div class="info-card">
       <p><b>Cristiano Mendes</b><br>
       Função: Babá<br><br>
-      <b>Data:</b> 02/08/2025<br>
-      <b>Check-in:</b> 07:58<br>
-      <b>Check-out:</b> 12:35<br>
+      <b>Data:</b> 04/12/2025<br>
+      <b>Check-in:</b> --:--<br>
+      <b>Check-out:</b> --:--<br>
       <b>Localização confirmada no endereço:</b></p>
     </div>
 
@@ -216,6 +216,15 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../JS/auth.js"></script>
   <script src="../JS/header.js"></script>
+  <!-- Supabase client UMD (necessário para window.supabase.createClient) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
+
+<script>
+  // expor as variáveis (substitua pelos seus valores em ambiente local)
+  window.SUPABASE_URL = 'https://omvwicetojhqurdeuequ.supabase.co'; // substitua
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tdndpY2V0b2pocXVyZGV1ZXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MTI5MTEsImV4cCI6MjA3ODk4ODkxMX0.3XyOux7wjBIC2kIlmdSCTYzznzZOk5tJcHJJMA3Jggc'; // substitua
+</script>
+
   <script src="../JS/servicos.js"></script>
 </body>
 </html>
