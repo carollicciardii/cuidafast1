@@ -1,5 +1,5 @@
 // api/auth/[...slug].js
-// Importações dinâmicas para evitar problemas de resolução de caminhos no Vercel
+// Importações dinâmicas para evitar problemas no Vercel
 
 let authController = null;
 let createOrAssociateUser = null;
@@ -7,28 +7,29 @@ let completeProfile = null;
 let localizacaoController = null;
 
 /* ============================================================
-   LOAD MODULES (CORRIGIDO E SIMPLIFICADO)
+   LOAD MODULES — FINAL E CORRETO
    ============================================================ */
 async function loadModules() {
-  // Auth controller
+
+  // AUTH CONTROLLER
   if (!authController) {
-    const module = await import('./auth-controller.js');
+    const module = await import('../back-end/api/controllers/authController.js');
     authController = module.default || module;
   }
 
-  // create-or-associate-user
+  // CREATE OR ASSOCIATE USER
   if (!createOrAssociateUser) {
     const module = await import('./create-or-associate-user.js');
     createOrAssociateUser = module.default;
   }
 
-  // completeProfile
+  // COMPLETE PROFILE
   if (!completeProfile) {
     const module = await import('../back-end/api/controllers/completeProfileController.js');
     completeProfile = module.completeProfile;
   }
 
-  // localizacaoController (APENAS CAMINHO CORRETO — COMO VOCÊ PEDIU)
+  // LOCALIZACAO CONTROLLER
   if (!localizacaoController) {
     try {
       const module = await import('../back-end/api/controllers/localizacaoController.js');
@@ -41,25 +42,25 @@ async function loadModules() {
 }
 
 /* ============================================================
-   PARSE JSON BODY (mantido)
+   BODY PARSER (mantido)
    ============================================================ */
 async function parseJsonBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;
 
   return new Promise((resolve, reject) => {
     let data = '';
+
     req.on && req.on('data', (chunk) => (data += chunk));
     req.on && req.on('end', () => {
       if (!data) return resolve({});
       try {
         resolve(JSON.parse(data));
       } catch (err) {
-        const ct = (req.headers && req.headers['content-type']) || '';
+        const ct = req.headers?.['content-type'] || '';
         if (ct.includes('application/x-www-form-urlencoded')) {
-          const obj = Object.fromEntries(new URLSearchParams(data));
-          return resolve(obj);
+          return resolve(Object.fromEntries(new URLSearchParams(data)));
         }
-        return reject(err);
+        reject(err);
       }
     });
     req.on && req.on('error', reject);
@@ -74,23 +75,23 @@ export default async function handler(req, res) {
     await loadModules();
 
     const { method, query, url } = req;
+
     const originalUrl =
       req.headers['x-vercel-original-url'] ||
       req.headers['x-invoke-path'] ||
       url ||
-      req.url ||
-      '';
+      req.url;
 
     const urlPath = originalUrl.split('?')[0];
 
-    console.log('[api/auth] INICIO HANDLER', { method, urlPath });
+    console.log('[api/auth] handler START', { method, urlPath });
 
     /* ============================================================
-       ROTAS DE LOCALIZAÇÃO (/api/localizacao/*)
+       ROTAS DE LOCALIZAÇÃO
        ============================================================ */
     if (urlPath.includes('/api/localizacao')) {
       if (!localizacaoController) {
-        return res.status(500).json({ error: 'localizacao controller não disponível' });
+        return res.status(500).json({ error: 'localizacaoController indisponível' });
       }
 
       // POST /api/localizacao/cuidador
@@ -113,9 +114,12 @@ export default async function handler(req, res) {
     }
 
     /* ============================================================
-       complete-profile via vercel.json
+       complete-profile via ?path=
        ============================================================ */
-    if (query?.path === 'complete-profile' || query?.path === 'complete-cuidador-profile') {
+    if (
+      query?.path === 'complete-profile' ||
+      query?.path === 'complete-cuidador-profile'
+    ) {
       if (method === 'POST') {
         req.body = req.body || await parseJsonBody(req);
         return completeProfile(req, res);
@@ -123,15 +127,15 @@ export default async function handler(req, res) {
     }
 
     /* ============================================================
-       complete-profile via URL direta
+       complete-profile via URL
        ============================================================ */
-    if ((urlPath.includes('/complete-profile')) && method === 'POST') {
+    if (method === 'POST' && urlPath.includes('/complete-profile')) {
       req.body = req.body || await parseJsonBody(req);
       return completeProfile(req, res);
     }
 
     /* ============================================================
-       Extrai PATH para rotas normais
+       Extrai PATH para rotas /api/auth/*
        ============================================================ */
     let path = '';
 
@@ -147,7 +151,7 @@ export default async function handler(req, res) {
     }
 
     /* ============================================================
-       Health check
+       HEALTH CHECK
        ============================================================ */
     if (!path) {
       if (method === 'GET') return res.status(200).json({ ok: true });
@@ -155,7 +159,7 @@ export default async function handler(req, res) {
     }
 
     /* ============================================================
-       Garante JSON body
+       GARANTE JSON BODY
        ============================================================ */
     if (['POST', 'PUT', 'PATCH'].includes(method)) {
       req.body = req.body || await parseJsonBody(req);
@@ -179,8 +183,12 @@ export default async function handler(req, res) {
     if (path === 'register' && method === 'POST')
       return authController.register(req, res);
 
-    if ((path === 'complete-profile' || path === 'complete-cuidador-profile') && method === 'POST')
+    if (
+      (path === 'complete-profile' || path === 'complete-cuidador-profile') &&
+      method === 'POST'
+    ) {
       return completeProfile(req, res);
+    }
 
     if (path === 'create-or-associate-user' && method === 'POST')
       return createOrAssociateUser(req, res);
@@ -189,11 +197,12 @@ export default async function handler(req, res) {
       return authController.getUserData(req, res);
 
     /* ============================================================
-       ROTA NAO ENCONTRADA
+       404 FINAL
        ============================================================ */
     return res.status(404).json({ error: 'Rota não encontrada', path, method });
+
   } catch (err) {
-    console.error('Erro geral:', err);
+    console.error('Erro geral no handler:', err);
     return res.status(500).json({ error: 'Internal server error', message: err?.message });
   }
 }
