@@ -139,29 +139,37 @@
             <input type="checkbox" id="aceite">
             <label for="aceite">Declaro que li e concordo com TODOS os termos acima</label>
         </div>
-
+        
         <br>
-
+        
         <div class="btns-termos">
-            
-            <button id="btnAvancar" disabled>Confirmar</button>
+            <button id="btnAvancar" disabled>
+                Confirmar
+            </button>
         </div>
-
-    </section>
-</main>
-
-<footer>
-    <p>© 2025 CuidaFast – Todos os direitos reservados.</p>
-</footer>
-
-<script>
-    const checkbox = document.getElementById("aceite");
-    const button = document.getElementById("btnAvancar");
-
-    checkbox.addEventListener("change", () => {
-        button.disabled = !checkbox.checked;
-    });
-</script>
-
+        
+        <script>
+            const checkbox = document.getElementById("aceite");
+            const button = document.getElementById("btnAvancar");
+        
+            checkbox.addEventListener("change", () => {
+                button.disabled = !checkbox.checked;
+        
+                // Só para visual: classe quando ativar
+                if (checkbox.checked) {
+                    button.classList.add("ativo");
+                } else {
+                    button.classList.remove("ativo");
+                }
+            });
+        
+            // Redirecionar somente quando estiver ativo
+            button.addEventListener("click", () => {
+                if (!button.disabled) {
+                    window.location.href = "cadastro.html";
+                }
+            });
+        </script>
+        
 </body>
 </html>
