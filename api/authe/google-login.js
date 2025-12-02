@@ -1,3 +1,4 @@
+// api/authe/google-login.js
 // Rota específica para google-login como fallback
 import authController from '../../back-end/api/controllers/authController.js';
 
@@ -35,9 +36,27 @@ export default async function handler(req, res) {
       try {
         req.body = await parseJsonBody(req);
       } catch (err) {
-        console.warn('Failed to parse JSON body:', err);
+        console.warn('[api/authe/google-login] Failed to parse JSON body:', err);
         return res.status(400).json({ error: 'Invalid JSON body' });
       }
+    }
+
+    // Se o frontend enviou um access_token no body, transforme em header Authorization
+    // Aceitamos access_token ou accessToken por compatibilidade
+    const tokenFromBody = req.body?.access_token || req.body?.accessToken || null;
+    if (tokenFromBody && (!req.headers || !req.headers.authorization)) {
+      req.headers = {
+        ...(req.headers || {}),
+        authorization: `Bearer ${tokenFromBody}`
+      };
+      console.log('[api/authe/google-login] Inserido Authorization header a partir do body');
+    }
+
+    // Se o frontend enviou auth_uid via body, garante que campo exista (alguns controllers esperam)
+    if (req.body?.auth_uid && !req.body.usuario_id) {
+      // não sobrescreve usuario_id se existe — só garante disponibilidade
+      req.body.auth_uid = req.body.auth_uid;
+      console.log('[api/authe/google-login] auth_uid presente no body');
     }
 
     console.log('[api/authe/google-login] Chamando googleLogin controller');
@@ -47,4 +66,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error', message: err?.message });
   }
 }
-
