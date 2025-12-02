@@ -259,8 +259,10 @@ a.message-btn:hover {
   z-index: 2000;
 }
 
-.user-profile-dropdown.open .profile-dropdown-menu {
+.user-profile-dropdown.open .profile-dropdown-menu,
+.profile-dropdown-menu.show {
   visibility: visible;
+  opacity: 1;
 }
 
 .dropdown-header {

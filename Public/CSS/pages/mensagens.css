@@ -579,14 +579,25 @@ body.client-home .main-content{
 }
 .header-action-btn {
   text-decoration: none !important;
-
   border: none !important;
   box-shadow: none !important;
 }
 
 .header-action-btn:hover {
-
   background: transparent !important;
+}
+
+/* Suporte para dropdown do header */
+.user-profile-dropdown.open .profile-dropdown-menu,
+.profile-dropdown-menu.show {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+}
+
+.user-profile-dropdown.open .dropdown-arrow,
+.user-profile-dropdown.active .dropdown-arrow {
+  transform: rotate(180deg);
 }
 
 

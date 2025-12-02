@@ -83,26 +83,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (profileBtn && dropdownMenu && dropdown) {
-    profileBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleDropdown();
-    });
+    // Verificar se já existe um handler (evitar duplicação)
+    if (!profileBtn.hasAttribute('data-header-handler')) {
+      profileBtn.setAttribute('data-header-handler', 'true');
+      
+      profileBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+      });
 
-    // Prevenir fechamento ao clicar dentro do dropdown
-    dropdown.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
+      // Prevenir fechamento ao clicar dentro do dropdown
+      dropdown.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
 
-    // Fechar dropdown ao clicar fora
-    document.addEventListener("click", (event) => {
-      if (!dropdown.contains(event.target)) {
-        closeDropdown();
-      }
-    });
+      // Fechar dropdown ao clicar fora
+      document.addEventListener("click", (event) => {
+        if (!dropdown.contains(event.target)) {
+          closeDropdown();
+        }
+      });
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeDropdown();
-    });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeDropdown();
+      });
+    }
   }
 
   // Configurar navegação - Notificações
@@ -428,7 +433,7 @@ function atualizarInformacoesUsuario() {
     }
 
     // Atualizar tipo de conta no dropdown
-    const dropdownUserType = document.querySelector('.dropdown-user-info p');
+    const dropdownUserType = document.getElementById('dropdownUserType') || document.querySelector('.dropdown-user-info p');
     if (dropdownUserType && userData.tipo) {
       if (userData.tipo === 'cuidador') {
         dropdownUserType.textContent = 'Conta Profissional';
@@ -437,13 +442,32 @@ function atualizarInformacoesUsuario() {
       }
     }
 
+    // Atualizar links do dropdown baseado no tipo de usuário
+    const userType = userData.tipo || 'cliente';
+    const dropdownPerfilLink = document.getElementById('dropdownPerfilLink');
+    const dropdownHistoricoLink = document.getElementById('dropdownHistoricoLink');
+    const dropdownHistoricoText = document.getElementById('dropdownHistoricoText');
+    
+    if (userType === 'cuidador') {
+      // Configurar para cuidador
+      if (dropdownPerfilLink) dropdownPerfilLink.href = 'perfilCuidador.html';
+      if (dropdownHistoricoText) dropdownHistoricoText.textContent = 'Histórico';
+      if (dropdownHistoricoLink) dropdownHistoricoLink.href = '#';
+    } else {
+      // Configurar para cliente
+      if (dropdownPerfilLink) dropdownPerfilLink.href = 'perfilCliente.html';
+      if (dropdownHistoricoText) dropdownHistoricoText.textContent = 'In-time';
+      if (dropdownHistoricoLink) dropdownHistoricoLink.href = 'contratarInTime.html';
+    }
+
     // Atualizar foto do perfil
-    if (userData.photoURL) {
-      const headerAvatar = document.querySelector('.user-avatar-img');
-      const dropdownAvatar = document.querySelector('.dropdown-avatar');
+    if (userData.photoURL || userData.foto_perfil) {
+      const foto = userData.photoURL || userData.foto_perfil;
+      const headerAvatar = document.querySelector('.user-avatar-img') || document.getElementById('headerUserAvatar');
+      const dropdownAvatar = document.querySelector('.dropdown-avatar') || document.getElementById('dropdownUserAvatar');
       
-      if (headerAvatar) headerAvatar.src = userData.photoURL;
-      if (dropdownAvatar) dropdownAvatar.src = userData.photoURL;
+      if (headerAvatar) headerAvatar.src = foto;
+      if (dropdownAvatar) dropdownAvatar.src = foto;
     }
 
     console.log('[Header] Informações do usuário atualizadas');

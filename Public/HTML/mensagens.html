@@ -111,12 +111,12 @@
                             <div class="dropdown-header">
                                 <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar" id="dropdownUserAvatar">
                                 <div class="dropdown-user-info">
-                                    <h4 id="dropdownUserName">Cuidador</h4>
-                                    <p id="dropdownUserType">Conta Profissional</p>
+                                    <h4 id="dropdownUserName">Usuário</h4>
+                                    <p id="dropdownUserType">Conta</p>
                                 </div>
                             </div>
                             <div class="dropdown-divider"></div>
-                            <a href="perfilCuidador.html" class="dropdown-item">
+                            <a href="#" class="dropdown-item" id="dropdownPerfilLink">
                                 <i class="ph ph-user"></i>
                                 <span>Meu Perfil</span>
                             </a>
@@ -124,9 +124,9 @@
                                 <i class="ph ph-gear"></i>
                                 <span>Configurações</span>
                             </a>
-                            <a href="#" class="dropdown-item">
+                            <a href="#" class="dropdown-item" id="dropdownHistoricoLink">
                                 <i class="ph ph-clock"></i>
-                                <span>Histórico</span>
+                                <span id="dropdownHistoricoText">Histórico</span>
                             </a>
                             <a href="#" class="dropdown-item">
                                 <i class="ph ph-question"></i>
@@ -205,22 +205,37 @@
     <script src="../JS/header.js"></script>
     <script src="../JS/mensagens.js"></script>
     <script>
-        // Carregar dados do usuário no header (APENAS dados cadastrados)
+        // Carregar dados do usuário no header e configurar dropdown baseado no tipo
         document.addEventListener('DOMContentLoaded', function() {
             const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
             
             // Atualizar nome APENAS se existir
             if (userData.nome) {
                 const primeiroNome = userData.nome.split(' ')[0];
-                document.getElementById('headerUserName').textContent = primeiroNome;
-                document.getElementById('dropdownUserName').textContent = userData.nome;
+                const headerUserName = document.getElementById('headerUserName');
+                const dropdownUserName = document.getElementById('dropdownUserName');
+                if (headerUserName) headerUserName.textContent = primeiroNome;
+                if (dropdownUserName) dropdownUserName.textContent = userData.nome;
             }
             
-            // Atualizar tipo APENAS se existir
-            if (userData.tipo) {
-                const tipoTexto = userData.tipo === 'cuidador' ? 'Cuidador' : 'Cliente';
-                const dropdownType = document.getElementById('dropdownUserType');
-                if (dropdownType) dropdownType.textContent = tipoTexto;
+            // Configurar dropdown baseado no tipo de usuário
+            const userType = userData.tipo || 'cliente';
+            const dropdownType = document.getElementById('dropdownUserType');
+            const dropdownPerfilLink = document.getElementById('dropdownPerfilLink');
+            const dropdownHistoricoLink = document.getElementById('dropdownHistoricoLink');
+            const dropdownHistoricoText = document.getElementById('dropdownHistoricoText');
+            
+            if (userType === 'cuidador') {
+                // Configurar para cuidador
+                if (dropdownType) dropdownType.textContent = 'Conta Profissional';
+                if (dropdownPerfilLink) dropdownPerfilLink.href = 'perfilCuidador.html';
+                if (dropdownHistoricoText) dropdownHistoricoText.textContent = 'Histórico';
+            } else {
+                // Configurar para cliente
+                if (dropdownType) dropdownType.textContent = 'Conta Cliente';
+                if (dropdownPerfilLink) dropdownPerfilLink.href = 'perfilCliente.html';
+                if (dropdownHistoricoText) dropdownHistoricoText.textContent = 'In-time';
+                if (dropdownHistoricoLink) dropdownHistoricoLink.href = 'contratarInTime.html';
             }
             
             // Atualizar foto APENAS se existir
@@ -232,18 +247,31 @@
                 if (dropdownAvatar) dropdownAvatar.src = foto;
             }
             
-            // Dropdown toggle
+            // Dropdown toggle - usar header.js, mas garantir compatibilidade
             const userProfileBtn = document.getElementById('userProfileBtn');
+            const profileDropdown = document.getElementById('userProfileDropdown');
             const profileDropdownMenu = document.getElementById('profileDropdownMenu');
             
-            if (userProfileBtn && profileDropdownMenu) {
+            // Se header.js não configurou, configurar aqui como fallback
+            if (userProfileBtn && profileDropdown && profileDropdownMenu && !userProfileBtn.hasAttribute('data-header-handler')) {
                 userProfileBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
+                    profileDropdown.classList.toggle('open');
+                    profileDropdown.classList.toggle('active');
                     profileDropdownMenu.classList.toggle('show');
                 });
                 
+                // Prevenir fechamento ao clicar dentro do dropdown
+                if (profileDropdown) {
+                    profileDropdown.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                }
+                
                 document.addEventListener('click', function(e) {
-                    if (!userProfileBtn.contains(e.target) && !profileDropdownMenu.contains(e.target)) {
+                    if (!profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove('open');
+                        profileDropdown.classList.remove('active');
                         profileDropdownMenu.classList.remove('show');
                     }
                 });

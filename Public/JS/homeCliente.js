@@ -749,24 +749,51 @@ window.CuidaFastClient = {
       
       if (!profileBtn || !profileDropdown) return;
 
+      // Verificar se header.js já configurou (evitar duplicação)
+      if (profileBtn.hasAttribute('data-header-handler')) {
+        console.log('[HomeCliente] Dropdown já configurado pelo header.js');
+        return;
+      }
+
       profileBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         profileDropdown.classList.toggle('open');
+        profileDropdown.classList.toggle('active');
+        if (dropdownMenu) {
+          dropdownMenu.classList.toggle('show');
+        }
       });
+
+      // Prevenir fechamento ao clicar dentro do dropdown
+      if (profileDropdown) {
+        profileDropdown.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+      }
 
       // Fechar dropdown ao clicar fora
       document.addEventListener('click', (e) => {
         if (!profileDropdown.contains(e.target)) {
           profileDropdown.classList.remove('open');
+          profileDropdown.classList.remove('active');
+          if (dropdownMenu) {
+            dropdownMenu.classList.remove('show');
+          }
         }
       });
 
-      // Logout do header
+      // Logout do header - usar função do header.js se disponível
       const headerLogoutBtn = document.getElementById('headerLogoutBtn');
-      if (headerLogoutBtn) {
+      if (headerLogoutBtn && !headerLogoutBtn.hasAttribute('data-logout-handler')) {
+        headerLogoutBtn.setAttribute('data-logout-handler', 'true');
         headerLogoutBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          this.handleLogout();
+          // Usar handleLogout do header.js se disponível, senão usar local
+          if (window.handleLogout) {
+            window.handleLogout();
+          } else {
+            this.handleLogout();
+          }
         });
       }
     },
