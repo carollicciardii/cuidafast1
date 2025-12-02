@@ -1,3 +1,4 @@
+// back-end/api/controllers/authController.js
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { createClient } from '@supabase/supabase-js';
@@ -14,12 +15,12 @@ const ACCESS_EXPIRES = '15m';
 const REFRESH_EXPIRES = '30d';
 const BCRYPT_ROUNDS = 10;
 
-const JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
+const JWT_SECRET = process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET;
 const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined;
 const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || false;
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE;
 
 /* ------------------------------------------
     SUPABASE CLIENT
@@ -172,36 +173,49 @@ export const login = async (req, res) => {
 };
 
 /* ------------------------------------------
-    GOOGLE LOGIN (NOVO)
+    GOOGLE LOGIN (corrigido)
 -------------------------------------------*/
 export const googleLogin = async (req, res) => {
   try {
-    const { email, nome, foto_url, tipo_usuario } = req.body || {};
+    // pega com segurança os campos do body e evita ReferenceError
+    const {
+      auth_uid,
+      email,
+      nome,
+      foto_url,
+      tipo_usuario,
+      // outros campos que o front possa mandar
+      ...rest
+    } = req.body || {};
 
+    console.log('googleLogin bodyKeys:', Object.keys(req.body || {}), 'auth_uid present:', !!auth_uid);
+
+    // validações básicas
     if (!email) {
+      console.warn('googleLogin: email ausente');
       return res.status(400).json({ message: 'Email obrigatório' });
     }
 
     if (!supabase) {
+      console.error('googleLogin: supabase não configurado');
       return res.status(500).json({ message: 'Supabase não configurado' });
     }
 
-    // Verifica se já existe no seu DB
+    // verifica se já existe no DB
     let user = await UsuarioModel.findByEmail(email);
 
     if (!user) {
       // Usuário não existe - cria novo
-      // Usa tipo_usuario do request se fornecido, senão padrão 'cliente'
       const tipo = tipo_usuario === 'cuidador' ? 'cuidador' : 'cliente';
-      
-      // cria usuário base
+
+      // cria usuário base (inclui auth_uid se presente)
       const newId = await UsuarioModel.create({
         nome: nome || email.split('@')[0],
         email,
         senha: null,
         telefone: null,
         data_nascimento: null,
-        tipo: tipo,
+        tipo,
         photo_url: foto_url || null,
         auth_uid: auth_uid || null
       });
@@ -220,41 +234,47 @@ export const googleLogin = async (req, res) => {
           await CuidadorModel.create({ usuario_id: newId });
         }
       }
+
+      console.info('googleLogin: usuário criado', { usuario_id: newId, tipo });
     } else {
-      // Usuário já existe - PRESERVA todos os dados existentes
-      // SEMPRE usa o tipo existente do usuário, ignorando o tipo enviado no request
-      // Isso garante que se o usuário já tem uma conta, ele entra com os mesmos dados
-      const tipoExistente = user.tipo || 'cliente'; // Se não tiver tipo, usa 'cliente' como padrão
-      
-      // Atualiza auth_uid se fornecido e não existir
+      // Usuário já existe
+      // Atualiza auth_uid se foi fornecido e usuário não tem
       if (auth_uid && !user.auth_uid) {
-        await UsuarioModel.updateGoogleData(user.usuario_id, auth_uid, foto_url);
+        try {
+          await UsuarioModel.updateGoogleData(user.usuario_id, auth_uid, foto_url);
+          // atualiza o objeto user após alteração
+          user = await UsuarioModel.getById(user.usuario_id);
+          console.info('googleLogin: auth_uid atualizado para usuário existente', { usuario_id: user.usuario_id });
+        } catch (err) {
+          console.error('googleLogin: falha ao atualizar auth_uid', err && (err.message || err));
+          // não interrompe o fluxo — só logamos
+        }
       }
-      
+
       // Prepara dados para atualização (só atualiza o que faz sentido)
+      const tipoExistente = user.tipo || 'cliente'; // se não tiver tipo, assume cliente
       const updateData = {};
-      
+
       // Atualiza nome apenas se não existir ou se o nome do Google for mais completo
-      // Preserva o nome existente se já tiver um nome válido
       if (!user.nome || user.nome.trim() === '' || user.nome === email.split('@')[0]) {
         updateData.nome = nome || user.nome || email.split('@')[0];
       }
-      
+
       // Atualiza photo_url apenas se não existir uma foto salva ou se uma nova foto foi fornecida
       if (foto_url && (!user.photo_url || user.photo_url.trim() === '')) {
         updateData.photo_url = foto_url;
       }
-      
+
       // Garante que o tipo está definido (preserva o existente)
       if (!user.tipo && tipoExistente) {
         updateData.tipo = tipoExistente;
       }
-      
+
       // Atualiza apenas se houver mudanças
       if (Object.keys(updateData).length > 0) {
         await UsuarioModel.update(user.usuario_id, updateData);
       }
-      
+
       // Garante que existe registro em ClienteModel ou CuidadorModel conforme o tipo
       if (tipoExistente === 'cliente') {
         const clienteExistente = await ClienteModel.getById(user.usuario_id);
@@ -267,12 +287,12 @@ export const googleLogin = async (req, res) => {
           await CuidadorModel.create({ usuario_id: user.usuario_id });
         }
       }
-      
+
       // Recarrega dados atualizados do banco
       user = await UsuarioModel.getById(user.usuario_id);
     }
 
-    // JWT
+    // JWT (cria tokens)
     const payload = { id: user.usuario_id, email: user.email };
     const accessToken = createAccessToken(payload);
     const refreshToken = createRefreshToken(payload);
@@ -300,7 +320,7 @@ export const googleLogin = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('googleLogin error', err);
+    console.error('googleLogin error', err && (err.stack || err.message || String(err)));
     return res.status(500).json({ message: 'Erro no servidor' });
   }
 };
