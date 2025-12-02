@@ -1,11 +1,18 @@
 // Public/JS/servicos.js
 // Versão: integração via endpoints /api/localizacao/* (server-side controller).
-// Substitua completamente o arquivo anterior por este.
+// Adição: roteamento por ruas via OSRM (router.project-osrm.org).
+// Mantive todo o resto intacto; adicionei getRouteBetweenPointsOSRM + desenho GeoJSON.
 
 (function () {
   // CONFIG
-  const FECAP_COORDS = { lat: -23.55740007, lng: -46.6368266 }; // fallback visual
+  const FECAP_COORDS = { lat: -23.528464, lng: -46.5564568 }; // fallback visual
   const MAP_ELEMENT_ID = 'map';
+
+  // Coordenada do terceiro ponto (pessoinha extra) — mude aqui se quiser outro local
+  const EXTRA_PERSON_COORDS = { lat: -23.55740007, lng: -46.6368266 };
+
+  // OSRM endpoint (demo). Para produção, substitua por seu roteador ou por serviço pago (Mapbox/ORS).
+  const OSRM_BASE = 'https://router.project-osrm.org';
 
   // Inicializa mapa
   const map = L.map(MAP_ELEMENT_ID).setView([FECAP_COORDS.lat, FECAP_COORDS.lng], 15);
@@ -38,6 +45,10 @@
   let clienteMarker = null;
   let personMarker = null;
   let cuidadorMarker = null;
+  let extraPersonMarker = null; // terceiro ponto solicitado
+
+  // rota/geojson layer global
+  let routeLayer = null;
 
   function createHouseIcon() {
     return L.divIcon({ className: '', html: '<i class="ph-house ph-bold ph-icon" style="font-size:30px;color:#333"></i>', iconSize: [32,32], iconAnchor: [16,16] });
@@ -49,18 +60,129 @@
     return L.divIcon({ className: '', html: '<i class="ph-user ph-bold ph-icon" style="font-size:28px;color:#0d6efd"></i>', iconSize: [32,32], iconAnchor: [16,16] });
   }
 
+  // desenha rota GeoJSON no mapa (substitui a anterior polyline)
+  function drawRouteGeoJSON(geojson) {
+    // remove rota anterior
+    if (routeLayer) {
+      try { map.removeLayer(routeLayer); } catch(e) {}
+      routeLayer = null;
+    }
+    if (!geojson) return;
+    routeLayer = L.geoJSON(geojson, {
+      style: function () {
+        return { color: '#0d6efd', weight: 5, opacity: 0.9 };
+      }
+    }).addTo(map);
+  }
+
+  // Faz request ao OSRM para obter rota entre dois pontos (lat/lng)
+  // Retorna GeoJSON LineString (rota) ou null em erro.
+  async function getRouteBetweenPointsOSRM(lat1, lng1, lat2, lng2) {
+    try {
+      // OSRM espera ordem: lon,lat
+      const coords = `${lng1},${lat1};${lng2},${lat2}`;
+      const url = `${OSRM_BASE}/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn('OSRM route failed', res.status);
+        return null;
+      }
+      const j = await res.json();
+      if (!j || !j.routes || j.routes.length === 0) return null;
+      const route = j.routes[0];
+      // route.geometry é um GeoJSON LineString object (if geometries=geojson)
+      // mas alguns OSRM deployments retornam {type:'LineString', coordinates: [...]}
+      if (route.geometry) {
+        return route.geometry; // GeoJSON geometry
+      }
+      // fallback: if polyline encoded (not our case), you'd decode here
+      return null;
+    } catch (err) {
+      console.warn('getRouteBetweenPointsOSRM erro', err);
+      return null;
+    }
+  }
+
+  // atualiza a view e desenha rota entre casa e a "pessoa" escolhida (agora por ruas)
+  async function updateMapViewAndRoute() {
+    try {
+      if (!clienteMarker) return; // precisa da casa para comparar
+      // prioridade: personMarker -> cuidadorMarker -> extraPersonMarker
+      const targetMarker = personMarker || cuidadorMarker || extraPersonMarker || null;
+      if (!targetMarker) return;
+
+      const cLatLng = clienteMarker.getLatLng();
+      const tLatLng = targetMarker.getLatLng();
+
+      // primeiro faz fitBounds incluindo ambos com padding
+      const bounds = L.latLngBounds([ [cLatLng.lat, cLatLng.lng], [tLatLng.lat, tLatLng.lng] ]);
+      map.fitBounds(bounds, { padding: [60,60] });
+
+      // solicita rota ao OSRM e desenha GeoJSON (se disponível)
+      const geo = await getRouteBetweenPointsOSRM(cLatLng.lat, cLatLng.lng, tLatLng.lat, tLatLng.lng);
+      if (geo) {
+        drawRouteGeoJSON(geo);
+      } else {
+        // fallback: desenha linha reta se rota não puder ser obtida
+        if (routeLayer) { try { map.removeLayer(routeLayer); } catch(e){} routeLayer = null; }
+        const latlngs = [ [cLatLng.lat, cLatLng.lng], [tLatLng.lat, tLatLng.lng] ];
+        routeLayer = L.polyline(latlngs, { weight: 4, opacity: 0.8, dashArray: '6,6' }).addTo(map);
+      }
+    } catch (err) {
+      console.warn('updateMapViewAndRoute erro', err);
+    }
+  }
+
+  // função para limpar rota se necessário
+  function clearRoute() {
+    if (routeLayer) {
+      try { map.removeLayer(routeLayer); } catch(e) {}
+      routeLayer = null;
+    }
+  }
+
   function upsertClienteMarker(lat, lng) {
     const icon = createHouseIcon();
-    if (clienteMarker) clienteMarker.setLatLng([lat, lng]); else clienteMarker = L.marker([lat, lng], { icon }).addTo(map).bindPopup('Minha casa');
+    if (clienteMarker) {
+      clienteMarker.setLatLng([lat, lng]);
+    } else {
+      clienteMarker = L.marker([lat, lng], { icon }).addTo(map).bindPopup('Minha casa');
+    }
+    // chamar atualização de view/rota sempre que a casa for (re)colocada
+    updateMapViewAndRoute();
   }
   function upsertPersonMarker(lat, lng, popupText = 'Pessoa') {
     const icon = createPersonIcon();
-    if (personMarker) personMarker.setLatLng([lat, lng]).setPopupContent(popupText); else personMarker = L.marker([lat, lng], { icon }).addTo(map).bindPopup(popupText);
+    if (personMarker) {
+      personMarker.setLatLng([lat, lng]).setPopupContent(popupText);
+    } else {
+      personMarker = L.marker([lat, lng], { icon }).addTo(map).bindPopup(popupText);
+    }
+    // chamar atualização de view/rota sempre que a pessoa for (re)colocada
+    updateMapViewAndRoute();
   }
   function upsertCuidadorMarker(lat, lng, updatedAt) {
     const icon = createCuidadorIcon();
     const popup = `Cuidador<br>Última atualização: ${updatedAt ? new Date(updatedAt).toLocaleTimeString() : ''}`;
-    if (cuidadorMarker) cuidadorMarker.setLatLng([lat,lng]).setPopupContent(popup); else cuidadorMarker = L.marker([lat,lng], { icon }).addTo(map).bindPopup(popup);
+    if (cuidadorMarker) {
+      cuidadorMarker.setLatLng([lat,lng]).setPopupContent(popup);
+    } else {
+      cuidadorMarker = L.marker([lat,lng], { icon }).addTo(map).bindPopup(popup);
+    }
+    // chamar atualização de view/rota sempre que o cuidador for (re)colocado
+    updateMapViewAndRoute();
+  }
+
+  // --- Novo: função simples para criar o terceiro ponto (pessoinha extra) ---
+  function addExtraPersonStatic(lat = EXTRA_PERSON_COORDS.lat, lng = EXTRA_PERSON_COORDS.lng, popupText = 'Pessoa (extra)') {
+    const icon = createPersonIcon();
+    if (extraPersonMarker) {
+      extraPersonMarker.setLatLng([lat, lng]).setPopupContent(popupText);
+    } else {
+      extraPersonMarker = L.marker([lat, lng], { icon }).addTo(map).bindPopup(popupText);
+    }
+    // atualizar view/rota para incluir este novo ponto (caso casa exista)
+    updateMapViewAndRoute();
   }
 
   function updateDistanceIfPossible() {
@@ -174,6 +296,18 @@
         // sem vinculo -> apenas tenta buscar qualquer person com metadata.role person relacionada ao usuario?
         // nada a fazer por enquanto
       }
+
+      // === AQUI: adiciona o terceiro ponto estático da pessoinha ===
+      // Não altera nada do restante — apenas exibe um marker com ícone de pessoa.
+      try {
+        addExtraPersonStatic(EXTRA_PERSON_COORDS.lat, EXTRA_PERSON_COORDS.lng, 'Pessoa (extra)');
+      } catch (err) {
+        console.warn('Erro ao adicionar extraPersonMarker:', err);
+      }
+
+      // OBS: se já existirem clienteMarker e algum dos person/cuidador/extraPerson, updateMapViewAndRoute() já foi chamado
+      // pelos upsert/add functions acima.
+
     } catch (err) {
       console.warn('init servicos error', err);
     }
@@ -184,7 +318,10 @@
     loadClienteAndCenter,
     fetchCuidadorLocationByAuthUidOrUsuario,
     upsertClienteMarker,
-    upsertPersonMarker
+    upsertPersonMarker,
+    addExtraPersonStatic, // exposto para facilitar testes/manipulação
+    updateMapViewAndRoute,
+    clearRoute
   };
 
 })();
