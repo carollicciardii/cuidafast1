@@ -1,7 +1,7 @@
 // services/mercadopago.service.js
 import axios from "axios";
 
-const MERCADOPAGO_BASE_URL = process.env.MERCADOPAGO_BASE_URL || "https://api.mercadopago.com/v1";
+const MERCADOPAGO_BASE_URL = process.env.MERCADOPAGO_BASE_URL || "https://api.mercadopago.com";
 const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
 if (!MERCADOPAGO_ACCESS_TOKEN) {
