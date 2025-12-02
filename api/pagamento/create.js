@@ -1,19 +1,28 @@
 // api/pagamento/create.js
-// Importação fixa e direta
+
 let pagamentoControllerPromise = null;
 
 async function loadPagamentoController() {
   if (!pagamentoControllerPromise) {
     pagamentoControllerPromise = (async () => {
-      try {
-        console.log('[Pagamento] Carregando controller de pagamento...');
-        const module = await import('../../back-end/api/controllers/pagamentoController.js');
-        console.log('[Pagamento] ✅ Controller carregado com sucesso');
-        return module.default || module;
-      } catch (err) {
-        console.error('[Pagamento] ❌ Erro ao carregar pagamentoController:', err);
-        throw new Error(`Falha ao importar pagamentoController: ${err.message}`);
+      const paths = [
+        '../../back-end/api/controllers/pagamentoController.js',
+        '../back-end/api/controllers/pagamentoController.js',
+        '../../../back-end/api/controllers/pagamentoController.js'
+      ];
+
+      for (const p of paths) {
+        try {
+          console.log('[Pagamento] Tentando carregar:', p);
+          const mod = await import(p);
+          console.log('[Pagamento] Sucesso ao carregar controller de:', p);
+          return mod.default || mod;
+        } catch (e) {
+          console.log('[Pagamento] Falhou em:', p);
+        }
       }
+
+      throw new Error("Não foi possível carregar pagamentoController em nenhum caminho.");
     })();
   }
   return pagamentoControllerPromise;
@@ -24,115 +33,70 @@ function parseBody(req) {
     if (req.body && typeof req.body === "object") return resolve(req.body);
 
     let data = "";
-    req.on?.("data", (chunk) => (data += chunk));
+    req.on?.("data", chunk => data += chunk);
     req.on?.("end", () => {
       if (!data) return resolve({});
+
       try {
         return resolve(JSON.parse(data));
-      } catch (err) {
-        const ct = req.headers?.["content-type"] || "";
-        if (ct.includes("application/x-www-form-urlencoded")) {
-          try {
-            return resolve(Object.fromEntries(new URLSearchParams(data)));
-          } catch (e) {
-            return reject(err);
-          }
-        }
-        return reject(err);
+      } catch {
+        return resolve({ raw: data }); // nunca quebrar
       }
     });
     req.on?.("error", reject);
   });
 }
 
-function safeJsonResponse(res, status, data) {
+function safeJson(res, status, obj) {
   try {
-    if (!res.headersSent) {
-      res.status(status);
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      return res.json(data);
-    }
+    res.status(status);
+    res.setHeader("Content-Type", "application/json");
+    return res.end(JSON.stringify(obj));
   } catch (e) {
-    console.error('[Pagamento] Erro ao enviar JSON:', e);
-    if (!res.headersSent) {
-      res.status(status);
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify(data));
-    }
+    console.error("[Pagamento] Erro ao enviar JSON:", e);
   }
 }
 
 export default async function handler(req, res) {
-  const sendJsonError = (status, error, message) =>
-    safeJsonResponse(res, status, { error, message });
-
   try {
-    const { method, url } = req || {};
+    const controller = await loadPagamentoController();
+    const body = await parseBody(req);
+    req.body = body;
 
-    if (!method || !url) {
-      return sendJsonError(400, 'Requisição inválida', 'Method ou URL ausentes');
+    const url = req.url || "";
+    const method = req.method || "GET";
+
+    // ---- direcionamento de rotas ----
+
+    if (method === "POST" && url.endsWith("/pix")) {
+      return controller.criarPagamentoPIX(req, res);
     }
 
-    let pagamentoController;
-    try {
-      pagamentoController = await loadPagamentoController();
-    } catch (err) {
-      return sendJsonError(500, 'Erro ao carregar controller', err.message);
+    if (method === "POST" && url.endsWith("/cartao")) {
+      return controller.criarPagamentoCartao(req, res);
     }
 
-    let body;
-    try {
-      body = await parseBody(req);
-      req.body = body;
-    } catch (err) {
-      return sendJsonError(400, 'Body inválido', 'JSON malformado');
-    }
-
-    // ------------------------------
-    // ROTAS
-    // ------------------------------
-
-    // PIX explícito
-    if (method === "POST" && (url.endsWith("/pix") || url.includes("/pagamento/pix"))) {
-      return pagamentoController.criarPagamentoPIX(req, res);
-    }
-
-    // Cartão explícito
-    if (method === "POST" && (url.endsWith("/cartao") || url.includes("/pagamento/cartao"))) {
-      return pagamentoController.criarPagamentoCartao(req, res);
-    }
-
-    // Consultar pagamento GET /api/pagamento/:id
     if (method === "GET" && url.includes("/pagamento/")) {
-      const paymentId = url.split("/pagamento/")[1]?.split("?")[0];
-      if (paymentId) {
-        req.params = { payment_id: paymentId };
-        req.query = {};
-        const qs = url.split("?")[1] || "";
-        qs.split("&").forEach((p) => {
-          const [k, v] = p.split("=");
-          if (k) req.query[k] = decodeURIComponent(v || "");
-        });
-        return pagamentoController.consultarPagamento(req, res);
-      }
+      const id = url.split("/pagamento/")[1]?.split("?")[0];
+      req.params = { payment_id: id };
+      return controller.consultarPagamento(req, res);
     }
 
-    // POST genérico /api/pagamento/create
+    // POST genérico - decide por body
     if (method === "POST") {
-      if (body?.metodo === "cartao" || body?.cartao) {
-        return pagamentoController.criarPagamentoCartao(req, res);
+      if (body.metodo === "cartao") {
+        return controller.criarPagamentoCartao(req, res);
       }
-      return pagamentoController.criarPagamentoPIX(req, res);
+      return controller.criarPagamentoPIX(req, res);
     }
 
-    return safeJsonResponse(res, 405, { error: "Método não permitido" });
+    return safeJson(res, 405, { error: "Método não permitido" });
 
   } catch (err) {
-    return safeJsonResponse(res, 500, {
-      error: "Erro interno",
-      message: err.message || "Erro desconhecido",
-      type: err.name || "Error"
+    console.error("[Pagamento] ERRO FATAL:", err);
+    return safeJson(res, 500, {
+      error: "Erro interno no pagamento",
+      message: err.message || "Falha desconhecida"
     });
   }
 }
