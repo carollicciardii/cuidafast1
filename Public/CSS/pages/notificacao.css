@@ -77,7 +77,7 @@ body {
 
 /* Estilos do cabeçalho moderno */
 .modern-header {
-    background: var(--creme);
+    background: var(--bege);
     border-bottom: 1px solid rgba(27, 71, 93, 0.1);
     position: fixed;
     top: 0;

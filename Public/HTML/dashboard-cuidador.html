@@ -424,18 +424,7 @@
 
             console.log('[DashboardCuidador] Cuidador carregado:', userData.nome);
 
-            // Navegação (notificações e mensagens) é gerenciada pelo header.js
-
-            // Configurar logout
-            const logoutBtn = document.getElementById('headerLogoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    localStorage.removeItem('cuidafast_isLoggedIn');
-                    localStorage.removeItem('cuidafast_user');
-                    window.location.href = '../../index.html';
-                });
-            }
+            // Navegação (notificações e mensagens) e logout são gerenciados pelo header.js
 
             // Configurar busca de oportunidades (clientes)
             const headerSearch = document.getElementById('headerSearch');

@@ -286,7 +286,7 @@
                             <span>Ajuda</span>
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item logout-item" id="headerLogoutBtn">
+                        <a href="../../index.html" class="dropdown-item logout-item" id="headerLogoutBtn">
                             <i class="ph ph-sign-out"></i>
                             <span>Sair</span>
                         </a>
@@ -488,15 +488,7 @@
                 });
             }
 
-            // Configurar logout
-            const logoutBtn = document.getElementById('headerLogoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    localStorage.removeItem('cuidafast_isLoggedIn');
-                    window.location.href = '../../index.html';
-                });
-            }
+            // Logout é gerenciado pelo header.js
 
             try {
                 // ✅ NOVO: Obter ID do cuidador da URL (ao invés de email)
@@ -648,5 +640,6 @@
             }
         });
     </script>
+    <script src="../JS/header.js"></script>
 </body>
 </html>

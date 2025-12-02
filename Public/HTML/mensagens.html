@@ -249,16 +249,7 @@
                 });
             }
             
-            // Logout
-            const logoutBtn = document.getElementById('headerLogoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    localStorage.removeItem('cuidafast_isLoggedIn');
-                    localStorage.removeItem('cuidafast_user');
-                    window.location.href = '../../index.html';
-                });
-            }
+            // Logout é gerenciado pelo header.js
         });
     </script>
 </body>

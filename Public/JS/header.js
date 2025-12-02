@@ -141,12 +141,101 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Configurar logout padronizado
+  configurarLogout();
+
   // Atualizar badges de notificação e mensagem ao carregar
   atualizarBadgesHeader();
   
   // Atualizar badges periodicamente (a cada 30 segundos)
   setInterval(atualizarBadgesHeader, 30000);
 });
+
+/**
+ * Configurar logout padronizado em todas as páginas
+ * Suporta popup de confirmação e logout direto
+ */
+function configurarLogout() {
+  const logoutBtn = document.getElementById('headerLogoutBtn');
+  const confirmLogoutBtn = document.getElementById('confirmLogout');
+  const cancelLogoutBtn = document.getElementById('cancelLogout');
+  const logoutPopup = document.getElementById('logoutPopup');
+
+  // Se houver popup de confirmação, usar ele
+  if (logoutPopup && confirmLogoutBtn && cancelLogoutBtn) {
+    // Abrir popup quando clicar no botão de logout
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        logoutPopup.classList.add('active');
+      });
+    }
+
+    // Confirmar logout
+    confirmLogoutBtn.addEventListener('click', function() {
+      handleLogout();
+    });
+
+    // Cancelar logout
+    cancelLogoutBtn.addEventListener('click', function() {
+      logoutPopup.classList.remove('active');
+    });
+
+    // Fechar popup ao clicar fora
+    logoutPopup.addEventListener('click', function(e) {
+      if (e.target === logoutPopup) {
+        logoutPopup.classList.remove('active');
+      }
+    });
+  } else if (logoutBtn) {
+    // Se não houver popup, usar confirmação nativa do navegador
+    logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      handleLogout();
+    });
+  }
+}
+
+/**
+ * Função padronizada de logout
+ * Limpa todos os dados do usuário e redireciona para index
+ */
+function handleLogout() {
+  // Confirmar logout
+  if (!confirm('Tem certeza que deseja sair?')) {
+    return;
+  }
+
+  // Limpar todos os dados do usuário
+  localStorage.removeItem('cuidafast_user');
+  localStorage.removeItem('cuidafast_isLoggedIn');
+  localStorage.removeItem('cuidafast_token');
+  localStorage.removeItem('userData');
+  localStorage.removeItem('userType');
+  
+  sessionStorage.removeItem('cuidafast_user');
+  sessionStorage.removeItem('cuidafast_token');
+  sessionStorage.removeItem('userData');
+  sessionStorage.removeItem('userType');
+
+  // Fechar popup se existir
+  const logoutPopup = document.getElementById('logoutPopup');
+  if (logoutPopup) {
+    logoutPopup.classList.remove('active');
+  }
+
+  // Redirecionar para página inicial
+  const currentPath = window.location.pathname;
+  let redirectPath = '../../index.html';
+  
+  if (currentPath.includes('/HTML/')) {
+    redirectPath = '../../index.html';
+  } else if (currentPath.includes('index.html') || currentPath === '/' || currentPath.endsWith('/')) {
+    redirectPath = 'index.html';
+  }
+  
+  window.location.href = redirectPath;
+}
 
 /**
  * Atualizar badges de notificação e mensagem no header
@@ -363,11 +452,13 @@ function atualizarInformacoesUsuario() {
   }
 }
 
-// Exportar funções para uso global (compatibilidade com dashboard-cuidador.js)
+// Exportar funções para uso global (compatibilidade com dashboard-cuidador.js e outras páginas)
 if (typeof window !== 'undefined') {
   window.atualizarBadgesHeader = atualizarBadgesHeader;
   window.atualizarBadgeNotificacoes = atualizarBadgeNotificacoes;
   window.atualizarBadgeMensagens = atualizarBadgeMensagens;
   window.ocultarBadges = ocultarBadges;
   window.atualizarInformacoesUsuario = atualizarInformacoesUsuario;
+  window.handleLogout = handleLogout;
+  window.configurarLogout = configurarLogout;
 }
