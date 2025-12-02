@@ -176,32 +176,45 @@ export const login = async (req, res) => {
 -------------------------------------------*/
 export const googleLogin = async (req, res) => {
   try {
-    const { email, nome, foto_url, tipo_usuario } = req.body || {};
+    // pega com segurança os campos do body e evita ReferenceError
+    const {
+      auth_uid,
+      email,
+      nome,
+      foto_url,
+      tipo_usuario,
+      // outros campos que o front possa mandar
+      ...rest
+    } = req.body || {};
 
+    console.log('googleLogin bodyKeys:', Object.keys(req.body || {}), 'auth_uid present:', !!auth_uid);
+
+    // validações básicas
     if (!email) {
+      console.warn('googleLogin: email ausente');
       return res.status(400).json({ message: 'Email obrigatório' });
     }
 
     if (!supabase) {
+      console.error('googleLogin: supabase não configurado');
       return res.status(500).json({ message: 'Supabase não configurado' });
     }
 
-    // Verifica se já existe no seu DB
+    // verifica se já existe no DB
     let user = await UsuarioModel.findByEmail(email);
 
     if (!user) {
       // Usuário não existe - cria novo
-      // Usa tipo_usuario do request se fornecido, senão padrão 'cliente'
       const tipo = tipo_usuario === 'cuidador' ? 'cuidador' : 'cliente';
-      
-      // cria usuário base
+
+      // cria usuário base (inclui auth_uid se presente)
       const newId = await UsuarioModel.create({
         nome: nome || email.split('@')[0],
         email,
         senha: null,
         telefone: null,
         data_nascimento: null,
-        tipo: tipo,
+        tipo,
         photo_url: foto_url || null,
         auth_uid: auth_uid || null
       });
@@ -220,17 +233,50 @@ export const googleLogin = async (req, res) => {
           await CuidadorModel.create({ usuario_id: newId });
         }
       }
+
+      console.info('googleLogin: usuário criado', { usuario_id: newId, tipo });
     } else {
-      // Usuário já existe - PRESERVA todos os dados existentes
-      // SEMPRE usa o tipo existente do usuário, ignorando o tipo enviado no request
-      // Isso garante que se o usuário já tem uma conta, ele entra com os mesmos dados
-      const tipoExistente = user.tipo || 'cliente'; // Se não tiver tipo, usa 'cliente' como padrão
-      
-      // Atualiza auth_uid se fornecido e não existir
+      // Usuário já existe
+      // Atualiza auth_uid se foi fornecido e usuário não tem
       if (auth_uid && !user.auth_uid) {
-        await UsuarioModel.updateGoogleData(user.usuario_id, auth_uid, foto_url);
+        try {
+          await UsuarioModel.updateGoogleData(user.usuario_id, auth_uid, foto_url);
+          // atualiza o objeto user após alteração
+          user = await UsuarioModel.getById(user.usuario_id);
+          console.info('googleLogin: auth_uid atualizado para usuário existente', { usuario_id: user.usuario_id });
+        } catch (err) {
+          console.error('googleLogin: falha ao atualizar auth_uid', err && (err.message || err));
+          // não interrompe o fluxo — só logamos (ou você pode querer retornar 500)
+        }
       }
-      
+    }
+
+    // opcional: criar tokens se as helpers existirem (createAccessToken/createRefreshToken)
+    let accessToken = null;
+    let refreshToken = null;
+    try {
+      if (typeof createAccessToken === 'function' && typeof createRefreshToken === 'function') {
+        accessToken = createAccessToken({ usuario_id: user.usuario_id });
+        refreshToken = createRefreshToken({ usuario_id: user.usuario_id });
+      }
+    } catch (err) {
+      console.warn('googleLogin: erro ao gerar tokens (não crítico para criação de usuário)', err && (err.message || err));
+    }
+
+    // Retorna o usuário e, se disponíveis, os tokens
+    return res.status(200).json({
+      message: 'Login Google bem-sucedido',
+      user,
+      tokens: {
+        accessToken,
+        refreshToken
+      }
+    });
+  } catch (err) {
+    console.error('googleLogin error', err && (err.stack || err.message || String(err)));
+    return res.status(500).json({ message: 'Erro interno no servidor', error: err && (err.message || String(err)) });
+  }
+};
       // Prepara dados para atualização (só atualiza o que faz sentido)
       const updateData = {};
       
