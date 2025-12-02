@@ -241,8 +241,46 @@ async function criarPagamentoCartao(req, res) {
   return res.status(501).json({ error: "Pagamento por cartão não implementado" });
 }
 
+// Função unificada para criar pagamento (compatível com create.js)
+async function criarPagamentoController(body) {
+  // Cria um objeto req/res mock para usar as funções existentes
+  const reqMock = { body };
+  let resultado = null;
+  let statusCode = 200;
+  
+  const resMock = {
+    status: (code) => {
+      statusCode = code;
+      return resMock;
+    },
+    json: (data) => {
+      resultado = data;
+      return resMock;
+    },
+    setHeader: () => resMock,
+    end: () => resMock
+  };
+
+  // Decide qual método usar baseado no body
+  if (body.metodo === "cartao") {
+    await criarPagamentoCartao(reqMock, resMock);
+  } else {
+    // Default para PIX
+    await criarPagamentoPIX(reqMock, resMock);
+  }
+
+  // Se houve erro (statusCode diferente de 200), lança exceção
+  if (statusCode !== 200) {
+    throw new Error(resultado?.erro || resultado?.error || "Erro ao criar pagamento");
+  }
+
+  return resultado;
+}
+
 export default {
   criarPagamentoPIX,
   consultarPagamento,
   criarPagamentoCartao
 };
+
+export { criarPagamentoController };
