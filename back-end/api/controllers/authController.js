@@ -14,12 +14,12 @@ const ACCESS_EXPIRES = '15m';
 const REFRESH_EXPIRES = '30d';
 const BCRYPT_ROUNDS = 10;
 
-const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret_in_production';
+const JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined;
 const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || false;
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 /* ------------------------------------------
     SUPABASE CLIENT

@@ -433,3 +433,29 @@ body {
   text-align: center;
   margin: 0;
 }
+
+/* Botão de voltar + título lado a lado */
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center; /* Faz o conjunto inteiro ficar centralizado */
+  margin-bottom: 0.5rem;
+}
+
+.header-top .back-link {
+  font-size: 2rem;
+  color: var(--azul-escuro, #1B475D);
+  text-decoration: none;
+  transition: 0.3s ease;
+}
+
+.header-top .back-link:hover {
+  color: var(--amarelo, #FAD564);
+  transform: translateX(-4px);
+}
+
+/* Ajuste do título */
+.header-top h1 {
+  margin: 0;
+}
