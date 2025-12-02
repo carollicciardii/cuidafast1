@@ -34,42 +34,67 @@
                 </a>
             </div>
             
-            <!-- Search Bar (Desktop) -->
-            <div class="header-center">
-                <div class="search-container">
-                    <i class="ph ph-magnifying-glass search-icon"></i>
-                    <input type="text" placeholder="Buscar oportunidades..." class="search-input" id="headerSearch">
-                    <button class="search-btn" type="button">
-                        <i class="ph ph-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
+            <!-- Espaço vazio onde estava a barra de pesquisa -->
+            <div class="header-center"></div>
             
             <!-- User Actions -->
             <div class="header-right">
                 <!-- Notifications -->
-                <button class="header-action-btn notification-btn">
+                <a href="notificacao.html" class="header-action-btn notification-btn">
                     <i class="ph ph-bell"></i>
                     <span class="notification-badge" style="display: none;">0</span>
-                </button>
+                </a>
                 
                 <!-- Messages -->
-                <button class="header-action-btn message-btn">
+                <a href="mensagens.html" class="header-action-btn message-btn">
                     <i class="ph ph-chat-circle"></i>
                     <span class="message-badge" style="display: none;">0</span>
-                </button>
+                </a>
                 
                 <!-- User Profile -->
-                <div class="user-profile-dropdown">
-                    <button class="user-profile-btn">
+                <div class="user-profile-dropdown" id="userProfileDropdown">
+                    <button class="user-profile-btn" id="userProfileBtn">
                         <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
-                        <span class="user-name">Maria Santos</span>
+                        <span class="user-name" id="headerUserName">Cuidador</span>
                         <i class="ph ph-caret-down dropdown-arrow"></i>
                     </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                        <div class="dropdown-header">
+                            <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+                            <div class="dropdown-user-info">
+                                <h4 id="dropdownUserName">Cuidador</h4>
+                                <p>Conta Profissional</p>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="perfilCuidador.html" class="dropdown-item">
+                            <i class="ph ph-user"></i>
+                            <span>Meu Perfil</span>
+                        </a>
+                        <a href="configuracoes.html" class="dropdown-item">
+                            <i class="ph ph-gear"></i>
+                            <span>Configurações</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-clock"></i>
+                            <span>Histórico</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="ph ph-question"></i>
+                            <span>Ajuda</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="../../index.html" class="dropdown-item logout-item" id="headerLogoutBtn">
+                            <i class="ph ph-sign-out"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- Mobile Menu Toggle -->
-                <button class="mobile-menu-toggle">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
                     <i class="ph ph-list"></i>
                 </button>
             </div>

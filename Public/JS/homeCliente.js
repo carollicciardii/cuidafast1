@@ -664,9 +664,10 @@ function showAlert(message, type = 'info') {
 // Simular carregamento de dados do usuário
 function loadUserData() {
     // Em produção, carregar dados reais da API
+    const storedUser = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
     const userData = {
-        name: 'João Silva',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
+        name: storedUser.nome || storedUser.name || 'Cliente',
+        avatar: storedUser.photoURL || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
         stats: {
             appointments: 12,
             favorites: 5,

@@ -195,11 +195,13 @@ body.client-home .header-right {
     transition: all 0.3s ease;
     color: var(--azul-escuro);
     font-size: 1.25rem;
+    text-decoration: none !important;
 }
 
 .header-action-btn:hover {
     background: var(--creme);
     transform: translateY(-1px);
+    text-decoration: none !important;
 }
 
 .header-action-btn.active {
@@ -220,6 +222,19 @@ body.client-home .header-right {
     min-width: 18px;
     text-align: center;
     line-height: 1.2;
+}
+
+/* Garantir que os links de notificação e mensagem não tenham sublinhado */
+a.header-action-btn,
+a.notification-btn,
+a.message-btn {
+    text-decoration: none !important;
+}
+
+a.header-action-btn:hover,
+a.notification-btn:hover,
+a.message-btn:hover {
+    text-decoration: none !important;
 }
 
 /* User Profile Dropdown */

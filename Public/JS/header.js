@@ -97,19 +97,37 @@ document.addEventListener("DOMContentLoaded", () => {
   // Configurar navegação - Notificações
   const notificationBtn = document.getElementById("notificationBtn");
   if (notificationBtn) {
-    notificationBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      window.location.href = 'solicitacoesServicos.html';
-    });
+    // Se já é um link com href, deixar o comportamento padrão funcionar
+    if (notificationBtn.tagName === 'A' && notificationBtn.href) {
+      // Link já configurado, não precisa de event listener
+      console.log('[Header] Botão de notificação é um link:', notificationBtn.href);
+    } else {
+      // Se for um botão, adicionar comportamento de navegação
+      notificationBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const currentPath = window.location.pathname;
+        const pathPrefix = currentPath.includes('/HTML/') ? '' : 'HTML/';
+        window.location.href = pathPrefix + 'notificacao.html';
+      });
+    }
   }
 
   // Configurar navegação - Mensagens
   const messageBtn = document.getElementById("messageBtn");
   if (messageBtn) {
-    messageBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      window.location.href = 'mensagens.html';
-    });
+    // Se já é um link com href, deixar o comportamento padrão funcionar
+    if (messageBtn.tagName === 'A' && messageBtn.href) {
+      // Link já configurado, não precisa de event listener
+      console.log('[Header] Botão de mensagem é um link:', messageBtn.href);
+    } else {
+      // Se for um botão, adicionar comportamento de navegação
+      messageBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const currentPath = window.location.pathname;
+        const pathPrefix = currentPath.includes('/HTML/') ? '' : 'HTML/';
+        window.location.href = pathPrefix + 'mensagens.html';
+      });
+    }
   }
 
   // Atualizar badges de notificação e mensagem ao carregar
