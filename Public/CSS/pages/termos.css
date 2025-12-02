@@ -1,0 +1,145 @@
+/* ===== ESTILO GERAL ===== */
+
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Arial", sans-serif;
+    background-color: #fffbec;
+    color: #333;
+    line-height: 1.6;
+}
+
+
+/* ===== CABEÇALHO ===== */
+
+
+header {
+    background-color: #114b59;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 2px solid #114b59;
+}
+
+
+header h1 {
+    margin: 0;
+    font-size: 26px;
+    color:#fffbec;
+}
+
+
+/* ===== CONTEÚDO ===== */
+
+
+.container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+
+.card {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    border: 1px solid #e0dbc8;
+}
+
+
+.card h2 {
+    text-align: center;
+    margin-top: 0;
+    font-size: 24px;
+    color: #444;
+}
+
+
+.card h3 {
+    margin-top: 25px;
+    font-size: 20px;
+    color: #114b59;
+}
+
+
+.card p {
+    margin-bottom: 12px;
+}
+
+
+.card ul {
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+
+.card ul li {
+    margin-bottom: 8px;
+}
+
+
+/* ===== RODAPÉ ===== */
+
+
+footer {
+    margin-top: 40px;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #fffbec;
+    background-color: #114b59;
+    border-top: 2px solid #fffbec;
+}
+
+
+/* ===== RESPONSIVIDADE ===== */
+
+
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 22px;
+    }
+
+
+    .card {
+        padding: 20px;
+    }
+
+
+    .card h2 {
+        font-size: 20px;
+    }
+
+
+    .card h3 {
+        font-size: 18px;
+    }
+}
+
+
+.confirmacao-termos {
+    margin-top: 25px;
+    font-size: 15px;
+}
+
+
+#btnAvancar {
+    margin-top: 18px;
+    padding: 12px 22px;
+    background-color: #114b59;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+
+#btnAvancar:disabled {
+    background-color: #8da3a8;
+    cursor: not-allowed;
+}
+
+
