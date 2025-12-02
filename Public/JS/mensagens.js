@@ -461,3 +461,154 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+/* ============================
+
+  CHATGPT
+   Attachments: add-button + file upload
+   Colar este bloco NO FINAL de mensagens.js
+   ============================ */
+
+   (function initAttachments() {
+    // Elementos existentes no DOM (vêm do HTML que você mostrou)
+    const addButton = document.getElementById('add-button');
+    const fileInput = document.getElementById('file-input');
+    // messagesContainer já existe no escopo superior do arquivo
+    // messageInput já existe no escopo superior do arquivo
+  
+    if (!addButton || !fileInput) {
+      console.warn('[Mensagens | Attachments] add-button ou file-input não encontrados.');
+      return;
+    }
+  
+    // Forçar accept apenas PNG/JPEG (backup)
+    fileInput.accept = 'image/png,image/jpeg';
+  
+    // Clique no botão "+" abre o seletor de arquivos
+    addButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      // opcional: animação toggle de menu se tiver .attachment-menu
+      const attachmentMenu = document.getElementById('attachment-menu');
+      if (attachmentMenu) {
+        // se quiser usar o menu, comente a linha abaixo.
+        // attachmentMenu.classList.toggle('show');
+      }
+      // abrir file picker
+      fileInput.click();
+    });
+  
+    // Se você tiver botões dentro do attachment-menu que também ativam o file picker:
+    document.querySelectorAll('.attachment-option[data-type="photo"]').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        fileInput.accept = 'image/png,image/jpeg';
+        fileInput.click();
+      });
+    });
+  
+    // Handle seleção de arquivo
+    fileInput.addEventListener('change', async (ev) => {
+      const file = ev.target.files && ev.target.files[0];
+      if (!file) return;
+  
+      const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+      const allowedTypes = ['image/png', 'image/jpeg'];
+  
+      if (!allowedTypes.includes(file.type)) {
+        alert('Apenas imagens PNG ou JPG são permitidas.');
+        fileInput.value = '';
+        return;
+      }
+      if (file.size > maxSizeBytes) {
+        alert('Arquivo muito grande. Máx 5MB.');
+        fileInput.value = '';
+        return;
+      }
+  
+      // Mostrar preview local como mensagem (sem enviar ao servidor)
+      try {
+        const dataURL = await readFileAsDataURL(file);
+        appendImageMessageLocal(dataURL, file.name, file.size);
+        // opcional: enviar para backend (descomente e implemente endpoint)
+        // await uploadAttachmentToServer(file);
+      } catch (err) {
+        console.error('[Mensagens | Attachments] Erro ao processar arquivo', err);
+        alert('Erro ao processar o arquivo.');
+      } finally {
+        // reset para permitir re-seleção do mesmo arquivo depois
+        fileInput.value = '';
+      }
+    });
+  
+    // Util: read file
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(fr.result);
+        fr.onerror = reject;
+        fr.readAsDataURL(file);
+      });
+    }
+  
+    // Insere uma "mensagem" de imagem no container (compatível com seu estilo)
+    function appendImageMessageLocal(dataURL, filename, filesize) {
+      if (!messagesContainer) return;
+  
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message sent file-message'; // sent para usuário atual
+      wrapper.style.maxWidth = '60%';
+  
+      // estrutura similar ao CSS que já tem (.file-attachment)
+      wrapper.innerHTML = `
+        <div class="file-attachment" style="display:flex; gap:12px; align-items:center;">
+          <img src="${dataURL}" alt="${escapeHtml(filename)}" style="max-width:140px; max-height:120px; border-radius:8px; object-fit:cover; display:block;">
+          <div class="file-info">
+            <div class="file-name">${escapeHtml(filename)}</div>
+            <div class="file-size">${formatBytes(filesize)}</div>
+          </div>
+        </div>
+        <span class="message-time">Agora</span>
+      `;
+  
+      messagesContainer.appendChild(wrapper);
+      scrollToBottom();
+  
+      // opcional: disparar carregamento / envio real em background
+    }
+  
+    // utilitário para formatar bytes
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+  
+    // Exemplo de upload para servidor (ajuste rota e tratamento conforme backend)
+    // Descomente e adapte se tiver /api/mensagens/upload
+    /*
+    async function uploadAttachmentToServer(file) {
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('remetente_id', userData.id);
+        fd.append('destinatario_id', contatoAtual ? contatoAtual.contato_id : '');
+  
+        const resp = await fetch(`${API_BASE_URL}/upload`, {
+          method: 'POST',
+          body: fd
+        });
+  
+        if (!resp.ok) throw new Error('Upload falhou: ' + resp.status);
+        const result = await resp.json();
+        console.log('[Mensagens] Upload OK', result);
+        // aqui você poderia substituir o preview com a versão confirmada do servidor
+      } catch (err) {
+        console.error('[Mensagens] Erro no upload:', err);
+        alert('Falha no upload do arquivo.');
+      }
+    }
+    */
+  })();
+  

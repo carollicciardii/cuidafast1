@@ -588,3 +588,118 @@ body.client-home .main-content{
 
   background: transparent !important;
 }
+
+
+
+/* Ajuste para deixar responsivo CHATGPT */
+/* Variáveis para facilitar ajustes */
+:root {
+  --sidebar-width: 240px;
+  --input-height: 64px;
+}
+
+/* ---------- Layout fixo desktop ---------- */
+/* Ajuste fixo: manter sidebar fixa e fazer input encostar nela */
+@media (min-width: 900px) {
+  /* Sidebar fixa já está em left:0; width:var */
+  body.client-home .sidebar {
+    width: var(--sidebar-width);
+    position: fixed;
+    top: 80px;
+    left: 0;
+    bottom: 0;
+  }
+
+  /* Chat area ocupa o restante, sem deslocar o input */
+  body.client-home .chat-area {
+    position: fixed;
+    top: 80px;
+    left: var(--sidebar-width);
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  /* Mensagens: deixa espaço para o input fixo */
+  body.client-home .messages {
+    padding-bottom: calc(var(--input-height) + 32px); /* espaço para input */
+    overflow-y: auto;
+  }
+
+  /* FIX: fixar a message-input-area ao fundo da janela, encostando exatamente na borda interna da sidebar */
+  body.client-home .message-input-area {
+    position: fixed;
+    left: var(--sidebar-width);    /* encosta na borda interna da sidebar */
+    right: 0;
+    bottom: 0;
+    padding: 12px 20px;
+    background-color: var(--creme-claro);
+    border-top: 1px solid var(--cinza-input);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    z-index: 950;
+    height: var(--input-height);
+  }
+
+  /* Evitar duplicar left:240px no elemento interno (se existir) */
+  .message-input-area[style] { left: var(--sidebar-width) !important; }
+
+  /* Input e botões: largura dinâmica com cálculo seguro */
+  .message-input-area .message-input {
+    flex: 1 1 auto;
+    min-width: 0; /* permite shrink correto dentro do flex */
+  }
+
+  .message-input-area .add-button,
+  .message-input-area .send-button {
+    flex: 0 0 auto;
+  }
+}
+
+/* ---------- Mobile / tablet: input relativo ao chat (full width) ---------- */
+@media (max-width: 899px) {
+  body.client-home .message-input-area {
+    position: relative;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 12px;
+    height: auto;
+  }
+
+  body.client-home .messages {
+    padding-bottom: 24px;
+  }
+}
+
+/* Melhor hitbox do botão + e melhora visual quando ativo */
+.add-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Mantém input alinhado verticalmente com icon buttons */
+.message-input {
+  height: 44px;
+  border-radius: 22px;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+/* Se precisar, garantir que a area de chat não fique atrás do input quando fixed */
+body.client-home .chat-area::after {
+  content: '';
+  display: block;
+  height: calc(var(--input-height));
+}
