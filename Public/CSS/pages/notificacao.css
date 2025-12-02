@@ -297,6 +297,7 @@ body {
     transition: transform 0.3s ease;
 }
 
+.user-profile-dropdown.open .dropdown-arrow,
 .user-profile-dropdown.active .dropdown-arrow {
     transform: rotate(180deg);
 }
@@ -318,6 +319,7 @@ body {
     z-index: 1000;
 }
 
+.user-profile-dropdown.open .profile-dropdown-menu,
 .user-profile-dropdown.active .profile-dropdown-menu {
     opacity: 1;
     visibility: visible;

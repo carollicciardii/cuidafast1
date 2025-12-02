@@ -65,15 +65,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // Atualizar link da logo ao carregar
   updateLogoLink();
 
+  // Atualizar informações do usuário no header
+  atualizarInformacoesUsuario();
+
   function closeDropdown() {
     if (!dropdown) return;
     dropdown.classList.remove("open");
+    dropdown.classList.remove("active");
     if (profileBtn) profileBtn.setAttribute("aria-expanded", "false");
   }
 
   function toggleDropdown() {
     if (!dropdown) return;
     const isOpen = dropdown.classList.toggle("open");
+    dropdown.classList.toggle("active", isOpen);
     if (profileBtn) profileBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
   }
 
@@ -83,6 +88,12 @@ document.addEventListener("DOMContentLoaded", () => {
       toggleDropdown();
     });
 
+    // Prevenir fechamento ao clicar dentro do dropdown
+    dropdown.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    // Fechar dropdown ao clicar fora
     document.addEventListener("click", (event) => {
       if (!dropdown.contains(event.target)) {
         closeDropdown();
@@ -302,10 +313,61 @@ function ocultarBadges() {
   });
 }
 
+/**
+ * Atualizar informações do usuário no header (nome, avatar, etc)
+ */
+function atualizarInformacoesUsuario() {
+  try {
+    const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+    
+    if (!userData || !userData.nome) {
+      console.log('[Header] Nenhum usuário logado');
+      return;
+    }
+
+    // Atualizar nome no header
+    const headerUserName = document.getElementById('headerUserName');
+    if (headerUserName) {
+      const primeiroNome = userData.primeiroNome || userData.nome.split(' ')[0];
+      headerUserName.textContent = primeiroNome;
+    }
+
+    // Atualizar nome no dropdown
+    const dropdownUserName = document.getElementById('dropdownUserName');
+    if (dropdownUserName) {
+      dropdownUserName.textContent = userData.nome;
+    }
+
+    // Atualizar tipo de conta no dropdown
+    const dropdownUserType = document.querySelector('.dropdown-user-info p');
+    if (dropdownUserType && userData.tipo) {
+      if (userData.tipo === 'cuidador') {
+        dropdownUserType.textContent = 'Conta Profissional';
+      } else if (userData.tipo === 'cliente') {
+        dropdownUserType.textContent = 'Conta Cliente';
+      }
+    }
+
+    // Atualizar foto do perfil
+    if (userData.photoURL) {
+      const headerAvatar = document.querySelector('.user-avatar-img');
+      const dropdownAvatar = document.querySelector('.dropdown-avatar');
+      
+      if (headerAvatar) headerAvatar.src = userData.photoURL;
+      if (dropdownAvatar) dropdownAvatar.src = userData.photoURL;
+    }
+
+    console.log('[Header] Informações do usuário atualizadas');
+  } catch (error) {
+    console.error('[Header] Erro ao atualizar informações do usuário:', error);
+  }
+}
+
 // Exportar funções para uso global (compatibilidade com dashboard-cuidador.js)
 if (typeof window !== 'undefined') {
   window.atualizarBadgesHeader = atualizarBadgesHeader;
   window.atualizarBadgeNotificacoes = atualizarBadgeNotificacoes;
   window.atualizarBadgeMensagens = atualizarBadgeMensagens;
   window.ocultarBadges = ocultarBadges;
+  window.atualizarInformacoesUsuario = atualizarInformacoesUsuario;
 }
