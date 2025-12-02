@@ -842,7 +842,7 @@ function updateStarRating(rating) {
 // Função para logout
 function logout() {
     localStorage.removeItem('token');
-    window.location.href = '/login.html';
+    window.location.href = '/index.html';
 }
 
 // Event listeners para navegação
