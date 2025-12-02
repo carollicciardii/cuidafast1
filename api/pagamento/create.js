@@ -9,9 +9,7 @@ async function loadPagamentoController() {
       // Se falhou, pode ser que o Vercel tenha "achatado" a estrutura.
       // Vamos tentar o caminho mais provável primeiro.
       const paths = [
-        '../../back-end/api/controllers/pagamentoController.js',
-        '../back-end/api/controllers/pagamentoController.js',
-        '../../../back-end/api/controllers/pagamentoController.js'
+        '../../back-end/api/controllers/pagamentoController.js'
       ];
 
       for (const p of paths) {
