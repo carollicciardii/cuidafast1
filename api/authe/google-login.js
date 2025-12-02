@@ -40,10 +40,10 @@ export default async function handler(req, res) {
       }
     }
 
-    console.log('[api/auth/google-login] Chamando googleLogin controller');
+    console.log('[api/authe/google-login] Chamando googleLogin controller');
     return authController.googleLogin(req, res);
   } catch (err) {
-    console.error('[api/auth/google-login] Erro inesperado:', err);
+    console.error('[api/authe/google-login] Erro inesperado:', err);
     return res.status(500).json({ error: 'Internal server error', message: err?.message });
   }
 }
