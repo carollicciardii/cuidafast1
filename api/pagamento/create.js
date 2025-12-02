@@ -5,6 +5,9 @@ let pagamentoControllerPromise = null;
 async function loadPagamentoController() {
   if (!pagamentoControllerPromise) {
     pagamentoControllerPromise = (async () => {
+      // O caminho mais provável para o Vercel é o primeiro.
+      // Se falhou, pode ser que o Vercel tenha "achatado" a estrutura.
+      // Vamos tentar o caminho mais provável primeiro.
       const paths = [
         '../../back-end/api/controllers/pagamentoController.js',
         '../back-end/api/controllers/pagamentoController.js',
