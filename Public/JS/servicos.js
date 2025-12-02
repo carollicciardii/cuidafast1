@@ -4,7 +4,7 @@
 
 (function () {
   // CONFIG
-  const FECAP_COORDS = { lat: -23.548600, lng: -46.634230 }; // fallback visual
+  const FECAP_COORDS = { lat: -23.55740007, lng: -46.6368266 }; // fallback visual
   const MAP_ELEMENT_ID = 'map';
 
   // Inicializa mapa
