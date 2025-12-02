@@ -6,27 +6,18 @@ let completeProfile = null;
 let localizacaoController = null;
 
 // Carrega os módulos dinamicamente
-async function loadModules() {
-  if (!authController) {
-    try {
-      // Tenta primeiro com ../back-end (caminho relativo a partir de api/)
-      let authModule;
-      try {
-        authModule = await import('../back-end/api/controllers/authController.js');
-      } catch (err1) {
-        // Se falhar, tenta com ../../back-end
-        try {
-          authModule = await import('../../back-end/api/controllers/authController.js');
-        } catch (err2) {
-          console.error('Erro ao carregar authController (tentativas esgotadas):', err1, err2);
-          throw err2;
-        }
-      }
-      authController = authModule.default;
-    } catch (err) {
-      console.error('Erro ao carregar authController:', err);
-      throw err;
-    }
+let localizacaoController;
+
+if (!localizacaoController) {
+  try {
+    const module = await import('../back-end/api/controllers/localizacaoController.js');
+    localizacaoController = module.default || module;
+  } catch (err) {
+    console.error('Erro ao carregar localizacaoController:', err);
+    localizacaoController = null;
+  }
+}
+
   }
   if (!createOrAssociateUser) {
     try {
@@ -36,7 +27,7 @@ async function loadModules() {
       console.error('Erro ao carregar createOrAssociateUser:', err);
       throw err;
     }
-  }
+  
   if (!completeProfile) {
     try {
       // Tenta primeiro com ../back-end (caminho relativo a partir de api/)
