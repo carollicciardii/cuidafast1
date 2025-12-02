@@ -77,9 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const json = JSON.parse(text);
       return { ok: r.ok, status: r.status, data: json, raw: text };
     } catch (e) {
-      // log completo do corpo retornado para debug
       console.error('[DEBUG] Resposta NÃO é JSON válido:', text);
-      // inclui raw no erro para facilitar debug em dev
       const err = new Error(`Resposta inválida do servidor. Não é JSON. Status ${r.status}`);
       err.raw = text;
       err.status = r.status;
@@ -108,9 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // Obtém usuario_id (pode estar em id ou usuario_id)
       const usuarioId = existingData.usuario_id || existingData.id;
-      
       if (!usuarioId) {
         alert('❌ Erro: ID do usuário não encontrado. Por favor, faça o cadastro novamente.');
         window.location.href = 'cadastro.html';
@@ -133,29 +129,27 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         const API_URL = window.API_CONFIG?.AUTH || "/api/auth";
 
-        // Prepara dados para envio - envia auth_uid quando for UUID, numero quando for inteiro
+        // Prepara dados para envio - inclui email obrigatório
         const payload = {
           tipo: 'cuidador',
           cpf: cpf.replace(/\D/g, ''),
           cpf_numero: cpf.replace(/\D/g, ''),
           data_nascimento: dataNascimento,
-          photo_url: updatedData.photo_url || null
+          photo_url: updatedData.photo_url || null,
+          email: existingData.email || null // ✅ Adicionado
         };
 
         // Decide como enviar o identificador
         const idStr = String(usuarioId);
         if (looksLikeUUID(idStr)) {
-          // se é UUID do Supabase/Google -> envia como auth_uid
           payload.auth_uid = idStr;
           console.log('[cadastroComplementoCuidador] Enviando auth_uid (UUID):', idStr);
         } else {
-          // tenta enviar como número quando possível
           const maybeNum = Number(usuarioId);
           if (!Number.isNaN(maybeNum) && Number.isInteger(maybeNum)) {
             payload.usuario_id = maybeNum;
             console.log('[cadastroComplementoCuidador] Enviando usuario_id (num):', maybeNum);
           } else {
-            // fallback: envia como string (se for algo estranho)
             payload.usuario_id = usuarioId;
             console.log('[cadastroComplementoCuidador] Enviando usuario_id (string fallback):', usuarioId);
           }
@@ -163,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('[cadastroComplementoCuidador] Enviando dados:', payload);
 
-        // usa safeFetchJson para capturar corpo mesmo quando não é JSON
         const result = await safeFetchJson(`${API_URL}/complete-profile`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -178,7 +171,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const resData = result.data;
 
-        // Atualiza dados do usuário com a resposta do servidor
         if (resData.user) {
           const userData = {
             ...updatedData,
@@ -192,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
           localStorage.setItem('cuidafast_user', JSON.stringify(userData));
           localStorage.setItem('cuidafast_isLoggedIn', 'true');
         } else {
-          // Se não retornou user, atualiza com os dados locais
           updatedData.usuario_id = usuarioId;
           updatedData.id = usuarioId;
           updatedData.tipo = 'cuidador';
@@ -202,11 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[cadastroComplementoCuidador] Dados salvos com sucesso');
         window.location.href = 'cadastrocuidadortipo.html';
       } catch (error) {
-        // Erros de parse do safeFetchJson terão error.raw disponível
         console.error('[cadastroComplementoCuidador] erro ao enviar ao backend', error);
-        if (error.raw) {
-          console.error('[cadastroComplementoCuidador] corpo cru retornado:', error.raw);
-        }
+        if (error.raw) console.error('[cadastroComplementoCuidador] corpo cru retornado:', error.raw);
         alert('Erro ao salvar no servidor: ' + (error.message || 'Erro desconhecido'));
       }
     });
