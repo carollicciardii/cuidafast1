@@ -24,6 +24,29 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    // ⚠️ MODO TESTE: Aceita qualquer email com senha "admin123"
+    // REMOVER EM PRODUÇÃO e usar o fluxo real do backend abaixo
+    if (senha === 'admin123') {
+      console.log('[AdminLogin] Modo teste ativado - senha admin123');
+      
+      const userData = {
+        id: 999,
+        nome: 'Administrador',
+        email: email || 'admin@cuidafast.com',
+        tipo: 'admin',
+        primeiroNome: 'Admin'
+      };
+
+      localStorage.setItem('cuidafast_admin_token', 'test-token-admin123');
+      localStorage.setItem('cuidafast_user', JSON.stringify(userData));
+      localStorage.setItem('cuidafast_isLoggedIn', 'true');
+
+      console.log('[AdminLogin] Admin autenticado (modo teste)');
+      window.location.href = 'admin-aprovacao-cuidador.html';
+      return;
+    }
+
+    // Fluxo real do backend (comentado para testes)
     try {
       const API_URL = window.API_CONFIG?.AUTH || '/api/auth';
 
