@@ -367,9 +367,16 @@ function initSidebar() {
       }
       
       // Garantir que temos um nome válido (não "Usuário")
-      let nomeCuidador = c.nome || c.name;
-      if (!nomeCuidador || nomeCuidador === 'Usuário' || nomeCuidador.trim() === '') {
-        nomeCuidador = c.primeiroNome || 'Cuidador';
+      let nomeCuidador = c.nome || c.name || c.primeiroNome;
+      // Se o nome for "Usuário" ou vazio, tentar buscar do email ou usar fallback
+      if (!nomeCuidador || nomeCuidador.trim() === '' || nomeCuidador.toLowerCase() === 'usuário' || nomeCuidador.toLowerCase() === 'usuario') {
+        // Tentar extrair nome do email (antes do @)
+        if (c.email) {
+          const emailName = c.email.split('@')[0];
+          nomeCuidador = emailName.charAt(0).toUpperCase() + emailName.slice(1) || 'Cuidador';
+        } else {
+          nomeCuidador = 'Cuidador';
+        }
       }
       
       return {

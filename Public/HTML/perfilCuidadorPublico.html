@@ -434,7 +434,12 @@
     <script src="../JS/servicosManager.js"></script>
     
     <!-- API de Perfis (SEGURO - Backend) -->
-    <script src="../JS/perfilAPI.js"></script>
+    <script type="module">
+        // Importar perfilAPI como módulo ES6
+        import * as PerfilAPIModule from '../JS/perfilAPI.js';
+        // Tornar disponível globalmente para compatibilidade
+        window.PerfilAPIModule = PerfilAPIModule;
+    </script>
 
     <script>
         // Carregar dados do cuidador via API do backend
@@ -479,10 +484,11 @@
 
             // Logout é gerenciado pelo header.js
 
+            // Obter ID do cuidador da URL (fora do try para estar disponível no catch)
+            const urlParams = new URLSearchParams(window.location.search);
+            const cuidadorId = urlParams.get('id');
+
             try {
-                // ✅ NOVO: Obter ID do cuidador da URL (ao invés de email)
-                const urlParams = new URLSearchParams(window.location.search);
-                const cuidadorId = urlParams.get('id');
                 
                 console.log('[PerfilCuidador] URL params:', window.location.search);
                 console.log('[PerfilCuidador] ID extraído:', cuidadorId);
@@ -493,15 +499,14 @@
                     return;
                 }
 
-                // Verificar se PerfilAPI está disponível
-                console.log('[PerfilCuidador] Verificando PerfilAPI:', typeof PerfilAPI, typeof window.PerfilAPI);
+                // Verificar se PerfilAPIModule está disponível
+                console.log('[PerfilCuidador] Verificando PerfilAPIModule:', typeof window.PerfilAPIModule);
                 
-                const PerfilAPIModule = window.PerfilAPI || PerfilAPI;
+                const PerfilAPIModule = window.PerfilAPIModule;
                 
                 if (!PerfilAPIModule || !PerfilAPIModule.buscarPerfilCuidador) {
-                    console.error('[PerfilCuidador] PerfilAPI não está disponível');
-                    console.error('[PerfilCuidador] window.PerfilAPI:', window.PerfilAPI);
-                    console.error('[PerfilCuidador] PerfilAPI (global):', typeof PerfilAPI !== 'undefined' ? PerfilAPI : 'undefined');
+                    console.error('[PerfilCuidador] PerfilAPIModule não está disponível');
+                    console.error('[PerfilCuidador] window.PerfilAPIModule:', window.PerfilAPIModule);
                     alert('Erro: Sistema de perfis não carregado. Recarregue a página.');
                     return;
                 }
