@@ -1,3 +1,4 @@
+// public/js/pagamento.js
 document.addEventListener('DOMContentLoaded', () => {
     const containerzin = document.querySelector('.containerzin');
 
@@ -34,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'resumo-intime':
                 renderResumoInTime(data);
+                break;
+            default:
+                renderAgendado();
                 break;
         }
     }
@@ -91,9 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.getElementById('continue-btn').addEventListener('click', () => {
-            loadPage('metodo-pagamento');
-        });
+        const continueBtn = document.getElementById('continue-btn');
+        if (continueBtn) {
+            continueBtn.addEventListener('click', () => {
+                loadPage('metodo-pagamento');
+            });
+        }
     }
 
     // Renderiza a página de método de pagamento
@@ -133,9 +140,19 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.querySelector('.back-button').addEventListener('click', () => {
-            loadPage('agendado');
-        });
+        const backBtn = containerzin.querySelector('.back-button');
+        if (backBtn) backBtn.addEventListener('click', () => loadPage('agendado'));
+
+        // (a sua lógica global já trata clicks em continue-payment-btn via delegação,
+        // mas adiciono listener local para garantir comportamento mesmo sem delegação)
+        const continuePaymentBtn = document.getElementById('continue-payment-btn');
+        if (continuePaymentBtn) {
+            continuePaymentBtn.addEventListener('click', () => {
+                const selected = document.querySelector("input[name='payment-method']:checked");
+                const method = selected ? selected.value : 'pix';
+                if (method === 'pix') loadPage('pix'); else loadPage('pagseguro');
+            });
+        }
     }
 
     // Renderiza a página de pagamento com PIX
@@ -174,45 +191,54 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.querySelector(".back-button").addEventListener("click", () => {
-            loadPage("metodo-pagamento");
-        });
+        const backBtn = containerzin.querySelector(".back-button");
+        if (backBtn) backBtn.addEventListener("click", () => loadPage("metodo-pagamento"));
 
         // Cria pagamento PIX real via API
         try {
             const dadosPagamento = await criarPagamentoPIX(order.total, 'Pagamento de serviço CuidaFast');
-            
+
             // Atualiza QR Code
             const qrContainer = document.querySelector('.qr-code-containerzin');
-            if (dadosPagamento.qr_code_base64 && qrContainer) {
-                qrContainer.innerHTML = `
-                    <img src="data:image/png;base64,${dadosPagamento.qr_code_base64}" alt="QR Code PIX" style="width: 100%; max-width: 300px; margin-bottom: 20px;">
-                    <p><strong>Pedido #${dadosPagamento.external_reference || '0001'}</strong></p>
-                `;
-            } else if (qrContainer) {
-                qrContainer.innerHTML = `
-                    <p style="color: #e74c3c;">Erro ao gerar QR Code</p>
-                `;
+            if (dadosPagamento && qrContainer) {
+                if (dadosPagamento.qr_code_base64) {
+                    qrContainer.innerHTML = `
+                        <img src="data:image/png;base64,${dadosPagamento.qr_code_base64}" alt="QR Code PIX" style="width: 100%; max-width: 300px; margin-bottom: 20px;">
+                        <p><strong>Pedido #${dadosPagamento.external_reference || '0001'}</strong></p>
+                    `;
+                } else if (dadosPagamento.qr_code) {
+                    // mostrar código legível
+                    qrContainer.innerHTML = `
+                        <pre style="word-break: break-word; white-space: pre-wrap; text-align: left; padding: 10px;">${dadosPagamento.qr_code}</pre>
+                        <p><strong>Pedido #${dadosPagamento.external_reference || '0001'}</strong></p>
+                    `;
+                } else {
+                    qrContainer.innerHTML = `<p style="color: #e74c3c;">Erro ao gerar QR Code</p>`;
+                }
             }
-            
+
             // Habilita botões
             const copyBtn = document.getElementById("copy-pix-btn");
             const viewBtn = document.getElementById("view-order-btn");
-            
-            if (copyBtn && dadosPagamento.qr_code) {
+
+            if (copyBtn && dadosPagamento && dadosPagamento.qr_code) {
                 copyBtn.disabled = false;
                 copyBtn.addEventListener("click", () => {
                     navigator.clipboard.writeText(dadosPagamento.qr_code).then(() => {
                         alert("Código PIX copiado!");
+                    }).catch(() => {
+                        alert("Erro ao copiar código PIX.");
                     });
                 });
             }
-            
-            if (viewBtn && dadosPagamento.mercado_pago_id) {
+
+            if (viewBtn && dadosPagamento && (dadosPagamento.mercado_pago_id || dadosPagamento.id)) {
                 viewBtn.disabled = false;
                 viewBtn.addEventListener("click", async () => {
                     try {
-                        const status = await consultarStatusPagamento(dadosPagamento.mercado_pago_id);
+                        // usa id do MP se existir, senão tenta campo id
+                        const mpId = dadosPagamento.mercado_pago_id || dadosPagamento.id;
+                        const status = await consultarStatusPagamento(mpId);
                         alert(`Status do pagamento: ${status.status}`);
                         if (status.status === 'approved') {
                             loadPage("pix-finalizar", { status: "success" });
@@ -222,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
-            
+
         } catch (error) {
             console.error('[Pagamento] Erro ao criar pagamento PIX:', error);
             const qrContainer = document.querySelector('.qr-code-containerzin');
@@ -279,31 +305,36 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.querySelector(".back-button").addEventListener("click", () => {
-            loadPage("metodo-pagamento");
-        });
+        const backBtn = containerzin.querySelector(".back-button");
+        if (backBtn) backBtn.addEventListener("click", () => loadPage("metodo-pagamento"));
 
-        document.getElementById("submit-card-btn").addEventListener("click", () => {
-            alert("Simulando pagamento com cartão...");
-            setTimeout(() => {
-                if (Math.random() > 0.5) {
-                    loadPage("pagseguro-finalizar", { status: "success" });
-                } else {
-                    loadPage("pagseguro-finalizar", { status: "error" });
-                }
-            }, 1500);
-        });
+        const submitCardBtn = document.getElementById("submit-card-btn");
+        if (submitCardBtn) {
+            submitCardBtn.addEventListener("click", () => {
+                alert("Simulando pagamento com cartão...");
+                setTimeout(() => {
+                    if (Math.random() > 0.5) {
+                        loadPage("pagseguro-finalizar", { status: "success" });
+                    } else {
+                        loadPage("pagseguro-finalizar", { status: "error" });
+                    }
+                }, 1500);
+            });
+        }
 
-        document.getElementById("redirect-pagseguro-btn").addEventListener("click", () => {
-            alert("Simulando redirecionamento para PagSeguro...");
-            setTimeout(() => {
-                if (Math.random() > 0.5) {
-                    loadPage("pagseguro-finalizar", { status: "success" });
-                } else {
-                    loadPage("pagseguro-finalizar", { status: "error" });
-                }
-            }, 1500);
-        });
+        const redirectBtn = document.getElementById("redirect-pagseguro-btn");
+        if (redirectBtn) {
+            redirectBtn.addEventListener("click", () => {
+                alert("Simulando redirecionamento para PagSeguro...");
+                setTimeout(() => {
+                    if (Math.random() > 0.5) {
+                        loadPage("pagseguro-finalizar", { status: "success" });
+                    } else {
+                        loadPage("pagseguro-finalizar", { status: "error" });
+                    }
+                }, 1500);
+            });
+        }
     }
 
     // Renderiza a página de finalização do PagSeguro
@@ -337,18 +368,23 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.querySelector(".back-button").addEventListener("click", () => {
-            loadPage("metodo-pagamento");
-        });
+        const backBtn = containerzin.querySelector(".back-button");
+        if (backBtn) backBtn.addEventListener("click", () => loadPage("metodo-pagamento"));
 
-        document.getElementById("back-btn").addEventListener("click", () => {
+        const backBtn2 = document.getElementById("back-btn");
+        if (backBtn2) backBtn2.addEventListener("click", () => loadPage("agendado"));
+
+        const cancelBtn = document.getElementById("cancel-order-btn");
+        if (cancelBtn) cancelBtn.addEventListener("click", () => {
+            alert("Pedido cancelado (simulação).");
             loadPage("agendado");
         });
     }
 
     // Renderiza a página de finalização do Pix
     function renderPixFinalizar(data) {
-        container.innerHTML = `
+        // FIX: use containerzin (antes estava container)
+        containerzin.innerHTML = `
             <div class="main-content">
                 <div class="header">
                     <button class="back-button"><i class="ph ph-arrow-left"></i></button>
@@ -377,18 +413,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.querySelector(".back-button").addEventListener("click", () => {
-            loadPage("metodo-pagamento");
-        });
+        const backBtn = containerzin.querySelector(".back-button");
+        if (backBtn) backBtn.addEventListener("click", () => loadPage("metodo-pagamento"));
 
-        document.getElementById("back-btn").addEventListener("click", () => {
+        const backBtn2 = document.getElementById("back-btn");
+        if (backBtn2) backBtn2.addEventListener("click", () => loadPage("agendado"));
+
+        const cancelBtn = document.getElementById("cancel-order-btn");
+        if (cancelBtn) cancelBtn.addEventListener("click", () => {
+            alert("Pedido cancelado (simulação).");
             loadPage("agendado");
         });
     }
 
     // Renderiza a página de pagamento In Time
     function renderInTime() {
-        container.innerHTML = `
+        containerzin.innerHTML = `
             <div class="main-content">
                 <div class="header">
                     <button class="back-button"><i class="ph ph-arrow-left"></i></button>
@@ -416,25 +456,27 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.querySelector(".back-button").addEventListener("click", () => {
-            loadPage("agendado");
-        });
+        const backBtn = containerzin.querySelector(".back-button");
+        if (backBtn) backBtn.addEventListener("click", () => loadPage("agendado"));
 
-        document.getElementById("process-intime-btn").addEventListener("click", () => {
-            alert("Processando pagamento rápido...");
-            setTimeout(() => {
-                if (Math.random() > 0.5) {
-                    loadPage("resumo-intime", { status: "success" });
-                } else {
-                    loadPage("resumo-intime", { status: "error" });
-                }
-            }, 1500);
-        });
+        const processBtn = document.getElementById("process-intime-btn");
+        if (processBtn) {
+            processBtn.addEventListener("click", () => {
+                alert("Processando pagamento rápido...");
+                setTimeout(() => {
+                    if (Math.random() > 0.5) {
+                        loadPage("resumo-intime", { status: "success" });
+                    } else {
+                        loadPage("resumo-intime", { status: "error" });
+                    }
+                }, 1500);
+            });
+        }
     }
 
     // Renderiza a página de resumo In Time
     function renderResumoInTime(data) {
-        container.innerHTML = `
+        containerzin.innerHTML = `
             <div class="main-content">
                 <div class="header">
                     <button class="back-button"><i class="ph ph-arrow-left"></i></button>
@@ -475,19 +517,18 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.querySelector(".back-button").addEventListener("click", () => {
-            loadPage("intime");
-        });
+        const backBtn = containerzin.querySelector(".back-button");
+        if (backBtn) backBtn.addEventListener("click", () => loadPage("intime"));
 
-        document.getElementById("back-to-home-btn").addEventListener("click", () => {
-            loadPage("agendado");
-        });
+        const backHome = document.getElementById("back-to-home-btn");
+        if (backHome) backHome.addEventListener("click", () => loadPage("agendado"));
     }
 
-    // Event Listeners Globais
+    // Event Listeners Globais (delegation)
     document.addEventListener("click", (e) => {
         if (e.target && e.target.id === "continue-payment-btn") {
-            const selectedPaymentMethod = document.querySelector("input[name='payment-method']:checked").value;
+            const selected = document.querySelector("input[name='payment-method']:checked");
+            const selectedPaymentMethod = selected ? selected.value : 'pix';
             if (selectedPaymentMethod === "pix") {
                 loadPage("pix");
             } else if (selectedPaymentMethod === "pagseguro") {
@@ -522,7 +563,7 @@ const API_PAGAMENTO_BASE = window.API_CONFIG?.PAGAMENTO || '/api/pagamento';
 async function obterDadosCliente() {
     try {
         const localUser = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
-        
+
         if (localUser && localUser.id) {
             let endereco = localUser.endereco;
             if (typeof endereco === 'string') {
@@ -532,7 +573,7 @@ async function obterDadosCliente() {
                     endereco = null;
                 }
             }
-            
+
             return {
                 id: localUser.id,
                 nome: localUser.nome || '',
@@ -550,7 +591,7 @@ async function obterDadosCliente() {
                 }
             };
         }
-        
+
         console.warn('[Pagamento] Dados do cliente não encontrados no localStorage');
         return null;
     } catch (error) {
@@ -569,40 +610,40 @@ async function obterDadosCliente() {
 async function criarPagamentoPIX(valor, descricao = 'Pagamento de serviço', dadosAdicionais = {}) {
     try {
         console.log('[Pagamento] Criando pagamento PIX:', { valor, descricao });
-        
+
         const cliente = await obterDadosCliente();
-        
+
         if (!cliente || !cliente.email) {
             throw new Error('Dados do cliente não encontrados. Por favor, complete seu cadastro.');
         }
-        
+
         const payload = {
             valor: valor,
             descricao: descricao,
             cliente: cliente,
             ...dadosAdicionais
         };
-        
+
+        // Mantive a chamada para API exatamente como você tinha — envia metodo: 'pix' no body.
         const response = await fetch(`${API_PAGAMENTO_BASE}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ valor, descricao, cliente, metodo: 'pix' })
-          });
-          
-        
+        });
+
         const resultado = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(resultado.error || 'Erro ao criar pagamento PIX');
         }
-        
+
         if (!resultado.success) {
             throw new Error(resultado.error || 'Falha ao processar pagamento');
         }
-        
+
         console.log('[Pagamento] Pagamento PIX criado com sucesso:', resultado.pagamento);
         return resultado.pagamento;
-        
+
     } catch (error) {
         console.error('[Pagamento] Erro ao criar pagamento PIX:', error);
         throw error;
@@ -617,16 +658,16 @@ async function criarPagamentoPIX(valor, descricao = 'Pagamento de serviço', dad
 async function consultarStatusPagamento(paymentId) {
     try {
         console.log('[Pagamento] Consultando status do pagamento:', paymentId);
-        
+
         const response = await fetch(`${API_PAGAMENTO_BASE}/${paymentId}`);
         const resultado = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(resultado.error || 'Erro ao consultar pagamento');
         }
-        
+
         return resultado.pagamento;
-        
+
     } catch (error) {
         console.error('[Pagamento] Erro ao consultar pagamento:', error);
         throw error;
@@ -638,45 +679,45 @@ async function consultarStatusPagamento(paymentId) {
  */
 window.initPagamentoPIX = async function() {
     console.log('[PagamentoPIX] Inicializando integração com Mercado Pago');
-    
+
     // Obtém valor do resumo ou usa valor padrão
     const valorElement = document.querySelector('.info-item span:last-child');
     let valor = 105.90; // Valor padrão
-    
+
     if (valorElement) {
         const valorText = valorElement.textContent.replace(/[^\d,]/g, '').replace(',', '.');
         valor = parseFloat(valorText) || 105.90;
     }
-    
+
     // Mostra loading
     const qrCodeContainer = document.querySelector('.qr-code-container');
     const actionButtons = document.querySelector('.action-buttons');
-    
+
     if (qrCodeContainer) {
         qrCodeContainer.innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="ph ph-spinner ph-spin" style="font-size: 3rem;"></i><p>Gerando QR Code...</p></div>';
     }
-    
+
     if (actionButtons) {
         actionButtons.style.opacity = '0.5';
         actionButtons.style.pointerEvents = 'none';
     }
-    
+
     try {
         const dadosPagamento = await criarPagamentoPIX(valor, 'Pagamento de serviço CuidaFast');
-        
+
         console.log('[PagamentoPIX] Pagamento criado:', dadosPagamento);
-        
+
         // Exibe QR Code
         if (dadosPagamento.qr_code_base64 && qrCodeContainer) {
             qrCodeContainer.innerHTML = `<img src="data:image/png;base64,${dadosPagamento.qr_code_base64}" alt="QR Code PIX" style="width: 100%; max-width: 300px;">`;
         }
-        
+
         // Atualiza informações do pedido
         const pedidoSpan = document.querySelectorAll('.info-item span')[1];
         if (pedidoSpan && dadosPagamento.external_reference) {
             pedidoSpan.textContent = `#${dadosPagamento.external_reference}`;
         }
-        
+
         // Configura botão de copiar código PIX
         const btnCopyPix = document.querySelector('.btn-copy-pix');
         if (btnCopyPix && dadosPagamento.qr_code) {
@@ -689,32 +730,33 @@ window.initPagamentoPIX = async function() {
                 }
             });
         }
-        
+
         // Configura botão de ver pedido
         const btnViewOrder = document.querySelector('.btn-view-order');
-        if (btnViewOrder && dadosPagamento.mercado_pago_id) {
+        if (btnViewOrder && (dadosPagamento.mercado_pago_id || dadosPagamento.id)) {
             btnViewOrder.addEventListener('click', async () => {
                 try {
-                    const status = await consultarStatusPagamento(dadosPagamento.mercado_pago_id);
+                    const mpId = dadosPagamento.mercado_pago_id || dadosPagamento.id;
+                    const status = await consultarStatusPagamento(mpId);
                     alert(`Status do pagamento: ${status.status}`);
                 } catch (error) {
                     alert('Erro ao consultar status do pagamento.');
                 }
             });
         }
-        
+
         // Restaura botões
         if (actionButtons) {
             actionButtons.style.opacity = '1';
             actionButtons.style.pointerEvents = 'auto';
         }
-        
+
         // Salva dados do pagamento no localStorage
         localStorage.setItem('cuidafast_ultimo_pagamento', JSON.stringify(dadosPagamento));
-        
+
     } catch (error) {
         console.error('[PagamentoPIX] Erro ao criar pagamento:', error);
-        
+
         if (qrCodeContainer) {
             qrCodeContainer.innerHTML = `
                 <div style="text-align: center; padding: 2rem; color: #e74c3c;">
@@ -724,12 +766,12 @@ window.initPagamentoPIX = async function() {
                 </div>
             `;
         }
-        
+
         if (actionButtons) {
             actionButtons.style.opacity = '1';
             actionButtons.style.pointerEvents = 'auto';
         }
-        
+
         alert(`Erro ao processar pagamento: ${error.message || 'Tente novamente mais tarde'}`);
     }
 };
