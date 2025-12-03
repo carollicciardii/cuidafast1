@@ -25,13 +25,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Carregar dados do usuário
         userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
         
-        if (!userData.id || !userData.email) {
+        // Tenta buscar dados atualizados do banco para garantir ID correto
+        if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+            try {
+                const updatedData = await window.CuidaFastAuth.fetchUserDataFromDB();
+                if (updatedData) {
+                    userData = { ...userData, ...updatedData };
+                }
+            } catch (error) {
+                console.warn('[Mensagens] Erro ao buscar dados atualizados:', error);
+            }
+        }
+        
+        // Garantir que temos um ID válido (pode ser id ou usuario_id)
+        const userId = userData.id || userData.usuario_id;
+        if (!userId || !userData.email) {
             alert('Você precisa estar logado para acessar as mensagens.');
             window.location.href = '../../index.html';
             return;
         }
-
-        console.log('[Mensagens] Usuário logado:', userData.nome, '(ID:', userData.id, ', Tipo:', userData.tipo || 'N/A', ')');
+        
+        // Garantir que userData tem o campo id para usar no sistema
+        userData.id = userId;
+        
+        console.log('[Mensagens] Usuário logado:', userData.nome, '(ID:', userData.id || userData.usuario_id, ', Tipo:', userData.tipo || 'N/A', ')');
 
         // Obter elementos DOM
         contactList = document.getElementById('contact-list');

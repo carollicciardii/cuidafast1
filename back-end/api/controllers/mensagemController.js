@@ -42,7 +42,7 @@ const getConversas = async (req, res) => {
              OR (m3.destinatario_id = $1 AND m3.remetente_id = cu.contato_id)
         ) AS ultima_mensagem_data
       FROM conversas_unicas cu
-      JOIN usuario u ON u.id = cu.contato_id
+      JOIN usuario u ON u.usuario_id = cu.contato_id
       ORDER BY ultima_mensagem_data DESC NULLS LAST
     `;
     

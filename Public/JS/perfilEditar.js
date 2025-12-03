@@ -15,15 +15,20 @@ async function initProfileEdit() {
  * Carrega dados do usuário no formulário
  */
 async function loadUserData() {
-    // Tenta buscar dados atualizados do banco primeiro
-    let userData = null;
-    if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
-        userData = await window.CuidaFastAuth.fetchUserDataFromDB();
-    }
+    // Primeiro pega do localStorage como base
+    let userData = getUserDataFromStorage();
     
-    // Se não conseguiu buscar do banco, usa localStorage
-    if (!userData) {
-        userData = getUserDataFromStorage();
+    // Tenta buscar dados atualizados do banco e mescla com os dados do localStorage
+    if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+        try {
+            const dbData = await window.CuidaFastAuth.fetchUserDataFromDB();
+            if (dbData) {
+                // Mescla dados do banco com os do localStorage (dados do banco têm prioridade)
+                userData = { ...userData, ...dbData };
+            }
+        } catch (error) {
+            console.warn('[PerfilEditar] Erro ao buscar dados do banco, usando localStorage:', error);
+        }
     }
     
     if (!userData) {
@@ -82,80 +87,61 @@ async function loadUserData() {
     }
 
     // Carregar endereço se houver campos de endereço na página
+    // Prioriza campos diretos do banco, depois objeto endereco
     const cepInput = document.getElementById('cep');
     if (cepInput) {
-        const endereco = userData.endereco;
-        if (endereco) {
-            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
-            if (enderecoObj.cep) cepInput.value = enderecoObj.cep;
-        } else if (userData.cep) {
-            cepInput.value = userData.cep;
+        // Primeiro tenta campos diretos, depois objeto endereco
+        const cep = userData.cep || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).cep);
+        if (cep) {
+            cepInput.value = cep;
         }
     }
 
     const ruaInput = document.getElementById('rua');
     if (ruaInput) {
-        const endereco = userData.endereco;
-        if (endereco) {
-            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
-            if (enderecoObj.rua) ruaInput.value = enderecoObj.rua;
-        } else if (userData.rua) {
-            ruaInput.value = userData.rua;
+        const rua = userData.rua || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).rua);
+        if (rua) {
+            ruaInput.value = rua;
         }
     }
 
     const numeroInput = document.getElementById('numero');
     if (numeroInput) {
-        const endereco = userData.endereco;
-        if (endereco) {
-            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
-            if (enderecoObj.numero) numeroInput.value = enderecoObj.numero;
-        } else if (userData.numero) {
-            numeroInput.value = userData.numero;
+        const numero = userData.numero || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).numero);
+        if (numero) {
+            numeroInput.value = numero;
         }
     }
 
     const complementoInput = document.getElementById('complemento');
     if (complementoInput) {
-        const endereco = userData.endereco;
-        if (endereco) {
-            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
-            if (enderecoObj.complemento) complementoInput.value = enderecoObj.complemento;
-        } else if (userData.complemento) {
-            complementoInput.value = userData.complemento;
+        const complemento = userData.complemento || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).complemento);
+        if (complemento) {
+            complementoInput.value = complemento;
         }
     }
 
     const bairroInput = document.getElementById('bairro');
     if (bairroInput) {
-        const endereco = userData.endereco;
-        if (endereco) {
-            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
-            if (enderecoObj.bairro) bairroInput.value = enderecoObj.bairro;
-        } else if (userData.bairro) {
-            bairroInput.value = userData.bairro;
+        const bairro = userData.bairro || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).bairro);
+        if (bairro) {
+            bairroInput.value = bairro;
         }
     }
 
     const cidadeInput = document.getElementById('cidade');
     if (cidadeInput) {
-        const endereco = userData.endereco;
-        if (endereco) {
-            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
-            if (enderecoObj.cidade) cidadeInput.value = enderecoObj.cidade;
-        } else if (userData.cidade) {
-            cidadeInput.value = userData.cidade;
+        const cidade = userData.cidade || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).cidade);
+        if (cidade) {
+            cidadeInput.value = cidade;
         }
     }
 
     const estadoInput = document.getElementById('estado');
     if (estadoInput) {
-        const endereco = userData.endereco;
-        if (endereco) {
-            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
-            if (enderecoObj.estado) estadoInput.value = enderecoObj.estado;
-        } else if (userData.estado) {
-            estadoInput.value = userData.estado;
+        const estado = userData.estado || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).estado);
+        if (estado) {
+            estadoInput.value = estado;
         }
     }
 
@@ -291,6 +277,15 @@ function initFormSubmit() {
             return;
         }
 
+        // Coletar dados de endereço se houver campos na página
+        const cep = document.getElementById('cep')?.value || '';
+        const rua = document.getElementById('rua')?.value || '';
+        const numero = document.getElementById('numero')?.value || '';
+        const complemento = document.getElementById('complemento')?.value || '';
+        const bairro = document.getElementById('bairro')?.value || '';
+        const cidade = document.getElementById('cidade')?.value || '';
+        const estado = document.getElementById('estado')?.value || '';
+
         // Atualizar dados do usuário
         const updatedData = {
             ...userData,
@@ -298,7 +293,27 @@ function initFormSubmit() {
             email: email,
             telefone: phone || userData.telefone,
             dataNascimento: birthDate || userData.dataNascimento,
-            cpf: cpf || userData.cpf
+            data_nascimento: birthDate || userData.data_nascimento || userData.dataNascimento,
+            cpf: cpf || userData.cpf,
+            cpf_numero: cpf || userData.cpf_numero || userData.cpf,
+            // Campos de endereço
+            cep: cep || userData.cep,
+            rua: rua || userData.rua,
+            numero: numero || userData.numero,
+            complemento: complemento || userData.complemento,
+            bairro: bairro || userData.bairro,
+            cidade: cidade || userData.cidade,
+            estado: estado || userData.estado,
+            // Endereço como objeto também
+            endereco: {
+                cep: cep || userData.cep || (userData.endereco && userData.endereco.cep),
+                rua: rua || userData.rua || (userData.endereco && userData.endereco.rua),
+                numero: numero || userData.numero || (userData.endereco && userData.endereco.numero),
+                complemento: complemento || userData.complemento || (userData.endereco && userData.endereco.complemento),
+                bairro: bairro || userData.bairro || (userData.endereco && userData.endereco.bairro),
+                cidade: cidade || userData.cidade || (userData.endereco && userData.endereco.cidade),
+                estado: estado || userData.estado || (userData.endereco && userData.endereco.estado)
+            }
         };
 
         // Atualizar foto se foi selecionada
@@ -323,14 +338,59 @@ function initFormSubmit() {
                 }
             }
 
-            // Se tiver API, atualizar no backend
-            if (typeof PerfilAPI !== 'undefined' && userData.id) {
+            // Atualizar no backend usando a API de complete-profile
+            const userId = userData.id || userData.usuario_id;
+            if (userId) {
                 try {
-                    if (updatedData.photoURL && updatedData.photoURL !== userData.photoURL) {
-                        await PerfilAPI.atualizarFotoPerfil(userData.id, updatedData.photoURL);
+                    const API_URL = window.API_CONFIG?.AUTH || "/api/auth";
+                    const completeProfileUrl = `${API_URL}/complete-profile`;
+                    
+                    const payload = {
+                        usuario_id: userId,
+                        nome: fullName,
+                        email: email,
+                        telefone: phone || userData.telefone || null,
+                        data_nascimento: birthDate || userData.data_nascimento || userData.dataNascimento || null,
+                        cpf: cpf || userData.cpf || userData.cpf_numero || null,
+                        cpf_numero: cpf || userData.cpf_numero || userData.cpf || null,
+                        // Campos de endereço
+                        cep: cep || null,
+                        rua: rua || null,
+                        numero: numero || null,
+                        complemento: complemento || null,
+                        bairro: bairro || null,
+                        cidade: cidade || null,
+                        estado: estado || null,
+                        photo_url: updatedData.photoURL && !updatedData.photoURL.includes('images.webp') 
+                            ? updatedData.photoURL 
+                            : userData.photo_url || userData.photoURL || null,
+                        tipo: userData.tipo || 'cliente'
+                    };
+                    
+                    const response = await fetch(completeProfileUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('cuidafast_token') || ''}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('[PerfilEditar] Dados atualizados no backend:', result);
+                        
+                        // Atualizar localStorage com dados retornados do backend
+                        if (result.user) {
+                            const mergedData = { ...updatedData, ...result.user };
+                            localStorage.setItem('cuidafast_user', JSON.stringify(mergedData));
+                        }
+                    } else {
+                        console.warn('[PerfilEditar] Erro ao atualizar no backend, mas dados salvos localmente');
                     }
                 } catch (error) {
-                    console.error('[PerfilEditar] Erro ao atualizar foto no backend:', error);
+                    console.error('[PerfilEditar] Erro ao atualizar no backend:', error);
+                    // Continua mesmo com erro no backend
                 }
             }
 

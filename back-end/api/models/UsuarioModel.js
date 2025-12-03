@@ -70,7 +70,7 @@ class UsuarioModel {
   }
 
   static async update(id, usuario) {
-    const { nome, email, telefone, data_nascimento, photo_url, tipo, cpf, cpf_numero } = usuario;
+    const { nome, email, telefone, data_nascimento, photo_url, tipo, cpf, cpf_numero, cep, rua, numero, bairro, cidade, estado, complemento } = usuario;
     
     const updateData = {};
     if (nome !== undefined) updateData.nome = nome;
@@ -88,6 +88,15 @@ class UsuarioModel {
       updateData.cpf = cpfLimpo;
       updateData.cpf_numero = cpfLimpo;
     }
+    
+    // Campos de endereço
+    if (cep !== undefined) updateData.cep = cep;
+    if (rua !== undefined) updateData.rua = rua;
+    if (numero !== undefined) updateData.numero = numero;
+    if (bairro !== undefined) updateData.bairro = bairro;
+    if (cidade !== undefined) updateData.cidade = cidade;
+    if (estado !== undefined) updateData.estado = estado;
+    if (complemento !== undefined) updateData.complemento = complemento;
     
     updateData.data_modificacao = new Date().toISOString();
     

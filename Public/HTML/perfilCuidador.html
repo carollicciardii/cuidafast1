@@ -134,27 +134,27 @@
                     <div class="info-group">
                         <div class="info-item">
                             <span class="info-label">Nome Completo</span>
-                            <span class="info-value">Maria Santos Silva</span>
+                            <span class="info-value" id="cuidadorNome">-</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">E-mail</span>
-                            <span class="info-value">maria.santos@email.com</span>
+                            <span class="info-value" id="cuidadorEmail">-</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Telefone</span>
-                            <span class="info-value">(11) 99876-5432</span>
+                            <span class="info-value" id="cuidadorTelefone">-</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">CPF</span>
-                            <span class="info-value">-</span>
+                            <span class="info-value" id="cuidadorCPF">-</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Data de Nascimento</span>
-                            <span class="info-value">-</span>
+                            <span class="info-value" id="cuidadorDataNascimento">-</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Descrição</span>
-                            <span class="info-value">-</span>
+                            <span class="info-value" id="cuidadorDescricao">-</span>
                         </div>
                     </div>
                 </div>
@@ -308,25 +308,91 @@
                 }
             }
 
-            // Atualizar tipos de serviço
-            if (userData.servicosOferecidos && userData.servicosOferecidos.length > 0) {
-                const tiposMap = {
-                    'idoso': 'Cuidador de Idosos',
-                    'pet': 'Cuidador de Pet',
-                    'infantil': 'Cuidador Infantil',
-                    'crianca': 'Cuidador Infantil'
-                };
-                
-                const tiposTexto = userData.servicosOferecidos
-                    .map(tipo => tiposMap[tipo] || tipo)
-                    .join(', ');
-                
-                const tiposElement = document.getElementById('tiposServico');
-                if (tiposElement) {
-                    tiposElement.textContent = tiposTexto;
+            // Atualizar informações pessoais
+            const nomeElement = document.getElementById('cuidadorNome');
+            if (nomeElement) {
+                nomeElement.textContent = userData.nome || '-';
+            }
+            
+            const emailElement = document.getElementById('cuidadorEmail');
+            if (emailElement) {
+                emailElement.textContent = userData.email || '-';
+            }
+            
+            const telefoneElement = document.getElementById('cuidadorTelefone');
+            if (telefoneElement) {
+                if (userData.telefone) {
+                    // Formatar telefone
+                    const telefoneLimpo = userData.telefone.replace(/\D/g, '');
+                    if (telefoneLimpo.length === 11) {
+                        telefoneElement.textContent = `(${telefoneLimpo.substring(0, 2)}) ${telefoneLimpo.substring(2, 7)}-${telefoneLimpo.substring(7)}`;
+                    } else if (telefoneLimpo.length === 10) {
+                        telefoneElement.textContent = `(${telefoneLimpo.substring(0, 2)}) ${telefoneLimpo.substring(2, 6)}-${telefoneLimpo.substring(6)}`;
+                    } else {
+                        telefoneElement.textContent = userData.telefone;
+                    }
+                } else {
+                    telefoneElement.textContent = '-';
                 }
-                
-                console.log('[PerfilCuidador] Tipos de serviço:', tiposTexto);
+            }
+            
+            const cpfElement = document.getElementById('cuidadorCPF');
+            if (cpfElement) {
+                const cpf = userData.cpf || userData.cpf_numero || userData.documento;
+                if (cpf) {
+                    cpfElement.textContent = cpf;
+                } else {
+                    cpfElement.textContent = '-';
+                }
+            }
+            
+            const dataNascElement = document.getElementById('cuidadorDataNascimento');
+            if (dataNascElement) {
+                const dataNasc = userData.data_nascimento || userData.dataNascimento || userData.data_nasc || userData.birthDate;
+                if (dataNasc) {
+                    let date;
+                    if (typeof dataNasc === 'string' && dataNasc.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        date = new Date(dataNasc + 'T00:00:00');
+                    } else {
+                        date = new Date(dataNasc);
+                    }
+                    if (!isNaN(date.getTime())) {
+                        dataNascElement.textContent = date.toLocaleDateString('pt-BR');
+                    } else {
+                        dataNascElement.textContent = '-';
+                    }
+                } else {
+                    dataNascElement.textContent = '-';
+                }
+            }
+            
+            const descricaoElement = document.getElementById('cuidadorDescricao');
+            if (descricaoElement) {
+                descricaoElement.textContent = userData.descricao || '-';
+            }
+
+            // Atualizar tipos de serviço
+            const tiposElement = document.getElementById('tiposServico');
+            if (tiposElement) {
+                if (userData.tipos_cuidado || userData.servicosOferecidos) {
+                    const tipos = userData.tipos_cuidado || userData.servicosOferecidos;
+                    const tiposArray = Array.isArray(tipos) ? tipos : (typeof tipos === 'string' ? tipos.split(',') : [tipos]);
+                    
+                    const tiposMap = {
+                        'idoso': 'Cuidador de Idosos',
+                        'pet': 'Cuidador de Pet',
+                        'infantil': 'Cuidador Infantil',
+                        'crianca': 'Cuidador Infantil'
+                    };
+                    
+                    const tiposTexto = tiposArray
+                        .map(tipo => tiposMap[tipo] || tipo)
+                        .join(', ');
+                    
+                    tiposElement.textContent = tiposTexto || '-';
+                } else {
+                    tiposElement.textContent = '-';
+                }
             }
 
             // Atualizar áreas de atuação

@@ -141,52 +141,50 @@ async function loadUserProfile() {
     }
 
     // Atualizar endereço se existir - preenche campos individuais
-    // Pode estar em userData.endereco (objeto) ou nos campos diretos (rua, numero, etc)
-    let enderecoObj = userData.endereco;
-    
-    // Se não tiver objeto endereco, monta a partir dos campos diretos do banco
-    if (!enderecoObj && (userData.rua || userData.cidade)) {
-        enderecoObj = {};
-        if (userData.rua) enderecoObj.rua = userData.rua;
-        if (userData.numero) enderecoObj.numero = userData.numero;
-        if (userData.complemento) enderecoObj.complemento = userData.complemento;
-        if (userData.bairro) enderecoObj.bairro = userData.bairro;
-        if (userData.cidade) enderecoObj.cidade = userData.cidade;
-        if (userData.estado) enderecoObj.estado = userData.estado;
-        if (userData.cep) enderecoObj.cep = userData.cep;
-    }
+    // Prioriza campos diretos do banco, depois objeto endereco
+    const cep = userData.cep || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).cep);
+    const rua = userData.rua || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).rua);
+    const numero = userData.numero || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).numero);
+    const complemento = userData.complemento || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).complemento);
+    const bairro = userData.bairro || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).bairro);
+    const cidade = userData.cidade || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).cidade);
+    const estado = userData.estado || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).estado);
     
     // Preencher campos individuais do endereço
-    if (enderecoObj) {
-        // CEP
-        if (enderecoObj.cep) {
-            updateInfoField('CEP', enderecoObj.cep);
+    // CEP
+    if (cep) {
+        updateInfoField('CEP', cep);
+    } else {
+        updateInfoField('CEP', '-');
+    }
+    
+    // Endereço (rua + número)
+    if (rua) {
+        let enderecoTexto = rua;
+        if (numero) {
+            enderecoTexto += `, ${numero}`;
         }
-        
-        // Endereço (rua + número)
-        if (enderecoObj.rua) {
-            let enderecoTexto = enderecoObj.rua;
-            if (enderecoObj.numero) {
-                enderecoTexto += `, ${enderecoObj.numero}`;
-            }
-            updateInfoField('Endereço', enderecoTexto);
-        }
-        
-        // Complemento
-        if (enderecoObj.complemento) {
-            updateInfoField('Complemento', enderecoObj.complemento);
-        } else {
-            updateInfoField('Complemento', '-');
-        }
-        
-        // Cidade/Estado
-        if (enderecoObj.cidade && enderecoObj.estado) {
-            updateInfoField('Cidade/Estado', `${enderecoObj.cidade}/${enderecoObj.estado}`);
-        } else if (enderecoObj.cidade) {
-            updateInfoField('Cidade/Estado', enderecoObj.cidade);
-        } else if (enderecoObj.estado) {
-            updateInfoField('Cidade/Estado', enderecoObj.estado);
-        }
+        updateInfoField('Endereço', enderecoTexto);
+    } else {
+        updateInfoField('Endereço', '-');
+    }
+    
+    // Complemento
+    if (complemento) {
+        updateInfoField('Complemento', complemento);
+    } else {
+        updateInfoField('Complemento', '-');
+    }
+    
+    // Cidade/Estado
+    if (cidade && estado) {
+        updateInfoField('Cidade/Estado', `${cidade}/${estado}`);
+    } else if (cidade) {
+        updateInfoField('Cidade/Estado', cidade);
+    } else if (estado) {
+        updateInfoField('Cidade/Estado', estado);
+    } else {
+        updateInfoField('Cidade/Estado', '-');
     }
 
     // Atualizar descrição se for cuidador

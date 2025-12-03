@@ -486,7 +486,16 @@ export const getUserData = async (req, res) => {
       user: {
         ...user,
         ...additionalData,
+        // Endereço como objeto
         endereco: Object.keys(endereco).length > 0 ? endereco : null,
+        // Campos de endereço também diretamente para facilitar acesso
+        cep: user.cep || endereco.cep || null,
+        rua: user.rua || endereco.rua || null,
+        numero: user.numero || endereco.numero || null,
+        complemento: user.complemento || endereco.complemento || null,
+        bairro: user.bairro || endereco.bairro || null,
+        cidade: user.cidade || endereco.cidade || null,
+        estado: user.estado || endereco.estado || null,
         photoURL: user.photo_url || null,
         primeiroNome: (user.nome || '').split(' ')[0],
         dataCadastro: user.data_cadastro || user.dataCadastro || null,
