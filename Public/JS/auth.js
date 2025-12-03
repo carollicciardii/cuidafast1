@@ -55,13 +55,21 @@ async function fetchUserDataFromDB() {
                 usuario_id: data.user.usuario_id || data.user.id || localUser.id,
                 endereco: data.user.endereco || localUser.endereco,
                 photoURL: data.user.photoURL || data.user.photo_url || localUser.photoURL,
-                primeiroNome: data.user.primeiroNome || (data.user.nome || localUser.nome || '').split(' ')[0]
+                primeiroNome: data.user.primeiroNome || (data.user.nome || localUser.nome || '').split(' ')[0],
+                // Garante que a data de cadastro seja preservada (prioriza dados do banco)
+                data_cadastro: data.user.data_cadastro || data.user.dataCadastro || localUser.data_cadastro || localUser.dataCadastro || null,
+                dataCadastro: data.user.data_cadastro || data.user.dataCadastro || localUser.data_cadastro || localUser.dataCadastro || null,
+                // Garante que o nome seja sempre preservado
+                nome: data.user.nome || localUser.nome || null
             };
 
             // Atualiza localStorage
             updateUserData(completeUserData);
             
-            console.log('[Auth] Dados completos carregados do banco e atualizados no localStorage');
+            console.log('[Auth] Dados completos carregados do banco e atualizados no localStorage', {
+                nome: completeUserData.nome,
+                data_cadastro: completeUserData.data_cadastro
+            });
             return completeUserData;
         }
 

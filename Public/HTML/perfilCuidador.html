@@ -199,17 +199,18 @@
         document.addEventListener('DOMContentLoaded', async function() {
             let userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
             
-            if (!userData || !userData.nome) {
+            if (!userData || (!userData.nome && !userData.usuario_id && !userData.id)) {
                 console.warn('[PerfilCuidador] Usuário não autenticado');
                 window.location.href = '../../index.html';
                 return;
             }
 
-            // Tentar buscar dados atualizados do banco
+            // Tentar buscar dados atualizados do banco (mescla com localStorage)
             if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
                 try {
                     const updatedData = await window.CuidaFastAuth.fetchUserDataFromDB();
                     if (updatedData) {
+                        // Mescla dados do banco com os do localStorage (dados do banco têm prioridade)
                         userData = { ...userData, ...updatedData };
                     }
                 } catch (error) {
@@ -217,16 +218,23 @@
                 }
             }
 
-            // Atualizar nome
+            // Atualizar nome - sempre exibe o nome se existir
             const profileName = document.getElementById('profileUserName');
             if (profileName) {
-                profileName.textContent = userData.nome;
+                if (userData.nome) {
+                    profileName.textContent = userData.nome;
+                } else {
+                    console.warn('[PerfilCuidador] Nome do usuário não encontrado nos dados');
+                    profileName.textContent = 'Cuidador';
+                }
             }
 
-            // Atualizar data de cadastro
+            // Atualizar data de cadastro - busca do banco de dados
             const memberSince = document.querySelector('.member-since');
             if (memberSince) {
-                const dataCadastro = userData.dataCadastro || userData.data_cadastro || userData.created_at;
+                // Prioriza data_cadastro do banco de dados
+                const dataCadastro = userData.data_cadastro || userData.dataCadastro || userData.created_at;
+                
                 if (dataCadastro) {
                     const date = new Date(dataCadastro);
                     if (!isNaN(date.getTime())) {
@@ -235,7 +243,13 @@
                         const monthName = monthNames[date.getMonth()];
                         const year = date.getFullYear();
                         memberSince.textContent = `Cuidador desde ${monthName} de ${year}`;
+                    } else {
+                        console.warn('[PerfilCuidador] Data de cadastro inválida:', dataCadastro);
+                        memberSince.textContent = 'Cuidador';
                     }
+                } else {
+                    console.warn('[PerfilCuidador] Data de cadastro não encontrada nos dados do usuário');
+                    memberSince.textContent = 'Cuidador';
                 }
             }
 

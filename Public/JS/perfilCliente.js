@@ -14,15 +14,20 @@ async function initProfile() {
  * Carrega os dados do usuário no perfil
  */
 async function loadUserProfile() {
-    // Tenta buscar dados atualizados do banco primeiro
-    let userData = null;
-    if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
-        userData = await window.CuidaFastAuth.fetchUserDataFromDB();
-    }
+    // Primeiro pega do localStorage como base
+    let userData = getUserDataFromStorage();
     
-    // Se não conseguiu buscar do banco, usa localStorage
-    if (!userData) {
-        userData = getUserDataFromStorage();
+    // Tenta buscar dados atualizados do banco e mescla com os dados do localStorage
+    if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+        try {
+            const dbData = await window.CuidaFastAuth.fetchUserDataFromDB();
+            if (dbData) {
+                // Mescla dados do banco com os do localStorage (dados do banco têm prioridade)
+                userData = { ...userData, ...dbData };
+            }
+        } catch (error) {
+            console.warn('[PerfilCliente] Erro ao buscar dados do banco, usando localStorage:', error);
+        }
     }
     
     if (!userData) {
@@ -30,17 +35,28 @@ async function loadUserProfile() {
         return;
     }
 
-    // Atualizar nome principal
-    const profileName = document.querySelector('.profile-info h1');
+    // Atualizar nome principal - sempre exibe o nome se existir
+    const profileName = document.getElementById('profileUserName') || document.querySelector('.profile-info h1');
     if (profileName) {
-        profileName.textContent = userData.nome;
+        if (userData.nome) {
+            profileName.textContent = userData.nome;
+        } else {
+            console.warn('[PerfilCliente] Nome do usuário não encontrado nos dados');
+        }
     }
 
-    // Atualizar data de cadastro
+    // Atualizar data de cadastro - busca do banco de dados
     const memberSince = document.querySelector('.member-since');
     if (memberSince) {
-        // Tenta buscar a data de cadastro de diferentes fontes possíveis
-        const dataCadastro = userData.dataCadastro || userData.data_cadastro || userData.created_at;
+        // Tenta buscar a data de cadastro de diferentes fontes possíveis (prioriza data_cadastro do banco)
+        const dataCadastro = userData.data_cadastro || userData.dataCadastro || userData.created_at;
+        
+        console.log('[PerfilCliente] Dados do usuário:', { 
+            nome: userData.nome, 
+            data_cadastro: userData.data_cadastro, 
+            dataCadastro: userData.dataCadastro,
+            tipo: userData.tipo 
+        });
         
         if (dataCadastro) {
             const date = new Date(dataCadastro);
@@ -56,7 +72,14 @@ async function loadUserProfile() {
                 } else {
                     memberSince.textContent = `Membro desde ${monthName} de ${year}`;
                 }
+                console.log('[PerfilCliente] Data de cadastro exibida:', memberSince.textContent);
+            } else {
+                console.warn('[PerfilCliente] Data de cadastro inválida:', dataCadastro);
+                memberSince.textContent = userData.tipo === 'cuidador' ? 'Cuidador' : 'Membro';
             }
+        } else {
+            console.warn('[PerfilCliente] Data de cadastro não encontrada. Dados disponíveis:', Object.keys(userData));
+            memberSince.textContent = userData.tipo === 'cuidador' ? 'Cuidador' : 'Membro';
         }
     }
     
