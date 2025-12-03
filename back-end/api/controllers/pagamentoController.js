@@ -280,8 +280,9 @@ async function executarCriacaoPagamento(body) {
 export default {
   criarPagamentoPIX,
   consultarPagamento,
-  criarPagamentoCartao
+  criarPagamentoCartao,
+  executarCriacaoPagamento
 };
 
-export { criarPagamentoController as executarCriacaoPagamento };
-
+// exports nomeados para compatibilidade backward (create.js procura por criarPagamentoController)
+export { executarCriacaoPagamento, executarCriacaoPagamento as criarPagamentoController };
