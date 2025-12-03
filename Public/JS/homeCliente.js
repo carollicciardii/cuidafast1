@@ -250,15 +250,27 @@ function initSidebar() {
 
   // Função para abrir perfil público do cuidador
   function viewCaregiverProfile(caregiver) {
+    console.log('[HomeCliente] Abrindo perfil do cuidador:', caregiver);
+    
     // Obter ID do cuidador (pode estar em diferentes campos)
-    const cuidadorId = caregiver.usuario_id || caregiver.id || caregiver.userId;
+    let cuidadorId = caregiver.usuario_id || caregiver.id || caregiver.userId;
+    
+    console.log('[HomeCliente] ID encontrado:', cuidadorId);
+    
+    // Se não tiver ID, tentar buscar pelo email
+    if (!cuidadorId && caregiver.email) {
+      console.warn('[HomeCliente] ID não encontrado, usando email como fallback:', caregiver.email);
+      // Usar email como fallback temporário
+      cuidadorId = caregiver.email;
+    }
     
     if (!cuidadorId) {
-      console.error('[HomeCliente] ID do cuidador não encontrado:', caregiver);
-      alert('Erro: Não foi possível identificar o cuidador.');
+      console.error('[HomeCliente] ID do cuidador não encontrado. Dados completos:', caregiver);
+      alert('Erro: Não foi possível identificar o cuidador. Por favor, tente novamente.');
       return;
     }
 
+    console.log('[HomeCliente] Redirecionando para perfil com ID:', cuidadorId);
     // Redirecionar para página de perfil público com o ID
     window.location.href = `perfilCuidadorPublico.html?id=${encodeURIComponent(cuidadorId)}`;
   }
@@ -325,23 +337,64 @@ function initSidebar() {
     }
 
     // Mapear campos do backend para o formato consumido pelo front
-    const mapped = apiCuidadores.map(c => ({
-      name: c.nome || c.name || `${c.primeiroNome || 'Cuidador'}`,
-      specialty: (c.especialidades && Array.isArray(c.especialidades)
-        ? c.especialidades.join(', ')
-        : c.tipos_cuidado || c.especialidade || 'Cuidador Geral'),
-      bio: c.descricao || c.bio || 'Cuidador profissional disponível na sua região.',
-      rating: c.avaliacao || c.rating || (4.5 + Math.random() * 0.5),
-      reviews: c.reviews || Math.floor(Math.random() * 100) + 10,
-      email: c.email,
-      telefone: c.telefone || c.celular,
-      endereco: c.local_trabalho || c.endereco || c.localidade,
-      location: c.localidade || c.cidade || c.cep,
-      valorHora: c.valor_hora || c.valorHora || c.preco,
-      photoURL: c.foto_perfil || c.photoURL || c.foto || null,
-      usuario_id: c.id || c.usuario_id || c.userId,
-      id: c.id || c.usuario_id || c.userId
-    }));
+    const mapped = apiCuidadores.map(c => {
+      // Mapear tipo de cuidador corretamente
+      let specialty = 'Cuidador Geral';
+      if (c.tipos_cuidado) {
+        const tipos = Array.isArray(c.tipos_cuidado) ? c.tipos_cuidado : [c.tipos_cuidado];
+        const tiposMap = {
+          'idoso': 'Cuidador de Idosos',
+          'pet': 'Cuidador de Pet',
+          'crianca': 'Cuidador Infantil',
+          'infantil': 'Cuidador Infantil'
+        };
+        specialty = tipos.map(t => tiposMap[t] || t).join(', ');
+      } else if (c.especialidades && Array.isArray(c.especialidades)) {
+        specialty = c.especialidades.join(', ');
+      } else if (c.especialidade) {
+        specialty = c.especialidade;
+      }
+
+      // Usar avaliação real ou 0 se não houver
+      const rating = c.avaliacao || c.rating || 0;
+      const reviews = c.num_avaliacoes || c.numAvaliacoes || c.totalAvaliacoes || c.reviews || 0;
+
+      // Garantir que temos um ID válido
+      const cuidId = c.id || c.usuario_id || c.userId;
+      
+      if (!cuidId) {
+        console.warn('[HomeCliente] Cuidador sem ID:', c);
+      }
+      
+      // Garantir que temos um nome válido (não "Usuário")
+      let nomeCuidador = c.nome || c.name || c.primeiroNome;
+      // Se o nome for "Usuário" ou vazio, tentar buscar do email ou usar fallback
+      if (!nomeCuidador || nomeCuidador.trim() === '' || nomeCuidador.toLowerCase() === 'usuário' || nomeCuidador.toLowerCase() === 'usuario') {
+        // Tentar extrair nome do email (antes do @)
+        if (c.email) {
+          const emailName = c.email.split('@')[0];
+          nomeCuidador = emailName.charAt(0).toUpperCase() + emailName.slice(1) || 'Cuidador';
+        } else {
+          nomeCuidador = 'Cuidador';
+        }
+      }
+      
+      return {
+        name: nomeCuidador,
+        specialty: specialty,
+        bio: c.descricao || c.bio || 'Cuidador profissional disponível na sua região.',
+        rating: rating,
+        reviews: reviews,
+        email: c.email,
+        telefone: c.telefone || c.celular,
+        endereco: c.local_trabalho || c.endereco || c.localidade,
+        location: c.localidade || c.cidade || c.cep,
+        valorHora: c.valor_hora || c.valorHora || c.preco,
+        photoURL: c.foto_perfil || c.photoURL || c.foto || null,
+        usuario_id: cuidId,
+        id: cuidId
+      };
+    });
 
     caregiversState.items = mapped;
     caregiversState.filtered = null;
@@ -505,11 +558,23 @@ function initSidebar() {
     console.log(`[CuidaFast] ${filtered.length} cuidadores após filtros`);
   }
 
+  // Event listener para botão "Carregar mais"
+  document.addEventListener('DOMContentLoaded', function() {
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function() {
+        console.log('[HomeCliente] Botão "Carregar mais" clicado');
+        renderNextPage(false); // false = não resetar, apenas adicionar mais
+      });
+    }
+  });
+
   // Expor para console (opcional)
   window.CuidaFast = window.CuidaFast || {};
   window.CuidaFast.filterCards = filterCards;
   window.CuidaFast.applyAdvancedFilters = applyAdvancedFilters;
   window.CuidaFast.fetchCaregiversFromAPI = fetchCaregiversFromAPI;
+  window.CuidaFast.renderNextPage = renderNextPage;
 
   // Renderizar primeira página (fallback localStorage) e depois sobrescrever com API
   renderNextPage(true);

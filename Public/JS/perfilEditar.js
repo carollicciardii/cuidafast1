@@ -54,17 +54,109 @@ async function loadUserData() {
     }
 
     const birthDateInput = document.getElementById('birthDate');
-    if (birthDateInput && userData.dataNascimento) {
-        // Converter data para formato YYYY-MM-DD
-        const date = new Date(userData.dataNascimento + 'T00:00:00');
-        if (!isNaN(date.getTime())) {
-            birthDateInput.value = date.toISOString().split('T')[0];
+    if (birthDateInput) {
+        // Tentar diferentes formatos de data
+        const dataNasc = userData.data_nascimento || userData.dataNascimento || userData.data_nasc || userData.birthDate;
+        if (dataNasc) {
+            let date;
+            // Se já está no formato YYYY-MM-DD
+            if (typeof dataNasc === 'string' && dataNasc.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                date = new Date(dataNasc + 'T00:00:00');
+            } else {
+                // Tentar parsear como data
+                date = new Date(dataNasc);
+            }
+            if (!isNaN(date.getTime())) {
+                birthDateInput.value = date.toISOString().split('T')[0];
+            }
         }
     }
 
     const cpfInput = document.getElementById('cpf');
-    if (cpfInput && userData.cpf) {
-        cpfInput.value = userData.cpf || '';
+    if (cpfInput) {
+        // Tentar diferentes formatos de CPF
+        const cpf = userData.cpf || userData.cpf_numero || userData.documento;
+        if (cpf) {
+            cpfInput.value = cpf;
+        }
+    }
+
+    // Carregar endereço se houver campos de endereço na página
+    const cepInput = document.getElementById('cep');
+    if (cepInput) {
+        const endereco = userData.endereco;
+        if (endereco) {
+            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
+            if (enderecoObj.cep) cepInput.value = enderecoObj.cep;
+        } else if (userData.cep) {
+            cepInput.value = userData.cep;
+        }
+    }
+
+    const ruaInput = document.getElementById('rua');
+    if (ruaInput) {
+        const endereco = userData.endereco;
+        if (endereco) {
+            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
+            if (enderecoObj.rua) ruaInput.value = enderecoObj.rua;
+        } else if (userData.rua) {
+            ruaInput.value = userData.rua;
+        }
+    }
+
+    const numeroInput = document.getElementById('numero');
+    if (numeroInput) {
+        const endereco = userData.endereco;
+        if (endereco) {
+            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
+            if (enderecoObj.numero) numeroInput.value = enderecoObj.numero;
+        } else if (userData.numero) {
+            numeroInput.value = userData.numero;
+        }
+    }
+
+    const complementoInput = document.getElementById('complemento');
+    if (complementoInput) {
+        const endereco = userData.endereco;
+        if (endereco) {
+            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
+            if (enderecoObj.complemento) complementoInput.value = enderecoObj.complemento;
+        } else if (userData.complemento) {
+            complementoInput.value = userData.complemento;
+        }
+    }
+
+    const bairroInput = document.getElementById('bairro');
+    if (bairroInput) {
+        const endereco = userData.endereco;
+        if (endereco) {
+            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
+            if (enderecoObj.bairro) bairroInput.value = enderecoObj.bairro;
+        } else if (userData.bairro) {
+            bairroInput.value = userData.bairro;
+        }
+    }
+
+    const cidadeInput = document.getElementById('cidade');
+    if (cidadeInput) {
+        const endereco = userData.endereco;
+        if (endereco) {
+            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
+            if (enderecoObj.cidade) cidadeInput.value = enderecoObj.cidade;
+        } else if (userData.cidade) {
+            cidadeInput.value = userData.cidade;
+        }
+    }
+
+    const estadoInput = document.getElementById('estado');
+    if (estadoInput) {
+        const endereco = userData.endereco;
+        if (endereco) {
+            const enderecoObj = typeof endereco === 'string' ? JSON.parse(endereco) : endereco;
+            if (enderecoObj.estado) estadoInput.value = enderecoObj.estado;
+        } else if (userData.estado) {
+            estadoInput.value = userData.estado;
+        }
     }
 
     console.log('[PerfilEditar] Dados carregados');

@@ -139,7 +139,7 @@ async function loadUserNameInHeader() {
     const dropdownAccountType = document.querySelector('.dropdown-user-info p');
     if (dropdownAccountType && user.tipo) {
         if (user.tipo === 'cliente') {
-            dropdownAccountType.textContent = 'Cliente Premium';
+            dropdownAccountType.textContent = 'Cliente';
         } else if (user.tipo === 'cuidador') {
             dropdownAccountType.textContent = 'Cuidador Profissional';
         }
