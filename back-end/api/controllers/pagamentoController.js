@@ -242,7 +242,7 @@ async function criarPagamentoCartao(req, res) {
 }
 
 // Função unificada para criar pagamento (compatível com create.js)
-async function criarPagamentoController(body) {
+async function executarCriacaoPagamento(body) {
   // Cria um objeto req/res mock para usar as funções existentes
   const reqMock = { body };
   let resultado = null;
@@ -283,4 +283,5 @@ export default {
   criarPagamentoCartao
 };
 
-export { criarPagamentoController };
+export { criarPagamentoController as executarCriacaoPagamento };
+

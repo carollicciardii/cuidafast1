@@ -1,3 +1,33 @@
+async function consultarStatusPagamento(mpId) {
+    const response = await fetch(`/api/pagamento/create/pagamento/${mpId}`);
+    const data = await response.json();
+    return data.pagamento;
+}
+async function criarPagamentoPIX(valor, descricao) {
+    const response = await fetch('/api/pagamento/create', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            valor,
+            descricao,
+            metodo: "pix"
+        })
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+        throw new Error(data.error || "Erro ao criar pagamento PIX");
+    }
+
+    return {
+        qr_code: data.pagamento.qr_code,
+        qr_code_base64: data.pagamento.qr_code_base64,
+        mercado_pago_id: data.pagamento.mercado_pago_id,
+        external_reference: data.pagamento.external_reference
+    };
+}
 // public/js/pagamento.js
 document.addEventListener('DOMContentLoaded', () => {
     const containerzin = document.querySelector('.containerzin');
