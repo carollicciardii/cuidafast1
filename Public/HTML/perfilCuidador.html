@@ -163,7 +163,7 @@
             <div class="profile-card">
                 <div class="card-header">
                     <h2>Especialidades</h2>
-                    <a href="PerfilCuidadorEditarEspecialidades.html" class="edit-link">
+                    <a href="PerfilCuidadorEditarInformações.html?tab=especialidades" class="edit-link">
                         <i class="ph ph-pencil-simple"></i> Editar
                     </a>
                 </div>
@@ -175,15 +175,11 @@
                         </div>
                         <div class="info-item">
                             <span class="info-label">Áreas de Atuação</span>
-                            <span class="info-value">Cuidados com Idosos, Cuidados Paliativos, Reabilitação</span>
+                            <span class="info-value" id="areasAtuacaoValue">-</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Experiência</span>
-                            <span class="info-value">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Disponibilidade</span>
-                            <span class="info-value">-</span>
+                            <span class="info-label">Valor por Hora</span>
+                            <span class="info-value" id="valorHoraValue">-</span>
                         </div>
                     </div>
                 </div>
@@ -331,6 +327,30 @@
                 }
                 
                 console.log('[PerfilCuidador] Tipos de serviço:', tiposTexto);
+            }
+
+            // Atualizar áreas de atuação
+            const areasAtuacaoElement = document.getElementById('areasAtuacaoValue');
+            if (areasAtuacaoElement) {
+                if (userData.especialidades) {
+                    const areas = Array.isArray(userData.especialidades)
+                        ? userData.especialidades.join(', ')
+                        : userData.especialidades;
+                    areasAtuacaoElement.textContent = areas || '-';
+                } else {
+                    areasAtuacaoElement.textContent = '-';
+                }
+            }
+
+            // Atualizar valor por hora
+            const valorHoraElement = document.getElementById('valorHoraValue');
+            if (valorHoraElement) {
+                if (userData.valorHora || userData.valor_hora) {
+                    const valor = userData.valorHora || userData.valor_hora;
+                    valorHoraElement.textContent = `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}/h`;
+                } else {
+                    valorHoraElement.textContent = '-';
+                }
             }
             
             console.log('[PerfilCuidador] Cuidador carregado:', userData.nome);

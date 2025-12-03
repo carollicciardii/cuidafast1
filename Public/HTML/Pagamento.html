@@ -197,14 +197,10 @@
           <span style="color: var(--azul-escuro);">Serviço</span>
           <span style="color: var(--azul-escuro); font-weight: 600;">R$95<sup>00</sup></span>
         </div>
-        <div class="summary-item">
-          <span style="color: var(--azul-escuro);">Taxa</span>
-          <span style="color: var(--azul-escuro); font-weight: 600;">R$10<sup>90</sup></span>
-        </div>
         <hr style="border-color: var(--azul-escuro); opacity: 0.3; margin: 1rem 0;">
         <div class="summary-item total">
           <span style="color: var(--azul-escuro); font-weight: 700;">Você pagará</span>
-          <span style="color: var(--azul-escuro); font-weight: 700; font-size: 1.25rem;">R$105<sup>90</sup></span>
+          <span style="color: var(--azul-escuro); font-weight: 700; font-size: 1.25rem;" id="totalPagamento">R$95<sup>00</sup></span>
         </div>
       </div>
     </aside>
@@ -216,8 +212,42 @@
   
   <script src="../JS/auth.js"></script>
   <script>
-      // Carregar endereço do banco ou localStorage
+      // Carregar valor do cuidador e endereço
       document.addEventListener('DOMContentLoaded', async function() {
+          // Carregar valor do cuidador
+          try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cuidadorId = urlParams.get('cuidadorId') || localStorage.getItem('cuidafast_contratacao_cuidadorId');
+            
+            if (cuidadorId) {
+              const response = await fetch(`/api/perfil/cuidadores?action=cuidador&id=${encodeURIComponent(cuidadorId)}`);
+              if (response.ok) {
+                const cuidador = await response.json();
+                const valorHora = cuidador.valor_hora || cuidador.valorHora || 95.00;
+                
+                // Atualizar resumo
+                const servicoSpan = document.querySelector('.summary-item span:last-child');
+                if (servicoSpan) {
+                  servicoSpan.textContent = `R$${valorHora.toFixed(2).replace('.', ',')}`;
+                }
+                const totalSpan = document.getElementById('totalPagamento');
+                if (totalSpan) {
+                  totalSpan.innerHTML = `R$${valorHora.toFixed(2).replace('.', ',')}`;
+                }
+                
+                localStorage.setItem('cuidafast_pagamento_valor', valorHora.toString());
+              }
+            } else {
+              const valorPadrao = 95.00;
+              localStorage.setItem('cuidafast_pagamento_valor', valorPadrao.toString());
+            }
+          } catch (error) {
+            console.error('[Pagamento] Erro ao carregar valor:', error);
+            const valorPadrao = 95.00;
+            localStorage.setItem('cuidafast_pagamento_valor', valorPadrao.toString());
+          }
+          
+          // Carregar endereço do banco ou localStorage
           // Tenta buscar dados atualizados do banco primeiro
           let userData = null;
           if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {

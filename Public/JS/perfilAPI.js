@@ -191,6 +191,48 @@ export function preencherPerfilCuidador(perfil) {
   const bioElement = document.getElementById('caregiverBio');
   if (bioElement) bioElement.textContent = perfil.descricao || 'Informações não disponíveis.';
   
+  // Tipo de Serviço
+  const tipoServicoElement = document.getElementById('caregiverTipoServico');
+  if (tipoServicoElement) {
+    const tipos = perfil.tipos_cuidado;
+    if (tipos) {
+      const tiposArray = Array.isArray(tipos) ? tipos : [tipos];
+      const tiposMap = {
+        'idoso': 'Cuidador de Idosos',
+        'pet': 'Cuidador de Pet',
+        'crianca': 'Cuidador Infantil (Babá)',
+        'infantil': 'Cuidador Infantil (Babá)'
+      };
+      const tiposTexto = tiposArray.map(tipo => tiposMap[tipo] || tipo).join(', ');
+      tipoServicoElement.textContent = tiposTexto || '-';
+    } else {
+      tipoServicoElement.textContent = '-';
+    }
+  }
+  
+  // Áreas de Atuação
+  const areasAtuacaoElement = document.getElementById('caregiverAreasAtuacao');
+  if (areasAtuacaoElement) {
+    if (perfil.especialidades) {
+      const areas = Array.isArray(perfil.especialidades)
+        ? perfil.especialidades.join(', ')
+        : perfil.especialidades;
+      areasAtuacaoElement.textContent = areas || '-';
+    } else {
+      areasAtuacaoElement.textContent = '-';
+    }
+  }
+  
+  // Valor por Hora
+  const valorHoraElement = document.getElementById('caregiverValorHora');
+  if (valorHoraElement) {
+    if (perfil.valor_hora) {
+      valorHoraElement.textContent = `R$ ${parseFloat(perfil.valor_hora).toFixed(2).replace('.', ',')}/h`;
+    } else {
+      valorHoraElement.textContent = '-';
+    }
+  }
+  
   // Email
   const emailElement = document.getElementById('caregiverEmail');
   if (emailElement) emailElement.textContent = perfil.email || 'Não informado';

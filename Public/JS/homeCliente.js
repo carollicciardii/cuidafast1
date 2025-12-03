@@ -68,6 +68,38 @@ function initSidebar() {
 
 // ===== FILTRAGEM DE CARDS VIA HEADER SEARCH =====
 (function(){
+  // Funções auxiliares
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2
+    }).format(value);
+  }
+
+  function renderStars(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    let starsHTML = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+      starsHTML += '<i class="ph-fill ph-star"></i>';
+    }
+    if (hasHalfStar) {
+      starsHTML += '<i class="ph ph-star-half"></i>';
+    }
+    for (let i = Math.ceil(rating); i < 5; i++) {
+      starsHTML += '<i class="ph ph-star"></i>';
+    }
+    return starsHTML;
+  }
+
   function normalize(text){
     return (text||'').toString().toLowerCase().trim();
   }
@@ -215,6 +247,21 @@ function initSidebar() {
     
     return div;
   }
+
+  // Função para abrir perfil público do cuidador
+  function viewCaregiverProfile(caregiver) {
+    // Obter ID do cuidador (pode estar em diferentes campos)
+    const cuidadorId = caregiver.usuario_id || caregiver.id || caregiver.userId;
+    
+    if (!cuidadorId) {
+      console.error('[HomeCliente] ID do cuidador não encontrado:', caregiver);
+      alert('Erro: Não foi possível identificar o cuidador.');
+      return;
+    }
+
+    // Redirecionar para página de perfil público com o ID
+    window.location.href = `perfilCuidadorPublico.html?id=${encodeURIComponent(cuidadorId)}`;
+  }
   
   // Buscar cuidadores reais da API (/api/perfil/cuidadores)
   async function fetchCaregiversFromAPI() {
@@ -292,7 +339,8 @@ function initSidebar() {
       location: c.localidade || c.cidade || c.cep,
       valorHora: c.valor_hora || c.valorHora || c.preco,
       photoURL: c.foto_perfil || c.photoURL || c.foto || null,
-      usuario_id: c.usuario_id || c.id || c.userId
+      usuario_id: c.id || c.usuario_id || c.userId,
+      id: c.id || c.usuario_id || c.userId
     }));
 
     caregiversState.items = mapped;
@@ -467,6 +515,151 @@ function initSidebar() {
   renderNextPage(true);
   fetchCaregiversFromAPI();
 })();
+
+// ===== MODAL DE FILTROS (fora do IIFE para ser acessível) =====
+function initFilterModal() {
+  console.log('Inicializando modal de filtros...');
+  
+  const filterModalEl = document.getElementById('filterModal');
+  const openFilterBtn = document.getElementById('openFilterBtn');
+  const applyFiltersBtn = document.getElementById('applyFilters');
+  const clearFiltersBtn = document.getElementById('clearFilters');
+  const ratingRange = document.getElementById('ratingRange');
+  const ratingValue = document.getElementById('ratingValue');
+  const distanceRange = document.getElementById('distanceRange');
+  const distanceValue = document.getElementById('distanceValue');
+  const minPrice = document.getElementById('minPrice');
+  const maxPrice = document.getElementById('maxPrice');
+  
+  console.log('Elementos encontrados:', {
+    filterModalEl: !!filterModalEl,
+    openFilterBtn: !!openFilterBtn,
+    bootstrap: typeof bootstrap !== 'undefined'
+  });
+  
+  if (!filterModalEl) {
+    console.error('Modal de filtro não encontrado no DOM');
+    return;
+  }
+  
+  if (typeof bootstrap === 'undefined') {
+    console.error('Bootstrap não está carregado');
+    return;
+  }
+  
+  let filterModal;
+  try {
+    filterModal = new bootstrap.Modal(filterModalEl);
+    console.log('Modal Bootstrap criado com sucesso');
+  } catch (error) {
+    console.error('Erro ao inicializar modal Bootstrap:', error);
+    return;
+  }
+  
+  // Abrir modal de filtro
+  if (openFilterBtn) {
+    openFilterBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Clique no botão de filtros detectado');
+      try {
+        filterModal.show();
+        console.log('Modal.show() chamado');
+      } catch (error) {
+        console.error('Erro ao abrir modal:', error);
+      }
+    });
+    console.log('Event listener adicionado ao botão de filtros');
+  } else {
+    console.error('Botão de filtro (#openFilterBtn) não encontrado no DOM');
+  }
+  
+  // Atualizar valor da avaliação quando o range for alterado
+  if (ratingRange && ratingValue) {
+    ratingRange.addEventListener('input', function() {
+      ratingValue.textContent = this.value;
+      updateStars(this.value);
+    });
+  }
+  
+  // Atualizar valor da distância quando o range for alterado
+  if (distanceRange && distanceValue) {
+    distanceRange.addEventListener('input', function() {
+      distanceValue.textContent = this.value;
+    });
+  }
+  
+  // Aplicar filtros
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', function() {
+      // Coletar valores dos filtros
+      const filters = {
+        rating: ratingRange ? parseFloat(ratingRange.value) : 0,
+        distance: distanceRange ? parseInt(distanceRange.value) : 50,
+        minPrice: minPrice ? parseFloat(minPrice.value) : 0,
+        maxPrice: maxPrice ? parseFloat(maxPrice.value) : 999,
+        specialties: []
+      };
+      
+      // Coletar especialidades selecionadas
+      const specialtyCheckboxes = document.querySelectorAll('#filterModal input[type="checkbox"]:checked');
+      specialtyCheckboxes.forEach(cb => {
+        filters.specialties.push(cb.value);
+      });
+      
+      console.log('Filtros aplicados:', filters);
+      
+      // Aplicar filtros aos cuidadores
+      if (window.CuidaFast && typeof window.CuidaFast.applyAdvancedFilters === 'function') {
+        window.CuidaFast.applyAdvancedFilters(filters);
+      }
+      
+      // Fechar o modal
+      filterModal.hide();
+      
+      // Mostrar notificação
+      showNotification('Filtros aplicados com sucesso!');
+    });
+  }
+  
+  // Limpar filtros
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', function() {
+      // Resetar todos os filtros
+      if (ratingRange) ratingRange.value = 4;
+      if (ratingValue) ratingValue.textContent = '4.0';
+      if (distanceRange) distanceRange.value = 15;
+      if (distanceValue) distanceValue.textContent = '15';
+      if (minPrice) minPrice.value = '20';
+      if (maxPrice) maxPrice.value = '80';
+      
+      // Atualizar estrelas
+      updateStars(4);
+      
+      console.log('Filtros limpos');
+    });
+  }
+  
+  // Função para atualizar as estrelas de avaliação
+  function updateStars(rating) {
+    const stars = document.querySelectorAll('#filterModal .stars i');
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    stars.forEach((star, index) => {
+      if (index < fullStars) {
+        star.className = 'ph-fill ph-star';
+      } else if (index === fullStars && hasHalfStar) {
+        star.className = 'ph ph-star-half';
+      } else {
+        star.className = 'ph ph-star';
+      }
+    });
+  }
+  
+  // Inicializar estrelas
+  updateStars(ratingRange ? ratingRange.value : 4);
+}
 
 
 // ===== USER MENU =====
@@ -1105,150 +1298,6 @@ window.CuidaFastClient = {
 
   };
 
-  // Inicialização do modal de filtro
-  function initFilterModal() {
-    console.log('Inicializando modal de filtros...');
-    
-    const filterModalEl = document.getElementById('filterModal');
-    const openFilterBtn = document.getElementById('openFilterBtn');
-    const applyFiltersBtn = document.getElementById('applyFilters');
-    const clearFiltersBtn = document.getElementById('clearFilters');
-    const ratingRange = document.getElementById('ratingRange');
-    const ratingValue = document.getElementById('ratingValue');
-    const distanceRange = document.getElementById('distanceRange');
-    const distanceValue = document.getElementById('distanceValue');
-    const minPrice = document.getElementById('minPrice');
-    const maxPrice = document.getElementById('maxPrice');
-    
-    console.log('Elementos encontrados:', {
-      filterModalEl: !!filterModalEl,
-      openFilterBtn: !!openFilterBtn,
-      bootstrap: typeof bootstrap !== 'undefined'
-    });
-    
-    if (!filterModalEl) {
-      console.error('Modal de filtro não encontrado no DOM');
-      return;
-    }
-    
-    if (typeof bootstrap === 'undefined') {
-      console.error('Bootstrap não está carregado');
-      return;
-    }
-    
-    let filterModal;
-    try {
-      filterModal = new bootstrap.Modal(filterModalEl);
-      console.log('Modal Bootstrap criado com sucesso');
-    } catch (error) {
-      console.error('Erro ao inicializar modal Bootstrap:', error);
-      return;
-    }
-    
-    // Abrir modal de filtro
-    if (openFilterBtn) {
-      openFilterBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Clique no botão de filtros detectado');
-        try {
-          filterModal.show();
-          console.log('Modal.show() chamado');
-        } catch (error) {
-          console.error('Erro ao abrir modal:', error);
-        }
-      });
-      console.log('Event listener adicionado ao botão de filtros');
-    } else {
-      console.error('Botão de filtro (#openFilterBtn) não encontrado no DOM');
-    }
-    
-    // Atualizar valor da avaliação quando o range for alterado
-    if (ratingRange && ratingValue) {
-      ratingRange.addEventListener('input', function() {
-        ratingValue.textContent = this.value;
-        updateStars(this.value);
-      });
-    }
-    
-    // Atualizar valor da distância quando o range for alterado
-    if (distanceRange && distanceValue) {
-      distanceRange.addEventListener('input', function() {
-        distanceValue.textContent = this.value;
-      });
-    }
-    
-    // Aplicar filtros
-    if (applyFiltersBtn) {
-      applyFiltersBtn.addEventListener('click', function() {
-        // Coletar valores dos filtros
-        const filters = {
-          rating: ratingRange ? parseFloat(ratingRange.value) : 0,
-          distance: distanceRange ? parseInt(distanceRange.value) : 50,
-          minPrice: minPrice ? parseFloat(minPrice.value) : 0,
-          maxPrice: maxPrice ? parseFloat(maxPrice.value) : 999,
-          specialties: []
-        };
-        
-        // Coletar especialidades selecionadas
-        const specialtyCheckboxes = document.querySelectorAll('#filterModal input[type="checkbox"]:checked');
-        specialtyCheckboxes.forEach(cb => {
-          filters.specialties.push(cb.value);
-        });
-        
-        console.log('Filtros aplicados:', filters);
-        
-        // Aplicar filtros aos cuidadores
-        if (window.CuidaFast && typeof window.CuidaFast.applyAdvancedFilters === 'function') {
-          window.CuidaFast.applyAdvancedFilters(filters);
-        }
-        
-        // Fechar o modal
-        filterModal.hide();
-        
-        // Mostrar notificação
-        showNotification('Filtros aplicados com sucesso!');
-      });
-    }
-    
-    // Limpar filtros
-    if (clearFiltersBtn) {
-      clearFiltersBtn.addEventListener('click', function() {
-        // Resetar todos os filtros
-        if (ratingRange) ratingRange.value = 4;
-        if (ratingValue) ratingValue.textContent = '4.0';
-        if (distanceRange) distanceRange.value = 15;
-        if (distanceValue) distanceValue.textContent = '15';
-        if (minPrice) minPrice.value = '20';
-        if (maxPrice) maxPrice.value = '80';
-        
-        // Atualizar estrelas
-        updateStars(4);
-        
-        console.log('Filtros limpos');
-      });
-    }
-    
-    // Função para atualizar as estrelas de avaliação
-    function updateStars(rating) {
-      const stars = document.querySelectorAll('.stars i');
-      const fullStars = Math.floor(rating);
-      const hasHalfStar = rating % 1 >= 0.5;
-      
-      stars.forEach((star, index) => {
-        if (index < fullStars) {
-          star.className = 'ph-fill ph-star';
-        } else if (index === fullStars && hasHalfStar) {
-          star.className = 'ph ph-star-half';
-        } else {
-          star.className = 'ph ph-star';
-        }
-      });
-    }
-    
-    // Inicializar estrelas
-    updateStars(ratingRange ? ratingRange.value : 4);
-  }
 
   // Expor no escopo global para o onclick do botão
   window.HomeCliente = HomeCliente;
