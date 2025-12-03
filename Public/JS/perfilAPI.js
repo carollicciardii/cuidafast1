@@ -18,21 +18,40 @@ const API_BASE_URL = '/api/perfil/cuidadores';
  */
 export async function buscarPerfilCuidador(cuidadorId) {
   try {
-    const response = await fetch(`${API_BASE_URL}?action=cuidador&id=${encodeURIComponent(cuidadorId)}`);
+    console.log('[PerfilAPI] Buscando cuidador com ID:', cuidadorId);
+    const url = `${API_BASE_URL}?action=cuidador&id=${encodeURIComponent(cuidadorId)}`;
+    console.log('[PerfilAPI] URL da requisição:', url);
+    
+    const response = await fetch(url);
+    
+    console.log('[PerfilAPI] Status da resposta:', response.status, response.statusText);
     
     if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('Cuidador não encontrado');
+      let errorText = '';
+      try {
+        errorText = await response.text();
+        console.error('[PerfilAPI] Resposta de erro:', errorText);
+      } catch (e) {
+        console.error('[PerfilAPI] Não foi possível ler resposta de erro');
       }
-      throw new Error('Erro ao buscar perfil do cuidador');
+      
+      if (response.status === 404) {
+        throw new Error(`Cuidador não encontrado (ID: ${cuidadorId})`);
+      }
+      throw new Error(`Erro ao buscar perfil do cuidador: ${response.status} ${response.statusText}. ${errorText}`);
     }
     
     const perfil = await response.json();
-    console.log('[PerfilAPI] Perfil do cuidador carregado:', perfil.nome);
+    console.log('[PerfilAPI] Perfil do cuidador carregado:', perfil);
+    
+    if (!perfil || !perfil.nome) {
+      throw new Error('Dados do perfil inválidos ou incompletos');
+    }
     
     return perfil;
   } catch (error) {
     console.error('[PerfilAPI] Erro ao buscar perfil do cuidador:', error);
+    console.error('[PerfilAPI] Stack trace:', error.stack);
     throw error;
   }
 }
@@ -172,19 +191,35 @@ export function preencherPerfilCuidador(perfil) {
     avatarElement.alt = perfil.nome;
   }
   
-  // Especialidade
+  // Especialidade/Tipo de Serviço
   const specialtyElement = document.getElementById('caregiverSpecialty');
   if (specialtyElement) {
-    const tipos = perfil.tipos_cuidado ? perfil.tipos_cuidado.split(',') : [];
-    const tiposTexto = tipos.map(tipo => {
-      const map = {
+    let tiposTexto = 'Cuidador Geral';
+    if (perfil.tipos_cuidado) {
+      const tipos = Array.isArray(perfil.tipos_cuidado) 
+        ? perfil.tipos_cuidado 
+        : (typeof perfil.tipos_cuidado === 'string' ? perfil.tipos_cuidado.split(',') : [perfil.tipos_cuidado]);
+      const tiposMap = {
         'idoso': 'Cuidador de Idosos',
         'crianca': 'Cuidador Infantil',
-        'pet': 'Cuidador de Pets'
+        'pet': 'Cuidador de Pet',
+        'infantil': 'Cuidador Infantil'
       };
-      return map[tipo.trim()] || tipo;
-    }).join(', ');
-    specialtyElement.textContent = tiposTexto || 'Cuidador Geral';
+      tiposTexto = tipos.map(tipo => tiposMap[tipo?.trim()] || tipo).join(', ') || 'Cuidador Geral';
+    }
+    specialtyElement.textContent = tiposTexto;
+  }
+  
+  // Email
+  const emailElement = document.getElementById('caregiverEmail');
+  if (emailElement) {
+    emailElement.textContent = perfil.email || '-';
+  }
+  
+  // Telefone
+  const phoneElement = document.getElementById('caregiverPhone');
+  if (phoneElement) {
+    phoneElement.textContent = perfil.telefone || '-';
   }
   
   // Descrição/Bio

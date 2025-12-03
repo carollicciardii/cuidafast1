@@ -17,8 +17,9 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- CSS -->
-    <link rel="stylesheet" href="../CSS/main.css">
+    <link rel="stylesheet" href="../CSS/styles.css">
     <link rel="stylesheet" href="../CSS/header.css">
+    <link rel="stylesheet" href="../CSS/pages/homeCliente.css">
     <style>
         .caregiver-profile-page {
             padding-top: 100px;
@@ -120,24 +121,32 @@
             cursor: pointer;
         }
 
-        .btn-primary {
-            background: #1B475D;
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .profile-actions .btn.primary {
+            background: var(--azul-escuro);
             color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 150px;
+            justify-content: center;
         }
 
-        .btn-primary:hover {
-            background: #163947;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(27, 71, 93, 0.3);
-        }
-
-        .btn-secondary {
-            background: #1B475D;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #163947;
+        .profile-actions .btn.primary:hover {
+            background: var(--azul-escuro-hover);
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(27, 71, 93, 0.3);
         }
@@ -216,21 +225,22 @@
     </style>
 </head>
 <body class="caregiver-profile-page">
-    <!-- Header -->
+    <!-- Header (igual ao homeCliente) -->
     <header class="modern-header">
         <div class="header-container">
             <!-- Logo Section -->
             <div class="header-left">
                 <a href="homeCliente.html" class="logo-link">
-                    <img src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+                    <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+                    <span class="logo-text"></span>
                 </a>
             </div>
             
-            <!-- Barra de Pesquisa -->
+            <!-- Search Bar (Desktop) -->
             <div class="header-center">
                 <div class="search-container">
                     <i class="ph ph-magnifying-glass search-icon"></i>
-                    <input type="text" class="search-input" placeholder="Buscar cuidadores...">
+                    <input type="text" placeholder="Buscar cuidadores..." class="search-input" id="headerSearch">
                     <button class="search-btn" type="button">
                         <i class="ph ph-arrow-right"></i>
                     </button>
@@ -240,22 +250,22 @@
             <!-- User Actions -->
             <div class="header-right">
                 <!-- Notifications -->
-                <a href="notificacoes.html" class="header-action-btn notification-btn">
+                <button class="header-action-btn notification-btn active" id="notificationBtn">
                     <i class="ph ph-bell"></i>
                     <span class="notification-badge" style="display: none;">0</span>
-                </a>
+                </button>
                 
                 <!-- Messages -->
-                <a href="mensagens.html" class="header-action-btn message-btn">
+                <button class="header-action-btn message-btn" id="messageBtn">
                     <i class="ph ph-chat-circle"></i>
                     <span class="message-badge" style="display: none;">0</span>
-                </a>
+                </button>
                 
                 <!-- User Profile -->
                 <div class="user-profile-dropdown" id="userProfileDropdown">
                     <button class="user-profile-btn" id="userProfileBtn">
                         <img src="../assets/images.webp" alt="Avatar do usuário" class="user-avatar-img">
-                        <span class="user-name" id="headerUserName">Cliente</span>
+                        <span class="user-name" id="headerUserName">Usuário</span>
                         <i class="ph ph-caret-down dropdown-arrow"></i>
                     </button>
                     
@@ -265,7 +275,7 @@
                             <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
                             <div class="dropdown-user-info">
                                 <h4 id="dropdownUserName">Cliente</h4>
-                                <p>Conta Pessoal</p>
+                                <p>Conta Cliente</p>
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
@@ -273,13 +283,13 @@
                             <i class="ph ph-user"></i>
                             <span>Meu Perfil</span>
                         </a>
-                        <a href="configuracoes.html" class="dropdown-item">
+                        <a href="../HTML/configuracoes.html" class="dropdown-item">
                             <i class="ph ph-gear"></i>
                             <span>Configurações</span>
                         </a>
                         <a href="homeCliente.html" class="dropdown-item">
-                            <i class="ph ph-house"></i>
-                            <span>Início</span>
+                            <i class="ph ph-clock"></i>
+                            <span>In-time</span>
                         </a>
                         <a href="#" class="dropdown-item">
                             <i class="ph ph-question"></i>
@@ -292,6 +302,22 @@
                         </a>
                     </div>
                 </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Search Bar -->
+        <div class="mobile-search-container" id="mobileSearchContainer">
+            <div class="mobile-search-wrapper">
+                <i class="ph ph-magnifying-glass search-icon"></i>
+                <input type="text" placeholder="Buscar cuidadores..." class="mobile-search-input">
+                <button class="mobile-search-btn" type="button">
+                    <i class="ph ph-arrow-right"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -322,11 +348,11 @@
                 </div>
 
                 <div class="profile-actions">
-                    <button class="btn btn-primary" id="btnContratar">
+                    <button class="btn primary" id="btnContratar" style="background: var(--azul-escuro); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease;">
                         <i class="ph ph-check-circle"></i>
                         Contratar Cuidador
                     </button>
-                    <button class="btn btn-secondary" id="btnMensagem">
+                    <button class="btn primary" id="btnMensagem">
                         <i class="ph ph-chat-circle"></i>
                         Enviar Mensagem
                     </button>
@@ -399,63 +425,6 @@
         </div>
     </main>
 
-    <!-- Modal de Contratação -->
-    <div class="modal fade" id="modalContratar" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; border: none;">
-                <div class="modal-header" style="background: var(--azul-escuro); color: white; border-radius: 16px 16px 0 0;">
-                    <h5 class="modal-title">
-                        <i class="ph ph-check-circle"></i>
-                        Contratar Cuidador
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" style="padding: 2rem;">
-                    <p style="margin-bottom: 1.5rem; color: #666;">
-                        Você está prestes a contratar <strong id="modalCaregiverName"></strong> para prestar serviços de cuidado.
-                    </p>
-                    
-                    <form id="formContratar">
-                        <div class="mb-3">
-                            <label class="form-label" style="font-weight: 600; color: var(--azul-escuro);">
-                                <i class="ph ph-list"></i>
-                                Tipo de Serviço
-                            </label>
-                            <select class="form-select" id="tipoServico" required style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 0.75rem;">
-                                <option value="">Selecione o tipo de serviço</option>
-                                <option value="idoso">Cuidado de Idosos</option>
-                                <option value="crianca">Cuidado Infantil</option>
-                                <option value="pet">Cuidado de Pets</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="font-weight: 600; color: var(--azul-escuro);">
-                                <i class="ph ph-note"></i>
-                                Observações (opcional)
-                            </label>
-                            <textarea class="form-control" id="observacoes" rows="3" placeholder="Descreva suas necessidades específicas..." style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 0.75rem;"></textarea>
-                        </div>
-                        
-                        <div class="alert alert-info" style="background: rgba(27, 71, 93, 0.1); border: 1px solid var(--azul-escuro); border-radius: 10px;">
-                            <i class="ph ph-info"></i>
-                            <small>O cuidador receberá sua solicitação e poderá aceitá-la. Você será notificado quando houver uma resposta.</small>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="flex: 1;">
-                                Cancelar
-                            </button>
-                            <button type="submit" class="btn btn-primary" style="flex: 1;">
-                                <i class="ph ph-check"></i>
-                                Confirmar Contratação
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Bootstrap JS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -515,43 +484,103 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const cuidadorId = urlParams.get('id');
                 
+                console.log('[PerfilCuidador] URL params:', window.location.search);
+                console.log('[PerfilCuidador] ID extraído:', cuidadorId);
+                
                 if (!cuidadorId) {
                     alert('Cuidador não especificado.');
                     window.location.href = 'homeCliente.html';
                     return;
                 }
 
+                // Verificar se PerfilAPI está disponível
+                console.log('[PerfilCuidador] Verificando PerfilAPI:', typeof PerfilAPI, typeof window.PerfilAPI);
+                
+                const PerfilAPIModule = window.PerfilAPI || PerfilAPI;
+                
+                if (!PerfilAPIModule || !PerfilAPIModule.buscarPerfilCuidador) {
+                    console.error('[PerfilCuidador] PerfilAPI não está disponível');
+                    console.error('[PerfilCuidador] window.PerfilAPI:', window.PerfilAPI);
+                    console.error('[PerfilCuidador] PerfilAPI (global):', typeof PerfilAPI !== 'undefined' ? PerfilAPI : 'undefined');
+                    alert('Erro: Sistema de perfis não carregado. Recarregue a página.');
+                    return;
+                }
+
                 // ✅ NOVO: Buscar dados do cuidador via API do backend (SEGURO)
                 console.log('[PerfilCuidador] Buscando perfil do cuidador ID:', cuidadorId);
-                const caregiver = await PerfilAPI.buscarPerfilCuidador(cuidadorId);
-                console.log('[PerfilCuidador] Perfil carregado:', caregiver.nome);
+                let caregiver;
+                try {
+                    caregiver = await PerfilAPIModule.buscarPerfilCuidador(cuidadorId);
+                    console.log('[PerfilCuidador] Perfil carregado:', caregiver);
+                } catch (apiError) {
+                    console.error('[PerfilCuidador] Erro na API:', apiError);
+                    // Se falhar com ID, tentar com email
+                    if (cuidadorId.includes('@')) {
+                        console.log('[PerfilCuidador] Tentando buscar por email:', cuidadorId);
+                        caregiver = await PerfilAPIModule.buscarPerfilPorEmail(cuidadorId, 'cuidador');
+                        console.log('[PerfilCuidador] Perfil encontrado por email:', caregiver);
+                    } else {
+                        throw apiError;
+                    }
+                }
+                
+                if (!caregiver || !caregiver.nome) {
+                    throw new Error('Dados do cuidador inválidos');
+                }
+                
+                console.log('[PerfilCuidador] Perfil carregado com sucesso:', caregiver.nome);
+                console.log('[PerfilCuidador] Dados completos do cuidador:', caregiver);
 
                 // ✅ NOVO: Preencher página automaticamente com função auxiliar
-                PerfilAPI.preencherPerfilCuidador(caregiver);
+                if (PerfilAPIModule.preencherPerfilCuidador) {
+                    PerfilAPIModule.preencherPerfilCuidador(caregiver);
+                } else {
+                    console.warn('[PerfilCuidador] Função preencherPerfilCuidador não encontrada');
+                    // Preencher manualmente se a função não estiver disponível
+                    const nameEl = document.getElementById('caregiverName');
+                    if (nameEl) nameEl.textContent = caregiver.nome || 'Cuidador';
+                    
+                    const avatarEl = document.getElementById('caregiverAvatar');
+                    if (avatarEl && caregiver.foto_perfil) {
+                        avatarEl.src = caregiver.foto_perfil;
+                    }
+                    
+                    const bioEl = document.getElementById('caregiverBio');
+                    if (bioEl) bioEl.textContent = caregiver.descricao || 'Informações não disponíveis.';
+                }
                 
                 // Dados adicionais que não estão na função auxiliar
                 const rating = caregiver.avaliacao || 0;
-                const reviews = 0; // TODO: buscar do backend
+                const reviews = caregiver.num_avaliacoes || caregiver.numAvaliacoes || caregiver.totalAvaliacoes || 0;
                 
-                if (rating > 0) {
-                    document.getElementById('caregiverRating').textContent = `${rating.toFixed(1)} (${reviews} avaliações)`;
-                    
-                    // Renderizar estrelas
-                    const starsContainer = document.getElementById('caregiverStars');
-                    const fullStars = Math.floor(rating);
-                    const hasHalfStar = rating % 1 >= 0.5;
-                    let starsHTML = '';
-                    
-                    for (let i = 0; i < fullStars; i++) {
-                        starsHTML += '<i class="ph-fill ph-star"></i>';
+                // Atualizar avaliações (sem randomização)
+                const ratingElement = document.getElementById('caregiverRating');
+                const starsContainer = document.getElementById('caregiverStars');
+                
+                if (ratingElement && starsContainer) {
+                    if (rating > 0 && reviews > 0) {
+                        ratingElement.textContent = `${rating.toFixed(1)} (${reviews} avaliação${reviews !== 1 ? 'ões' : ''})`;
+                        
+                        // Renderizar estrelas
+                        const fullStars = Math.floor(rating);
+                        const hasHalfStar = rating % 1 >= 0.5;
+                        let starsHTML = '';
+                        
+                        for (let i = 0; i < fullStars; i++) {
+                            starsHTML += '<i class="ph-fill ph-star"></i>';
+                        }
+                        if (hasHalfStar) {
+                            starsHTML += '<i class="ph ph-star-half"></i>';
+                        }
+                        for (let i = Math.ceil(rating); i < 5; i++) {
+                            starsHTML += '<i class="ph ph-star"></i>';
+                        }
+                        starsContainer.innerHTML = starsHTML;
+                    } else {
+                        // Sem avaliações
+                        ratingElement.textContent = 'Sem avaliações';
+                        starsContainer.innerHTML = '<i class="ph ph-star"></i><i class="ph ph-star"></i><i class="ph ph-star"></i><i class="ph ph-star"></i><i class="ph ph-star"></i>';
                     }
-                    if (hasHalfStar) {
-                        starsHTML += '<i class="ph ph-star-half"></i>';
-                    }
-                    for (let i = Math.ceil(rating); i < 5; i++) {
-                        starsHTML += '<i class="ph ph-star"></i>';
-                    }
-                    starsContainer.innerHTML = starsHTML;
                 }
 
                 // Localização
@@ -591,7 +620,7 @@
                     }
                 }
 
-                // Botão Contratar - Abrir modal
+                // Botão Contratar - Redirecionar para contratarInTime
                 document.getElementById('btnContratar').addEventListener('click', function() {
                     // Verificar se cliente está logado
                     const clienteData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
@@ -602,71 +631,13 @@
                         return;
                     }
                     
-                    // Preencher nome do cuidador no modal
-                    document.getElementById('modalCaregiverName').textContent = caregiver.nome || 'este cuidador';
+                    // Salvar ID do cuidador para usar na página de contratação
+                    localStorage.setItem('cuidafast_contratacao_cuidadorId', caregiver.id || caregiver.usuario_id || cuidadorId);
                     
-                    // Abrir modal
-                    const modal = new bootstrap.Modal(document.getElementById('modalContratar'));
-                    modal.show();
+                    // Redirecionar para página de contratação
+                    window.location.href = 'contratarInTime.html';
                 });
                 
-                // Formulário de contratação
-                document.getElementById('formContratar').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const clienteData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
-                    const tipoServico = document.getElementById('tipoServico').value;
-                    const observacoes = document.getElementById('observacoes').value;
-                    
-                    if (!tipoServico) {
-                        alert('Por favor, selecione o tipo de serviço.');
-                        return;
-                    }
-                    
-                    // Verificar se ServicosManager está disponível
-                    if (typeof ServicosManager === 'undefined') {
-                        console.error('[Contratação] ServicosManager não carregado');
-                        alert('❌ Erro ao processar contratação. Tente novamente.');
-                        return;
-                    }
-                    
-                    try {
-                        // Criar serviço
-                        const servico = ServicosManager.criarServico(
-                            caregiver.email,
-                            clienteData.email,
-                            clienteData.nome,
-                            tipoServico
-                        );
-                        
-                        // Adicionar observações ao serviço
-                        if (observacoes) {
-                            let servicos = ServicosManager.getServicos();
-                            const index = servicos.findIndex(s => s.id === servico.id);
-                            if (index !== -1) {
-                                servicos[index].observacoes = observacoes;
-                                localStorage.setItem('cuidafast_servicos', JSON.stringify(servicos));
-                            }
-                        }
-                        
-                        console.log('[Contratação] Serviço criado:', servico);
-                        
-                        // Fechar modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalContratar'));
-                        modal.hide();
-                        
-                        // Mostrar mensagem de sucesso
-                        alert(`✅ Solicitação enviada com sucesso!\n\nO cuidador ${caregiver.name} receberá sua solicitação e você será notificado quando houver uma resposta.\n\nID do Serviço: ${servico.id}`);
-                        
-                        // Redirecionar para página inicial do cliente
-                        window.location.href = 'homeCliente.html';
-                        
-                    } catch (error) {
-                        console.error('[Contratação] Erro ao criar serviço:', error);
-                        alert('❌ Erro ao processar contratação. Tente novamente.');
-                    }
-                });
-
                 // Botão Mensagem - Abrir chat com o cuidador
                 document.getElementById('btnMensagem').addEventListener('click', function() {
                     // Verificar se cliente está logado
@@ -678,14 +649,30 @@
                         return;
                     }
                     
+                    // Usar ID do cuidador (pode ser número ou email)
+                    const destinatarioId = caregiver.id || caregiver.usuario_id || cuidadorId;
+                    
                     // Redirecionar para mensagens com o ID do cuidador
-                    window.location.href = `mensagens.html?destinatario=${cuidadorId}`;
+                    window.location.href = `mensagens.html?destinatario=${encodeURIComponent(destinatarioId)}`;
                 });
 
             } catch (error) {
                 console.error('[PerfilCuidador] Erro ao carregar dados:', error);
-                alert('Erro ao carregar perfil do cuidador.');
-                window.location.href = 'homeCliente.html';
+                console.error('[PerfilCuidador] Stack trace:', error.stack);
+                console.error('[PerfilCuidador] Detalhes do erro:', {
+                    message: error.message,
+                    name: error.name,
+                    cuidadorId: urlParams.get('id')
+                });
+                
+                let errorMessage = 'Erro ao carregar perfil do cuidador.';
+                if (error.message) {
+                    errorMessage += `\n\nDetalhes: ${error.message}`;
+                }
+                alert(errorMessage);
+                
+                // Não redirecionar imediatamente, deixar o usuário ver o erro
+                // window.location.href = 'homeCliente.html';
             }
         });
     </script>
