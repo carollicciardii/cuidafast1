@@ -268,14 +268,6 @@ export function preencherPerfilCuidador(perfil) {
     }
   }
   
-  // Email
-  const emailElement = document.getElementById('caregiverEmail');
-  if (emailElement) emailElement.textContent = perfil.email || 'Não informado';
-  
-  // Telefone
-  const phoneElement = document.getElementById('caregiverPhone');
-  if (phoneElement) phoneElement.textContent = perfil.telefone || 'Não informado';
-  
   // Avaliação
   const ratingElement = document.getElementById('caregiverRating');
   if (ratingElement) {

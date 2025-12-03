@@ -439,11 +439,33 @@
         import * as PerfilAPIModule from '../JS/perfilAPI.js';
         // Tornar disponível globalmente para compatibilidade
         window.PerfilAPIModule = PerfilAPIModule;
+        console.log('[PerfilCuidador] Módulo PerfilAPI carregado:', typeof PerfilAPIModule);
+        
+        // Disparar evento quando o módulo estiver carregado
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                window.dispatchEvent(new CustomEvent('perfilAPIModuleLoaded'));
+            });
+        } else {
+            window.dispatchEvent(new CustomEvent('perfilAPIModuleLoaded'));
+        }
     </script>
 
     <script>
-        // Carregar dados do cuidador via API do backend
-        document.addEventListener('DOMContentLoaded', async function() {
+        // Função principal para carregar o perfil do cuidador
+        async function loadCaregiverProfile() {
+            // Aguardar um pouco para garantir que o módulo esteja disponível
+            let attempts = 0;
+            while (!window.PerfilAPIModule && attempts < 10) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            if (!window.PerfilAPIModule) {
+                console.error('[PerfilCuidador] Módulo não carregado após espera');
+                alert('Erro: Sistema de perfis não carregado. Recarregue a página.');
+                return;
+            }
             // Carregar dados do cliente no header
             const clienteData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
             
@@ -625,41 +647,68 @@
                     }
                 }
 
-                // Botão Contratar - Redirecionar para contratarInTime
-                document.getElementById('btnContratar').addEventListener('click', function() {
-                    // Verificar se cliente está logado
-                    const clienteData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
-                    
-                    if (!clienteData.email || clienteData.tipo !== 'cliente') {
-                        alert('⚠️ Você precisa estar logado como cliente para contratar um cuidador.');
-                        window.location.href = '../../index.html';
-                        return;
-                    }
-                    
-                    // Salvar ID do cuidador para usar na página de contratação
-                    localStorage.setItem('cuidafast_contratacao_cuidadorId', caregiver.id || caregiver.usuario_id || cuidadorId);
-                    
-                    // Redirecionar para página de contratação
-                    window.location.href = 'contratarInTime.html';
-                });
+                // Configurar botões após carregar dados
+                const btnContratar = document.getElementById('btnContratar');
+                const btnMensagem = document.getElementById('btnMensagem');
                 
-                // Botão Mensagem - Abrir chat com o cuidador
-                document.getElementById('btnMensagem').addEventListener('click', function() {
-                    // Verificar se cliente está logado
-                    const clienteData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+                if (btnContratar) {
+                    // Remover listeners anteriores se houver
+                    btnContratar.replaceWith(btnContratar.cloneNode(true));
+                    const newBtnContratar = document.getElementById('btnContratar');
                     
-                    if (!clienteData.email || clienteData.tipo !== 'cliente') {
-                        alert('⚠️ Você precisa estar logado como cliente para enviar mensagens.');
-                        window.location.href = '../../index.html';
-                        return;
-                    }
+                    newBtnContratar.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('[PerfilCuidador] Botão Contratar clicado');
+                        
+                        // Verificar se cliente está logado
+                        const clienteData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+                        
+                        if (!clienteData.email || clienteData.tipo !== 'cliente') {
+                            alert('⚠️ Você precisa estar logado como cliente para contratar um cuidador.');
+                            window.location.href = '../../index.html';
+                            return;
+                        }
+                        
+                        // Salvar ID do cuidador para usar na página de contratação
+                        const cuidadorIdToSave = caregiver.id || caregiver.usuario_id || cuidadorId;
+                        localStorage.setItem('cuidafast_contratacao_cuidadorId', cuidadorIdToSave);
+                        console.log('[PerfilCuidador] ID do cuidador salvo:', cuidadorIdToSave);
+                        
+                        // Redirecionar para página de contratação
+                        window.location.href = 'contratarInTime.html';
+                    });
+                } else {
+                    console.error('[PerfilCuidador] Botão btnContratar não encontrado');
+                }
+                
+                if (btnMensagem) {
+                    // Remover listeners anteriores se houver
+                    btnMensagem.replaceWith(btnMensagem.cloneNode(true));
+                    const newBtnMensagem = document.getElementById('btnMensagem');
                     
-                    // Usar ID do cuidador (pode ser número ou email)
-                    const destinatarioId = caregiver.id || caregiver.usuario_id || cuidadorId;
-                    
-                    // Redirecionar para mensagens com o ID do cuidador
-                    window.location.href = `mensagens.html?destinatario=${encodeURIComponent(destinatarioId)}`;
-                });
+                    newBtnMensagem.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('[PerfilCuidador] Botão Mensagem clicado');
+                        
+                        // Verificar se cliente está logado
+                        const clienteData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+                        
+                        if (!clienteData.email || clienteData.tipo !== 'cliente') {
+                            alert('⚠️ Você precisa estar logado como cliente para enviar mensagens.');
+                            window.location.href = '../../index.html';
+                            return;
+                        }
+                        
+                        // Usar ID do cuidador (pode ser número ou email)
+                        const destinatarioId = caregiver.id || caregiver.usuario_id || cuidadorId;
+                        console.log('[PerfilCuidador] Redirecionando para mensagens com ID:', destinatarioId);
+                        
+                        // Redirecionar para mensagens com o ID do cuidador
+                        window.location.href = `mensagens.html?destinatario=${encodeURIComponent(destinatarioId)}`;
+                    });
+                } else {
+                    console.error('[PerfilCuidador] Botão btnMensagem não encontrado');
+                }
 
             } catch (error) {
                 console.error('[PerfilCuidador] Erro ao carregar dados:', error);
@@ -667,7 +716,7 @@
                 console.error('[PerfilCuidador] Detalhes do erro:', {
                     message: error.message,
                     name: error.name,
-                    cuidadorId: urlParams.get('id')
+                    cuidadorId: urlParams ? urlParams.get('id') : 'N/A'
                 });
                 
                 let errorMessage = 'Erro ao carregar perfil do cuidador.';
@@ -679,7 +728,35 @@
                 // Não redirecionar imediatamente, deixar o usuário ver o erro
                 // window.location.href = 'homeCliente.html';
             }
+        }
+        
+        // Aguardar o módulo estar carregado antes de executar
+        window.addEventListener('perfilAPIModuleLoaded', function() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadCaregiverProfile);
+            } else {
+                loadCaregiverProfile();
+            }
         });
+        
+        // Fallback: se o módulo já estiver carregado quando o script executar
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Aguardar um pouco mais para garantir que o módulo esteja disponível
+                setTimeout(function() {
+                    if (window.PerfilAPIModule) {
+                        loadCaregiverProfile();
+                    }
+                }, 100);
+            });
+        } else {
+            // Aguardar um pouco mais para garantir que o módulo esteja disponível
+            setTimeout(function() {
+                if (window.PerfilAPIModule) {
+                    loadCaregiverProfile();
+                }
+            }, 100);
+        }
     </script>
     <script src="../JS/header.js"></script>
 </body>
