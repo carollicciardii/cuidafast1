@@ -48,7 +48,7 @@
 
 /* Form Container */
 .form-container {
-  background: #fff;
+  background: #FFFBEC;
   padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -179,7 +179,7 @@ form .linha {
 }
 
 .opcao {
-  background: #fff;
+  background: #FFFBEC;
   padding: 1.5rem;
   border-radius: 12px;
   border: 3px solid rgba(27, 71, 93, 0.1);
