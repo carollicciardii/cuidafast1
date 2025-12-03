@@ -514,19 +514,23 @@
         dataEnvio: new Date().toISOString()
       };
       userData.cadastroCompleto = true;
+      // Opcional: marcar que está em análise para uso futuro
+      userData.cadastroEmAnalise = true;
       localStorage.setItem('cuidafast_user', JSON.stringify(userData));
 
-      console.log('[EnviarDocumentos] Documentos enviados com sucesso');
+      // IMPORTANTE: "desloga" o usuário para não cair no auto-login da index
+      localStorage.setItem('cuidafast_isLoggedIn', 'false');
+      localStorage.removeItem('cuidafast_token');
 
-// Mostra popup
-document.getElementById('popup-confirmacao').style.display = 'flex';
+      console.log('[EnviarDocumentos] Documentos enviados com sucesso (aguardando análise)', userData);
 
-// Aguarda 3 segundos e redireciona
-setTimeout(() => {
-  window.location.href = '../Public/index.html';
-}, 3000);
+      // Mostra popup de confirmação
+      document.getElementById('popup-confirmacao').style.display = 'flex';
 
-
+      // Aguarda 3 segundos e redireciona para a index SEM sessão ativa
+      setTimeout(() => {
+        window.location.href = '../index.html';
+      }, 3000);
     });
   </script>
 </body>
