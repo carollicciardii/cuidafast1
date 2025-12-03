@@ -122,6 +122,61 @@ function initSidebar() {
 
   window.allCaregivers = caregiversState.items.slice();
 
+  /**
+   * Renderiza o próximo "lote" de cuidadores no container principal.
+   * Se reset === true, começa da página 0 e limpa o container.
+   */
+  function renderNextPage(reset = false) {
+    const containerEl = document.getElementById('caregiversContainer');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const caregiversHeader = document.getElementById('caregiversHeader');
+
+    if (!containerEl) {
+      console.warn('[HomeCliente] Container de cuidadores (#caregiversContainer) não encontrado');
+      return;
+    }
+
+    const list = caregiversState.filtered || caregiversState.items || [];
+
+    if (reset) {
+      caregiversState.page = 0;
+      containerEl.innerHTML = '';
+    }
+
+    const start = caregiversState.page * caregiversState.perPage;
+    const end = start + caregiversState.perPage;
+    const slice = list.slice(start, end);
+
+    // Nada para renderizar
+    if (slice.length === 0 && !reset) {
+      if (loadMoreBtn) {
+        loadMoreBtn.style.display = 'none';
+      }
+      return;
+    }
+
+    slice.forEach(c => {
+      const card = renderCard(c);
+      containerEl.appendChild(card);
+    });
+
+    caregiversState.page += 1;
+
+    // Atualizar header de cuidadores
+    if (caregiversHeader) {
+      caregiversHeader.style.display = list.length > 0 ? '' : 'none';
+    }
+
+    // Controlar botão de "Carregar mais"
+    if (loadMoreBtn) {
+      if (end >= list.length) {
+        loadMoreBtn.style.display = 'none';
+      } else {
+        loadMoreBtn.style.display = '';
+      }
+    }
+  }
+
   function renderCard(c) {
     const div = document.createElement('div');
     div.className = 'card';
@@ -161,168 +216,112 @@ function initSidebar() {
     return div;
   }
   
-  // Função para visualizar perfil do cuidador
-  function viewCaregiverProfile(caregiver) {
-    // Salvar dados do cuidador selecionado no sessionStorage
-    sessionStorage.setItem('selectedCaregiver', JSON.stringify(caregiver));
-    
-    console.log('[HomeCliente] Redirecionando para perfil de:', caregiver.name);
-    
-    // Redirecionar para página de perfil do cuidador
-    window.location.href = 'perfilCuidadorPublico.html';
-  }
+  // Buscar cuidadores reais da API (/api/perfil/cuidadores)
+  async function fetchCaregiversFromAPI() {
+  try {
+    // Garante apontar diretamente para o handler api/perfil/cuidadores.js
+    const url =
+      (window.API_CONFIG && window.API_CONFIG.CUIDADORES_URL) ||
+      '/api/perfil/cuidadores';
+    console.log('[HomeCliente] Buscando cuidadores reais em', url);
 
-  function renderStars(r){
-    const full = Math.round(r);
-    let out = '';
-    for(let i=0;i<full;i++) out += '<i class="ph-fill ph-star"></i>';
-    for(let i=full;i<5;i++) out += '<i class="ph ph-star"></i>';
-    return out;
-  }
-
-  function formatCurrency(value) {
-    const number = Number(value);
-    if (Number.isNaN(number)) return '';
-    return number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  }
-
-  function escapeHtml(s){
-    return (s||'').toString().replace(/[&<>"']/g, function(ch){
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[ch];
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
     });
-  }
 
-  function getActiveList(){
-    return caregiversState.filtered || caregiversState.items;
-  }
+    // ler body como texto para debug se não for JSON válido
+    const text = await resp.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (err) {
+      console.warn('[HomeCliente] Resposta não é JSON:', text);
+      data = null;
+    }
 
-  function renderNextPage(reset){
-    const containerEl = document.getElementById('caregiversContainer');
-    if(!containerEl) return;
-    if(reset){ containerEl.innerHTML = ''; caregiversState.page = 0; }
-    const list = getActiveList();
-    
-    // Se não houver cuidadores, mostrar mensagem
-    if (list.length === 0 && reset) {
-      containerEl.innerHTML = `
-        <div class="no-results-box" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
-          <div class="no-results-icon">
-            <i class="ph ph-users" style="font-size: 4rem; color: var(--azul-escuro);"></i>
-          </div>
-          <div class="no-results-text">
-            <h3>Nenhum cuidador cadastrado ainda</h3>
-            <p>Aguarde enquanto novos cuidadores se cadastram na plataforma.</p>
-          </div>
-        </div>
-      `;
+    if (!resp.ok) {
+      console.warn('[HomeCliente] Falha ao buscar cuidadores da API:', resp.status, resp.statusText, data || text);
+      // mostrar mensagem de erro no container (opcional)
+      const containerEl = document.getElementById('caregiversContainer');
+      if (containerEl && resp.status === 401) {
+        containerEl.innerHTML = `<div class="no-results-box"><h3>Não autorizado</h3><p>Faça login novamente.</p></div>`;
+      }
       return;
     }
-    
-    const start = caregiversState.page * caregiversState.perPage;
-    const slice = list.slice(start, start + caregiversState.perPage);
-    slice.forEach(item => containerEl.appendChild(renderCard(item)));
-    caregiversState.page++;
 
-    // controlar botão "Carregar mais" - mostrar botão cinza semelhante ao 'Ordenar' quando não houver mais itens
-    const loadBtn = document.getElementById('loadMoreBtn');
-    if (loadBtn) {
-      if (caregiversState.page * caregiversState.perPage >= list.length) {
-        // Não há mais itens: manter o botão visível, torná-lo outline + disabled (cinza)
-        loadBtn.style.display = '';
-        loadBtn.disabled = true;
-        loadBtn.className = 'btn outline disabled';
-        loadBtn.innerHTML = 'Todos os cuidadores carregados';
-        loadBtn.style.opacity = '';
-        loadBtn.style.cursor = 'not-allowed';
-      } else {
-        // Ainda há itens: garantir que o botão esteja habilitado e com estilo primário
-        loadBtn.style.display = '';
-        loadBtn.disabled = false;
-        loadBtn.className = 'btn primary';
-        loadBtn.innerHTML = 'Carregar mais cuidadores <i class="ph ph-arrow-down" aria-hidden="true"></i>';
-        loadBtn.style.opacity = '';
-        loadBtn.style.cursor = '';
-      }
+    // Normalizar várias formas de resposta que a API pode devolver
+    let apiCuidadores = [];
+    if (Array.isArray(data)) {
+      apiCuidadores = data;
+    } else if (data && Array.isArray(data.cuidadores)) {
+      apiCuidadores = data.cuidadores;
+    } else if (data && Array.isArray(data.data)) {
+      apiCuidadores = data.data;
+    } else if (data && Array.isArray(data.rows)) {
+      apiCuidadores = data.rows;
+    } else if (data && typeof data === 'object' && Object.keys(data).length === 0) {
+      apiCuidadores = [];
+    } else {
+      // fallback: tentar extrair qualquer array encontrado em valores
+      const firstArray = data && Object.values(data).find(v => Array.isArray(v));
+      if (firstArray) apiCuidadores = firstArray;
     }
-  }
 
-  // Buscar cuidadores reais da API de perfis e atualizar os cards
-  async function fetchCaregiversFromAPI() {
+    if (!apiCuidadores || apiCuidadores.length === 0) {
+      console.warn('[HomeCliente] Nenhum cuidador retornado pela API (array vazio)');
+      // caso queira, pode limpar o container e voltar a usar dados do localStorage
+      // renderNextPage(true); // já é chamado abaixo se atualizar caregiversState
+      return;
+    }
+
+    // Mapear campos do backend para o formato consumido pelo front
+    const mapped = apiCuidadores.map(c => ({
+      name: c.nome || c.name || `${c.primeiroNome || 'Cuidador'}`,
+      specialty: (c.especialidades && Array.isArray(c.especialidades)
+        ? c.especialidades.join(', ')
+        : c.tipos_cuidado || c.especialidade || 'Cuidador Geral'),
+      bio: c.descricao || c.bio || 'Cuidador profissional disponível na sua região.',
+      rating: c.avaliacao || c.rating || (4.5 + Math.random() * 0.5),
+      reviews: c.reviews || Math.floor(Math.random() * 100) + 10,
+      email: c.email,
+      telefone: c.telefone || c.celular,
+      endereco: c.local_trabalho || c.endereco || c.localidade,
+      location: c.localidade || c.cidade || c.cep,
+      valorHora: c.valor_hora || c.valorHora || c.preco,
+      photoURL: c.foto_perfil || c.photoURL || c.foto || null,
+      usuario_id: c.usuario_id || c.id || c.userId
+    }));
+
+    caregiversState.items = mapped;
+    caregiversState.filtered = null;
+    caregiversState.page = 0;
+
+    // salvar fallback no localStorage (mantendo compatibilidade)
     try {
-      const API_BASE_URL = (window.API_CONFIG && window.API_CONFIG.PERFIL) || '/api/perfil';
-      const url = `${API_BASE_URL}/cuidadores`;
-      console.log('[HomeCliente] Buscando cuidadores reais em', url);
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        console.warn('[HomeCliente] Falha ao buscar cuidadores da API:', response.status);
-        return;
-      }
-
-      const data = await response.json();
-      const apiCuidadores = Array.isArray(data.cuidadores) ? data.cuidadores : [];
-
-      if (apiCuidadores.length === 0) {
-        console.warn('[HomeCliente] Nenhum cuidador retornado pela API');
-        return;
-      }
-
-      const mapped = apiCuidadores.map(c => ({
-        name: c.nome || 'Cuidador',
-        specialty: (c.especialidades && Array.isArray(c.especialidades)
-          ? c.especialidades.join(', ')
-          : c.tipos_cuidado || 'Cuidador Geral'),
-        bio: c.descricao || 'Cuidador profissional disponível na sua região.',
-        rating: c.avaliacao || (4.5 + Math.random() * 0.5),
-        reviews: Math.floor(Math.random() * 100) + 10,
+      const usuariosLocal = mapped.map(c => ({
+        nome: c.name,
+        tipo: 'cuidador',
+        especialidade: c.specialty,
+        bio: c.bio,
         email: c.email,
         telefone: c.telefone,
-        endereco: c.local_trabalho,
-        photoURL: c.foto_perfil || null
+        endereco: c.endereco,
+        photoURL: c.photoURL
       }));
-
-      // Atualiza estado e re-renderiza a partir da primeira página
-      caregiversState.items = mapped;
-      caregiversState.filtered = null;
-      caregiversState.page = 0;
-
-      // Persistir no localStorage para outros fluxos que usam essa lista
-      try {
-        const usuariosLocal = mapped.map(c => ({
-          nome: c.name,
-          tipo: 'cuidador',
-          especialidade: c.specialty,
-          bio: c.bio,
-          email: c.email,
-          telefone: c.telefone,
-          endereco: c.endereco,
-          photoURL: c.photoURL
-        }));
-        localStorage.setItem('cuidafast_usuarios', JSON.stringify(usuariosLocal));
-      } catch (e) {
-        console.warn('[HomeCliente] Não foi possível salvar cuidadores no localStorage:', e);
-      }
-
-      renderNextPage(true);
-      console.log(`[HomeCliente] ${mapped.length} cuidadores reais carregados da API`);
-    } catch (error) {
-      console.error('[HomeCliente] Erro ao buscar cuidadores da API:', error);
+      localStorage.setItem('cuidafast_usuarios', JSON.stringify(usuariosLocal));
+    } catch (e) {
+      console.warn('[HomeCliente] Não foi possível salvar cuidadores no localStorage:', e);
     }
-  }
 
-  // hook initial render
-  document.addEventListener('DOMContentLoaded', function(){
-    // exibir primeira página (pode vir do localStorage)
     renderNextPage(true);
-    // em paralelo, tentar carregar cuidadores reais do backend
-    fetchCaregiversFromAPI();
-    const loadBtn = document.getElementById('loadMoreBtn');
-    if(loadBtn){
-      loadBtn.addEventListener('click', function(){ renderNextPage(false); });
-    }
-    // buscar cuidadores reais do backend
-    fetchCaregiversFromAPI();
-  });
+    console.log(`[HomeCliente] ${mapped.length} cuidadores reais carregados da API`);
+  } catch (error) {
+    console.error('[HomeCliente] Erro ao buscar cuidadores da API:', error);
+  }
+}
 
   function filterCards(query){
     const q = normalize(query);
@@ -462,6 +461,11 @@ function initSidebar() {
   window.CuidaFast = window.CuidaFast || {};
   window.CuidaFast.filterCards = filterCards;
   window.CuidaFast.applyAdvancedFilters = applyAdvancedFilters;
+  window.CuidaFast.fetchCaregiversFromAPI = fetchCaregiversFromAPI;
+
+  // Renderizar primeira página (fallback localStorage) e depois sobrescrever com API
+  renderNextPage(true);
+  fetchCaregiversFromAPI();
 })();
 
 
