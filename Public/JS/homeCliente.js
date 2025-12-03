@@ -250,22 +250,27 @@ function initSidebar() {
 
   // Função para abrir perfil público do cuidador
   function viewCaregiverProfile(caregiver) {
+    console.log('[HomeCliente] Abrindo perfil do cuidador:', caregiver);
+    
     // Obter ID do cuidador (pode estar em diferentes campos)
     let cuidadorId = caregiver.usuario_id || caregiver.id || caregiver.userId;
     
+    console.log('[HomeCliente] ID encontrado:', cuidadorId);
+    
     // Se não tiver ID, tentar buscar pelo email
     if (!cuidadorId && caregiver.email) {
-      console.warn('[HomeCliente] ID não encontrado, tentando buscar por email:', caregiver.email);
+      console.warn('[HomeCliente] ID não encontrado, usando email como fallback:', caregiver.email);
       // Usar email como fallback temporário
       cuidadorId = caregiver.email;
     }
     
     if (!cuidadorId) {
-      console.error('[HomeCliente] ID do cuidador não encontrado:', caregiver);
+      console.error('[HomeCliente] ID do cuidador não encontrado. Dados completos:', caregiver);
       alert('Erro: Não foi possível identificar o cuidador. Por favor, tente novamente.');
       return;
     }
 
+    console.log('[HomeCliente] Redirecionando para perfil com ID:', cuidadorId);
     // Redirecionar para página de perfil público com o ID
     window.location.href = `perfilCuidadorPublico.html?id=${encodeURIComponent(cuidadorId)}`;
   }
@@ -354,6 +359,13 @@ function initSidebar() {
       const rating = c.avaliacao || c.rating || 0;
       const reviews = c.num_avaliacoes || c.numAvaliacoes || c.totalAvaliacoes || c.reviews || 0;
 
+      // Garantir que temos um ID válido
+      const cuidId = c.id || c.usuario_id || c.userId;
+      
+      if (!cuidId) {
+        console.warn('[HomeCliente] Cuidador sem ID:', c);
+      }
+      
       return {
         name: c.nome || c.name || `${c.primeiroNome || 'Cuidador'}`,
         specialty: specialty,
@@ -366,8 +378,8 @@ function initSidebar() {
         location: c.localidade || c.cidade || c.cep,
         valorHora: c.valor_hora || c.valorHora || c.preco,
         photoURL: c.foto_perfil || c.photoURL || c.foto || null,
-        usuario_id: c.id || c.usuario_id || c.userId,
-        id: c.id || c.usuario_id || c.userId
+        usuario_id: cuidId,
+        id: cuidId
       };
     });
 
