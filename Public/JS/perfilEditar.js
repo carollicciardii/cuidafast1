@@ -159,6 +159,46 @@ async function loadUserData() {
         }
     }
 
+    // Carregar dados específicos do cuidador se for cuidador
+    if (userData.tipo === 'cuidador') {
+        // Carregar telefone se não foi carregado acima
+        if (phoneInput && !phoneInput.value && userData.telefone) {
+            phoneInput.value = userData.telefone;
+        }
+        
+        // Carregar tipo de serviço, áreas de atuação e valor por hora
+        const tiposServicoSelect = document.getElementById('tiposServico') || document.getElementById('tipoServico');
+        if (tiposServicoSelect && userData.tipos_cuidado) {
+            const tiposArray = Array.isArray(userData.tipos_cuidado) 
+                ? userData.tipos_cuidado 
+                : (typeof userData.tipos_cuidado === 'string' ? userData.tipos_cuidado.split(',') : [userData.tipos_cuidado]);
+            
+            // Se for select múltiplo
+            if (tiposServicoSelect.multiple) {
+                Array.from(tiposServicoSelect.options).forEach(option => {
+                    if (tiposArray.includes(option.value)) {
+                        option.selected = true;
+                    }
+                });
+            } else {
+                // Se for select simples, usar o primeiro tipo
+                tiposServicoSelect.value = tiposArray[0] || '';
+            }
+        }
+        
+        const areasAtuacaoInput = document.getElementById('areasAtuacao');
+        if (areasAtuacaoInput && userData.especialidades) {
+            areasAtuacaoInput.value = Array.isArray(userData.especialidades) 
+                ? userData.especialidades.join(', ') 
+                : userData.especialidades;
+        }
+        
+        const valorHoraInput = document.getElementById('valorHora');
+        if (valorHoraInput && (userData.valor_hora || userData.valorHora)) {
+            valorHoraInput.value = userData.valor_hora || userData.valorHora;
+        }
+    }
+
     console.log('[PerfilEditar] Dados carregados');
 }
 

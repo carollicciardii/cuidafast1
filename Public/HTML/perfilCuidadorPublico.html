@@ -573,7 +573,16 @@
                     }
                     
                     const bioEl = document.getElementById('caregiverBio');
-                    if (bioEl) bioEl.textContent = caregiver.descricao || 'Informações não disponíveis.';
+                    if (bioEl) {
+                        if (caregiver.especialidades) {
+                            const areas = Array.isArray(caregiver.especialidades)
+                                ? caregiver.especialidades.join(', ')
+                                : caregiver.especialidades;
+                            bioEl.textContent = areas || 'Informações não disponíveis.';
+                        } else {
+                            bioEl.textContent = caregiver.descricao || 'Informações não disponíveis.';
+                        }
+                    }
                 }
                 
                 // Dados adicionais que não estão na função auxiliar

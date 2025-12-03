@@ -228,7 +228,7 @@ async function selecionarContato(conversa) {
  */
 async function carregarMensagens(contato_id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/mensagens/${userData.id}/${contato_id}`);
+        const response = await fetch(`${API_BASE_URL}/${userData.id}/${contato_id}`);
         
         if (!response.ok) {
             if (response.status === 404) {

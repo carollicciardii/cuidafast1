@@ -95,15 +95,49 @@ async function loadUserProfile() {
     }
 
     // Atualizar CPF se existir
-    if (userData.cpf) {
-        updateInfoField('CPF', userData.cpf);
+    const cpfElement = document.getElementById('clienteCPF');
+    if (cpfElement) {
+        const cpf = userData.cpf || userData.cpf_numero || userData.documento;
+        if (cpf) {
+            cpfElement.textContent = cpf;
+        } else {
+            cpfElement.textContent = '-';
+        }
+    } else {
+        // Fallback para o método antigo
+        if (userData.cpf || userData.cpf_numero || userData.documento) {
+            updateInfoField('CPF', userData.cpf || userData.cpf_numero || userData.documento);
+        }
     }
 
     // Atualizar data de nascimento se existir
-    if (userData.dataNascimento) {
-        const dataNasc = new Date(userData.dataNascimento + 'T00:00:00');
-        const dataFormatada = dataNasc.toLocaleDateString('pt-BR');
-        updateInfoField('Data de Nascimento', dataFormatada);
+    const dataNascElement = document.getElementById('clienteDataNascimento');
+    if (dataNascElement) {
+        const dataNasc = userData.data_nascimento || userData.dataNascimento || userData.data_nasc || userData.birthDate;
+        if (dataNasc) {
+            let date;
+            // Se já está no formato YYYY-MM-DD
+            if (typeof dataNasc === 'string' && dataNasc.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                date = new Date(dataNasc + 'T00:00:00');
+            } else {
+                // Tentar parsear como data
+                date = new Date(dataNasc);
+            }
+            if (!isNaN(date.getTime())) {
+                dataNascElement.textContent = date.toLocaleDateString('pt-BR');
+            } else {
+                dataNascElement.textContent = '-';
+            }
+        } else {
+            dataNascElement.textContent = '-';
+        }
+    } else {
+        // Fallback para o método antigo
+        if (userData.dataNascimento || userData.data_nascimento) {
+            const dataNasc = new Date((userData.dataNascimento || userData.data_nascimento) + 'T00:00:00');
+            const dataFormatada = dataNasc.toLocaleDateString('pt-BR');
+            updateInfoField('Data de Nascimento', dataFormatada);
+        }
     }
 
     // Atualizar endereço se existir - preenche campos individuais

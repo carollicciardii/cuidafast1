@@ -180,9 +180,21 @@ export async function atualizarFotoPerfil(userId, fotoUrl) {
  * @param {Object} perfil - Dados do perfil do cuidador
  */
 export function preencherPerfilCuidador(perfil) {
-  // Nome
+  // Nome - garantir que não seja "Usuário"
   const nameElement = document.getElementById('caregiverName');
-  if (nameElement) nameElement.textContent = perfil.nome || 'Cuidador';
+  if (nameElement) {
+    let nome = perfil.nome || 'Cuidador';
+    // Se o nome for "Usuário" ou vazio, tentar buscar do email ou usar fallback
+    if (!nome || nome.trim() === '' || nome.toLowerCase() === 'usuário' || nome.toLowerCase() === 'usuario') {
+      if (perfil.email) {
+        const emailName = perfil.email.split('@')[0];
+        nome = emailName.charAt(0).toUpperCase() + emailName.slice(1) || 'Cuidador';
+      } else {
+        nome = 'Cuidador';
+      }
+    }
+    nameElement.textContent = nome;
+  }
   
   // Foto
   const avatarElement = document.getElementById('caregiverAvatar');
@@ -222,9 +234,18 @@ export function preencherPerfilCuidador(perfil) {
     phoneElement.textContent = perfil.telefone || '-';
   }
   
-  // Descrição/Bio
+  // Sobre - Mostrar áreas de atuação ao invés de descrição
   const bioElement = document.getElementById('caregiverBio');
-  if (bioElement) bioElement.textContent = perfil.descricao || 'Informações não disponíveis.';
+  if (bioElement) {
+    if (perfil.especialidades) {
+      const areas = Array.isArray(perfil.especialidades)
+        ? perfil.especialidades.join(', ')
+        : perfil.especialidades;
+      bioElement.textContent = areas || 'Informações não disponíveis.';
+    } else {
+      bioElement.textContent = perfil.descricao || 'Informações não disponíveis.';
+    }
+  }
   
   // Tipo de Serviço
   const tipoServicoElement = document.getElementById('caregiverTipoServico');
