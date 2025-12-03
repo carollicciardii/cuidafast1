@@ -366,8 +366,14 @@ function initSidebar() {
         console.warn('[HomeCliente] Cuidador sem ID:', c);
       }
       
+      // Garantir que temos um nome válido (não "Usuário")
+      let nomeCuidador = c.nome || c.name;
+      if (!nomeCuidador || nomeCuidador === 'Usuário' || nomeCuidador.trim() === '') {
+        nomeCuidador = c.primeiroNome || 'Cuidador';
+      }
+      
       return {
-        name: c.nome || c.name || `${c.primeiroNome || 'Cuidador'}`,
+        name: nomeCuidador,
         specialty: specialty,
         bio: c.descricao || c.bio || 'Cuidador profissional disponível na sua região.',
         rating: rating,

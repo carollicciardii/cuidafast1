@@ -53,18 +53,26 @@ async function perfilCuidadorHandler(urlObj, res) {
     return res.status(400).json({ message: 'Parâmetro id é obrigatório' });
   }
 
-  const usuario = await UsuarioModel.getById(id);
+  // Tentar buscar por ID primeiro, depois por email se falhar
+  let usuario = await UsuarioModel.getById(id);
+  if (!usuario && id.includes('@')) {
+    // Se o ID parece ser um email, tentar buscar por email
+    usuario = await UsuarioModel.findByEmail(id);
+  }
+  
   if (!usuario) {
     return res.status(404).json({ message: 'Cuidador não encontrado' });
   }
 
-  const cuidador = await CuidadorModel.getById(id);
+  // Buscar perfil de cuidador usando o usuario_id
+  const cuidador = await CuidadorModel.getById(usuario.usuario_id);
   if (!cuidador) {
     return res.status(404).json({ message: 'Perfil de cuidador não encontrado' });
   }
 
   const perfilPublico = {
     id: usuario.usuario_id,
+    usuario_id: usuario.usuario_id,
     nome: usuario.nome,
     email: usuario.email,
     telefone: usuario.telefone,
@@ -75,7 +83,8 @@ async function perfilCuidadorHandler(urlObj, res) {
     valor_hora: cuidador.valor_hora,
     especialidades: cuidador.especialidades,
     experiencia: cuidador.experiencia,
-    avaliacao: cuidador.avaliacao,
+    avaliacao: cuidador.avaliacao || 0,
+    num_avaliacoes: cuidador.num_avaliacoes || 0,
     horarios_disponiveis: cuidador.horarios_disponiveis,
     idiomas: cuidador.idiomas,
     formacao: cuidador.formacao,

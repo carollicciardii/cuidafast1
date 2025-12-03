@@ -191,19 +191,35 @@ export function preencherPerfilCuidador(perfil) {
     avatarElement.alt = perfil.nome;
   }
   
-  // Especialidade
+  // Especialidade/Tipo de Serviço
   const specialtyElement = document.getElementById('caregiverSpecialty');
   if (specialtyElement) {
-    const tipos = perfil.tipos_cuidado ? perfil.tipos_cuidado.split(',') : [];
-    const tiposTexto = tipos.map(tipo => {
-      const map = {
+    let tiposTexto = 'Cuidador Geral';
+    if (perfil.tipos_cuidado) {
+      const tipos = Array.isArray(perfil.tipos_cuidado) 
+        ? perfil.tipos_cuidado 
+        : (typeof perfil.tipos_cuidado === 'string' ? perfil.tipos_cuidado.split(',') : [perfil.tipos_cuidado]);
+      const tiposMap = {
         'idoso': 'Cuidador de Idosos',
         'crianca': 'Cuidador Infantil',
-        'pet': 'Cuidador de Pets'
+        'pet': 'Cuidador de Pet',
+        'infantil': 'Cuidador Infantil'
       };
-      return map[tipo.trim()] || tipo;
-    }).join(', ');
-    specialtyElement.textContent = tiposTexto || 'Cuidador Geral';
+      tiposTexto = tipos.map(tipo => tiposMap[tipo?.trim()] || tipo).join(', ') || 'Cuidador Geral';
+    }
+    specialtyElement.textContent = tiposTexto;
+  }
+  
+  // Email
+  const emailElement = document.getElementById('caregiverEmail');
+  if (emailElement) {
+    emailElement.textContent = perfil.email || '-';
+  }
+  
+  // Telefone
+  const phoneElement = document.getElementById('caregiverPhone');
+  if (phoneElement) {
+    phoneElement.textContent = perfil.telefone || '-';
   }
   
   // Descrição/Bio
