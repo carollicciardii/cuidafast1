@@ -106,7 +106,7 @@ async function loadUserProfile() {
         updateInfoField('Data de Nascimento', dataFormatada);
     }
 
-    // Atualizar endereço se existir
+    // Atualizar endereço se existir - preenche campos individuais
     // Pode estar em userData.endereco (objeto) ou nos campos diretos (rua, numero, etc)
     let enderecoObj = userData.endereco;
     
@@ -122,18 +122,36 @@ async function loadUserProfile() {
         if (userData.cep) enderecoObj.cep = userData.cep;
     }
     
+    // Preencher campos individuais do endereço
     if (enderecoObj) {
-        let enderecoCompleto = '';
+        // CEP
+        if (enderecoObj.cep) {
+            updateInfoField('CEP', enderecoObj.cep);
+        }
         
-        if (enderecoObj.rua) enderecoCompleto += enderecoObj.rua;
-        if (enderecoObj.numero) enderecoCompleto += `, ${enderecoObj.numero}`;
-        if (enderecoObj.complemento) enderecoCompleto += ` - ${enderecoObj.complemento}`;
-        if (enderecoObj.bairro) enderecoCompleto += `\n${enderecoObj.bairro}`;
-        if (enderecoObj.cidade && enderecoObj.estado) enderecoCompleto += ` - ${enderecoObj.cidade}/${enderecoObj.estado}`;
-        if (enderecoObj.cep) enderecoCompleto += `\nCEP: ${enderecoObj.cep}`;
+        // Endereço (rua + número)
+        if (enderecoObj.rua) {
+            let enderecoTexto = enderecoObj.rua;
+            if (enderecoObj.numero) {
+                enderecoTexto += `, ${enderecoObj.numero}`;
+            }
+            updateInfoField('Endereço', enderecoTexto);
+        }
         
-        if (enderecoCompleto) {
-            updateInfoField('Endereço', enderecoCompleto);
+        // Complemento
+        if (enderecoObj.complemento) {
+            updateInfoField('Complemento', enderecoObj.complemento);
+        } else {
+            updateInfoField('Complemento', '-');
+        }
+        
+        // Cidade/Estado
+        if (enderecoObj.cidade && enderecoObj.estado) {
+            updateInfoField('Cidade/Estado', `${enderecoObj.cidade}/${enderecoObj.estado}`);
+        } else if (enderecoObj.cidade) {
+            updateInfoField('Cidade/Estado', enderecoObj.cidade);
+        } else if (enderecoObj.estado) {
+            updateInfoField('Cidade/Estado', enderecoObj.estado);
         }
     }
 
