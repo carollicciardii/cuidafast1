@@ -113,19 +113,31 @@ document.addEventListener("DOMContentLoaded", () => {
   // Configurar navegação - Notificações
   const notificationBtn = document.getElementById("notificationBtn");
   if (notificationBtn) {
-    // Se já é um link com href, deixar o comportamento padrão funcionar
-    if (notificationBtn.tagName === 'A' && notificationBtn.href) {
-      // Link já configurado, não precisa de event listener
-      console.log('[Header] Botão de notificação é um link:', notificationBtn.href);
-    } else {
-      // Se for um botão, adicionar comportamento de navegação
-      notificationBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const currentPath = window.location.pathname;
-        const pathPrefix = currentPath.includes('/HTML/') ? '' : 'HTML/';
+    // Sempre controlar via JS para diferenciar cliente x cuidador
+    notificationBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      let userType = 'cliente';
+      try {
+        const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+        if (userData && userData.tipo) {
+          userType = userData.tipo;
+        }
+      } catch (err) {
+        console.warn('[Header] Não foi possível ler tipo de usuário para notificações', err);
+      }
+
+      const currentPath = window.location.pathname;
+      const pathPrefix = currentPath.includes('/HTML/') ? '' : 'HTML/';
+
+      if (userType === 'cuidador') {
+        // Cuidador: ir para solicitações de serviços
+        window.location.href = pathPrefix + 'solicitacoesServicos.html';
+      } else {
+        // Cliente (padrão): ir para página de notificações
         window.location.href = pathPrefix + 'notificacao.html';
-      });
-    }
+      }
+    });
   }
 
   // Configurar navegação - Mensagens

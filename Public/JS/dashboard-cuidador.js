@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
         mostrarEstadoVazio();
     }
     
+    // Histórico de pagamentos: aguardar integração real de pagamentos do cliente
     initHistoricoPagamentos();
     initMessageButton();
     
@@ -641,23 +642,22 @@ function initServicosChart() {
 
 // Função para inicializar histórico de pagamentos
 function initHistoricoPagamentos() {
-    // Dados simulados de pagamentos
-    const pagamentos = [
-        { id: 1, data: '2024-06-15', cliente: 'Maria Silva', servico: 'Cuidado de Idosos', valor: 150.00, status: 'pago' },
-        { id: 2, data: '2024-06-14', cliente: 'João Santos', servico: 'Cuidado Infantil', valor: 120.00, status: 'pago' },
-        { id: 3, data: '2024-06-13', cliente: 'Ana Costa', servico: 'Cuidado de Pets', valor: 80.00, status: 'pendente' },
-        { id: 4, data: '2024-06-12', cliente: 'Pedro Lima', servico: 'Cuidado de Idosos', valor: 150.00, status: 'pago' },
-        { id: 5, data: '2024-06-11', cliente: 'Carla Oliveira', servico: 'Cuidado Infantil', valor: 120.00, status: 'cancelado' },
-        { id: 6, data: '2024-06-10', cliente: 'Roberto Alves', servico: 'Cuidado de Pets', valor: 80.00, status: 'pago' },
-        { id: 7, data: '2024-06-09', cliente: 'Lucia Ferreira', servico: 'Cuidado de Idosos', valor: 150.00, status: 'pago' },
-        { id: 8, data: '2024-06-08', cliente: 'Carlos Mendes', servico: 'Cuidado Infantil', valor: 120.00, status: 'pago' },
-        { id: 9, data: '2024-06-07', cliente: 'Fernanda Rocha', servico: 'Cuidado de Pets', valor: 80.00, status: 'pendente' },
-        { id: 10, data: '2024-06-06', cliente: 'Ricardo Souza', servico: 'Cuidado de Idosos', valor: 150.00, status: 'pago' }
-    ];
+    // Não carregar dados simulados. Manter a tabela vazia até que haja integração real de pagamentos.
+    const tbody = document.getElementById('pagamentosTableBody');
+    const emptyInfo = document.getElementById('pagamentosEmptyState');
+    const paginacao = document.getElementById('paginacao');
 
-    renderPagamentosTable(pagamentos);
-    initFiltroMes(pagamentos);
-    initPaginacao(pagamentos);
+    if (tbody) {
+        tbody.innerHTML = '';
+    }
+
+    if (emptyInfo) {
+        emptyInfo.textContent = 'Nenhum pagamento registrado ainda. Os pagamentos aparecerão aqui quando forem realizados pelos clientes.';
+    }
+
+    if (paginacao) {
+        paginacao.classList.add('d-none');
+    }
 }
 
 // Função para renderizar tabela de pagamentos
@@ -691,9 +691,23 @@ function renderPagamentosTable(pagamentos, page = 1, itemsPerPage = 10) {
         `;
     }).join('');
 
-    // Atualizar informações de paginação
-    document.getElementById('paginaAtual').textContent = `${startIndex + 1}-${Math.min(endIndex, pagamentos.length)}`;
-    document.getElementById('totalRegistros').textContent = pagamentos.length;
+    // Atualizar informações de paginação apenas se houver registros reais
+    const paginaAtualEl = document.getElementById('paginaAtual');
+    const totalRegistrosEl = document.getElementById('totalRegistros');
+    const emptyInfo = document.getElementById('pagamentosEmptyState');
+    const paginacao = document.getElementById('paginacao');
+
+    if (pagamentos.length > 0) {
+        if (paginaAtualEl) paginaAtualEl.textContent = `${startIndex + 1}-${Math.min(endIndex, pagamentos.length)}`;
+        if (totalRegistrosEl) totalRegistrosEl.textContent = pagamentos.length;
+        if (emptyInfo) emptyInfo.style.display = 'none';
+        if (paginacao) paginacao.classList.remove('d-none');
+    } else {
+        if (emptyInfo) {
+            emptyInfo.style.display = 'block';
+        }
+        if (paginacao) paginacao.classList.add('d-none');
+    }
 }
 
 // Função para inicializar filtro por mês
