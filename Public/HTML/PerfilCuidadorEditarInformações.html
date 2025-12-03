@@ -112,16 +112,19 @@
         <div class="edit-profile-content">
             <!-- Tabs -->
             <div class="edit-tabs">
-                <a href="PerfilCuidadorEditarInformaçõesPessoais.html" class="tab active">
+                <a href="PerfilCuidadorEditarInformações.html" class="tab active" onclick="showTab('pessoais'); return false;">
                     <i class="ph ph-user"></i> Informações Pessoais
+                </a>
+                <a href="PerfilCuidadorEditarInformações.html" class="tab" onclick="showTab('especialidades'); return false;">
+                    <i class="ph ph-heartbeat"></i> Especialidades
                 </a>
                 <a href="PerfilCuidadorEditarDocumentos.html" class="tab">
                     <i class="ph ph-file-text"></i> Documentos
                 </a>
             </div>
 
-            <!-- Formulário de Edição -->
-            <form class="edit-profile-form">
+            <!-- Formulário de Informações Pessoais -->
+            <form class="edit-profile-form" id="formPessoais">
                 <div class="form-avatar">
                     <div class="avatar-upload">
                         <div class="avatar-preview">
@@ -192,11 +195,163 @@
                     <button type="submit" class="btn-save">Salvar Alterações</button>
                 </div>
             </form>
+
+            <!-- Formulário de Especialidades -->
+            <form class="edit-profile-form" id="formEspecialidades" style="display: none;">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="tipoServico">Tipo de Serviço</label>
+                    <select id="tipoServico" required>
+                        <option value="">Selecione o tipo de cuidador</option>
+                        <option value="idoso">Cuidador de Idosos</option>
+                        <option value="pet">Cuidador de Pet</option>
+                        <option value="crianca">Cuidador Infantil (Babá)</option>
+                    </select>
+                    <small style="color: #666; margin-top: 0.5rem; display: block;">Este é o tipo principal de serviço que você oferece</small>
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="areasAtuacao">Áreas de Atuação</label>
+                    <textarea id="areasAtuacao" rows="4" placeholder="Descreva suas áreas de atuação e especialidades (ex: Cuidados com Idosos, Cuidados Paliativos, Reabilitação, etc.)"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="valorHora">Valor por Hora (R$)</label>
+                    <input type="number" id="valorHora" min="0" step="0.01" placeholder="0.00" required>
+                    <small style="color: #666; margin-top: 0.5rem; display: block;">Valor que você cobra por hora de serviço</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="showTab('pessoais'); return false;">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar Alterações</button>
+                </div>
+            </form>
         </div>
     </main>
 
     <script src="../JS/auth.js"></script>
     <script src="../JS/header.js"></script>
     <script src="../JS/perfilEditar.js"></script>
+    <script>
+        // Função para alternar entre abas
+        function showTab(tabName) {
+            const formPessoais = document.getElementById('formPessoais');
+            const formEspecialidades = document.getElementById('formEspecialidades');
+            const tabs = document.querySelectorAll('.edit-tabs .tab');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            if (tabName === 'pessoais') {
+                formPessoais.style.display = 'block';
+                formEspecialidades.style.display = 'none';
+                tabs[0].classList.add('active');
+            } else if (tabName === 'especialidades') {
+                formPessoais.style.display = 'none';
+                formEspecialidades.style.display = 'block';
+                tabs[1].classList.add('active');
+                loadEspecialidadesData();
+            }
+        }
+
+        // Carregar dados de especialidades
+        async function loadEspecialidadesData() {
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            
+            if (!userData || !userData.email) {
+                return;
+            }
+
+            try {
+                // Buscar dados completos do cuidador via API
+                const cuidadorId = userData.id || userData.usuario_id || userData.email;
+                const response = await fetch(`/api/perfil/cuidadores?action=cuidador&id=${encodeURIComponent(cuidadorId)}`);
+                
+                if (response.ok) {
+                    const cuidadorData = await response.json();
+                    
+                    // Preencher tipo de serviço
+                    const tipoServicoSelect = document.getElementById('tipoServico');
+                    if (tipoServicoSelect && cuidadorData.tipos_cuidado) {
+                        const tipos = Array.isArray(cuidadorData.tipos_cuidado) 
+                            ? cuidadorData.tipos_cuidado 
+                            : [cuidadorData.tipos_cuidado];
+                        const tipoPrincipal = tipos[0] || '';
+                        tipoServicoSelect.value = tipoPrincipal;
+                    } else if (tipoServicoSelect && userData.servicosOferecidos && userData.servicosOferecidos.length > 0) {
+                        tipoServicoSelect.value = userData.servicosOferecidos[0];
+                    }
+                    
+                    // Preencher áreas de atuação
+                    const areasAtuacaoTextarea = document.getElementById('areasAtuacao');
+                    if (areasAtuacaoTextarea) {
+                        if (cuidadorData.especialidades) {
+                            const areas = Array.isArray(cuidadorData.especialidades)
+                                ? cuidadorData.especialidades.join(', ')
+                                : cuidadorData.especialidades;
+                            areasAtuacaoTextarea.value = areas;
+                        } else if (userData.especialidades) {
+                            const areas = Array.isArray(userData.especialidades)
+                                ? userData.especialidades.join(', ')
+                                : userData.especialidades;
+                            areasAtuacaoTextarea.value = areas;
+                        }
+                    }
+                    
+                    // Preencher valor por hora
+                    const valorHoraInput = document.getElementById('valorHora');
+                    if (valorHoraInput) {
+                        if (cuidadorData.valor_hora) {
+                            valorHoraInput.value = cuidadorData.valor_hora;
+                        } else if (userData.valorHora || userData.valor_hora) {
+                            valorHoraInput.value = userData.valorHora || userData.valor_hora;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('[EditarPerfil] Erro ao carregar dados de especialidades:', error);
+            }
+        }
+
+        // Salvar especialidades
+        document.getElementById('formEspecialidades').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+            if (!userData || !userData.email) {
+                alert('Erro: Usuário não encontrado.');
+                return;
+            }
+
+            const tipoServico = document.getElementById('tipoServico').value;
+            const areasAtuacao = document.getElementById('areasAtuacao').value;
+            const valorHora = parseFloat(document.getElementById('valorHora').value);
+
+            if (!tipoServico || !valorHora) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            // Atualizar no localStorage
+            const updatedData = {
+                ...userData,
+                servicosOferecidos: [tipoServico],
+                especialidades: areasAtuacao.split(',').map(a => a.trim()).filter(a => a),
+                valorHora: valorHora
+            };
+            localStorage.setItem('cuidafast_user', JSON.stringify(updatedData));
+
+            // TODO: Atualizar no backend via API
+            alert('✅ Especialidades atualizadas com sucesso!');
+            window.location.href = 'perfilCuidador.html';
+        });
+
+        // Verificar se deve mostrar aba de especialidades na URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab === 'especialidades') {
+                showTab('especialidades');
+            }
+        });
+    </script>
 </body>
 </html>

@@ -8,7 +8,7 @@ async function loadCriarPagamentoController() {
   if (!criarPagamentoController) {
     try {
       const mod = await import("../../back-end/api/controllers/pagamentoController.js");
-      criarPagamentoController = mod.criarPagamentoController || null;
+      criarPagamentoController = mod.executarCriacaoPagamento || null;
     } catch (e) {
       console.log('[Pagamento] Não foi possível carregar criarPagamentoController:', e.message);
       criarPagamentoController = null;
