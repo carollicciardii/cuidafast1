@@ -86,6 +86,15 @@
     }
   </style>
 </head>
+
+<!-- POPUP -->
+<div id="popup-confirmacao" class="popup">
+  <div class="popup-content">
+    <i class="ph ph-clock-user"></i>
+    <p>Estamos avaliando seu perfil.<br>Você receberá um e-mail nas próximas 24h com o resultado da análise</p>
+  </div>
+</div>
+
 <body>
   <div class="container">
     <div class="back">
@@ -230,7 +239,7 @@
     <!-- Termos -->
     <p class="termos">
       Ao criar uma conta, você concorda com nossos
-      <a href="#">Termos de Uso</a> e <a href="#">Políticas de Privacidade</a>
+      <a href="termos.html">Termos de Uso e políticas de Privacidade</a> 
     </p>
   </div>
 
@@ -506,9 +515,18 @@
       };
       userData.cadastroCompleto = true;
       localStorage.setItem('cuidafast_user', JSON.stringify(userData));
-      
-      console.log('[EnviarDocumentos] Documentos enviados com sucesso', userData.documentos);
-      window.location.href = '../HTML/dashboard-cuidador.html';
+
+      console.log('[EnviarDocumentos] Documentos enviados com sucesso');
+
+// Mostra popup
+document.getElementById('popup-confirmacao').style.display = 'flex';
+
+// Aguarda 3 segundos e redireciona
+setTimeout(() => {
+  window.location.href = '../Public/index.html';
+}, 3000);
+
+
     });
   </script>
 </body>
