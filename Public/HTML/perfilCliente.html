@@ -21,11 +21,10 @@
     <!-- CSS -->
     <link rel="stylesheet" href="../CSS/styles.css">
     <link rel="stylesheet" href="../CSS/pages/perfilCliente.css">
-    <link rel="stylesheet" href="../CSS/header.css">
  
 </head>
 <body class="client-profile">
-    <!-- Header Moderno -->
+    <!-- Header Moderno (padronizado com homeCliente) -->
     <header class="modern-header">
         <div class="header-container">
             <!-- Logo Section -->
@@ -35,20 +34,31 @@
                     <span class="logo-text"></span>
                 </a>
             </div>
+            
+            <!-- Search Bar (Desktop) -->
+            <div class="header-center">
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" placeholder="Buscar cuidadores..." class="search-input" id="headerSearch">
+                    <button class="search-btn" type="button">
+                        <i class="ph ph-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
             <!-- User Actions -->
             <div class="header-right">
                 <!-- Notifications -->
-        <a href="notificacao.html" class="header-action-btn notification-btn active" id="notificationBtn">
-          <i class="ph ph-bell"></i>
-          <span class="notification-badge" style="display: none;">0</span>
-    </a>
-
+                <button class="header-action-btn notification-btn active" id="notificationBtn">
+                    <i class="ph ph-bell"></i>
+                    <span class="notification-badge" style="display: none;">0</span>
+                </button>
                 
                 <!-- Messages -->
-                    <a href="mensagens.html" class="header-action-btn message-btn" id="messageBtn">
+                <button class="header-action-btn message-btn" id="messageBtn">
                     <i class="ph ph-chat-circle"></i>
                     <span class="message-badge" style="display: none;">0</span>
-                    </a>
+                </button>
                 
                 <!-- User Profile -->
                 <div class="user-profile-dropdown" id="userProfileDropdown">
@@ -64,7 +74,7 @@
                             <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
                             <div class="dropdown-user-info">
                                 <h4 id="dropdownUserName">Cliente</h4>
-                                <p>Cliente Premium</p>
+                                <p>Cliente</p>
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
@@ -76,7 +86,7 @@
                             <i class="ph ph-gear"></i>
                             <span>Configurações</span>
                         </a>
-                        <a href="../HTML/contratarInTime.html" class="dropdown-item">
+                        <a href="contratarInTime.html" class="dropdown-item">
                             <i class="ph ph-clock"></i>
                             <span>In-time</span>
                         </a>

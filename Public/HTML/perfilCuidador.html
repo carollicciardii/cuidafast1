@@ -24,12 +24,12 @@
     <link rel="stylesheet" href="../CSS/pages/perfilCliente.css">
 </head>
 <body class="caregiver-profile">
-    <!-- Header -->
+    <!-- Header (padronizado com dashboard-cuidador) -->
     <header class="modern-header">
         <div class="header-container">
             <!-- Logo Section -->
             <div class="header-left">
-                <a href="dashboard-cuidador.html" class="logo-link">
+                <a href="dashboard-cuidador.html" class="logo-link" id="logoLink">
                     <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
                     <span class="logo-text"></span>
                 </a>
@@ -43,7 +43,7 @@
                 <!-- Notifications -->
                 <a href="notificacao.html" class="header-action-btn notification-btn" id="notificationBtn">
                     <i class="ph ph-bell"></i>
-                    <span class="notification-badge" style="display: none;">0</span>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
                 </a>
                 
                 <!-- Messages -->
@@ -61,7 +61,7 @@
                     </button>
                     
                     <!-- Dropdown Menu -->
-                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                    <div class="profile-dropdown-menu caregiver-dropdown" id="profileDropdownMenu">
                         <div class="dropdown-header">
                             <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
                             <div class="dropdown-user-info">
@@ -74,7 +74,7 @@
                             <i class="ph ph-user"></i>
                             <span>Meu Perfil</span>
                         </a>
-                        <a href="configuracoes.html" class="dropdown-item">
+                        <a href="../HTML/configuracoes.html" class="dropdown-item">
                             <i class="ph ph-gear"></i>
                             <span>Configurações</span>
                         </a>

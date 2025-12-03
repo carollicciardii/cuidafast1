@@ -265,3 +265,8 @@
     font-weight: 600;
     color: var(--azul-escuro);
 }
+
+/* Dropdown do cuidador em bege (classe aplicada em perfilCuidador) */
+.caregiver-dropdown {
+  background-color: #f5efe0;
+}
