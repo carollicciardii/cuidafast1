@@ -201,12 +201,21 @@ export const googleLogin = async (req, res) => {
       return res.status(500).json({ message: 'Supabase não configurado' });
     }
 
+    // Normaliza tipo solicitado (se vier do front)
+    // cliente (default) ou cuidador
+    const requestedTipo =
+      tipo_usuario === 'cuidador'
+        ? 'cuidador'
+        : tipo_usuario === 'cliente'
+        ? 'cliente'
+        : null;
+
     // verifica se já existe no DB
     let user = await UsuarioModel.findByEmail(email);
 
     if (!user) {
       // Usuário não existe - cria novo
-      const tipo = tipo_usuario === 'cuidador' ? 'cuidador' : 'cliente';
+      const tipo = requestedTipo || 'cliente';
 
       // cria usuário base (inclui auth_uid se presente)
       const newId = await UsuarioModel.create({
@@ -252,7 +261,9 @@ export const googleLogin = async (req, res) => {
       }
 
       // Prepara dados para atualização (só atualiza o que faz sentido)
-      const tipoExistente = user.tipo || 'cliente'; // se não tiver tipo, assume cliente
+      // 1) Decide tipo final: se front enviou tipo_usuario explicitamente, ele prevalece.
+      //    Caso contrário, mantém o que já estiver no banco ou assume cliente.
+      const tipoExistente = user.tipo || requestedTipo || 'cliente';
       const updateData = {};
 
       // Atualiza nome apenas se não existir ou se o nome do Google for mais completo
@@ -265,9 +276,14 @@ export const googleLogin = async (req, res) => {
         updateData.photo_url = foto_url;
       }
 
-      // Garante que o tipo está definido (preserva o existente)
+      // Garante/ajusta o tipo:
+      // - Se não havia tipo ainda, usa tipoExistente.
+      // - Se o front mandou um tipo diferente (ex: usuário recriou conta como cliente),
+      //   atualiza para refletir essa escolha.
       if (!user.tipo && tipoExistente) {
         updateData.tipo = tipoExistente;
+      } else if (requestedTipo && requestedTipo !== user.tipo) {
+        updateData.tipo = requestedTipo;
       }
 
       // Atualiza apenas se houver mudanças
@@ -275,13 +291,15 @@ export const googleLogin = async (req, res) => {
         await UsuarioModel.update(user.usuario_id, updateData);
       }
 
-      // Garante que existe registro em ClienteModel ou CuidadorModel conforme o tipo
-      if (tipoExistente === 'cliente') {
+      // Garante que existe registro em ClienteModel ou CuidadorModel conforme o tipo final
+      const tipoFinal = updateData.tipo || tipoExistente;
+
+      if (tipoFinal === 'cliente') {
         const clienteExistente = await ClienteModel.getById(user.usuario_id);
         if (!clienteExistente) {
           await ClienteModel.create({ usuario_id: user.usuario_id });
         }
-      } else if (tipoExistente === 'cuidador') {
+      } else if (tipoFinal === 'cuidador') {
         const cuidadorExistente = await CuidadorModel.getById(user.usuario_id);
         if (!cuidadorExistente) {
           await CuidadorModel.create({ usuario_id: user.usuario_id });

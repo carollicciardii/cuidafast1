@@ -20,6 +20,7 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="../CSS/styles.css">
+    <link rel="stylesheet" href="../CSS/components.css">
     <link rel="stylesheet" href="../CSS/pages/perfilCliente.css">
 </head>
 <body class="caregiver-profile">
@@ -65,7 +66,7 @@
                             <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
                             <div class="dropdown-user-info">
                                 <h4 id="dropdownUserName">Cuidador</h4>
-                                <p>Cuidador Profissional</p>
+                                <p>Conta Profissional</p>
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
@@ -208,26 +209,6 @@
                 return;
             }
 
-            // Atualizar nome no header e dropdown
-            const headerUserName = document.getElementById('headerUserName');
-            const dropdownUserName = document.getElementById('dropdownUserName');
-            
-            const primeiroNome = userData.primeiroNome || userData.nome.split(' ')[0];
-            
-            if (headerUserName) headerUserName.textContent = primeiroNome;
-            if (dropdownUserName) dropdownUserName.textContent = userData.nome;
-            
-            // Atualizar foto do perfil (header e dropdown)
-            if (userData.photoURL) {
-                const headerAvatar = document.querySelector('.user-avatar-img');
-                const dropdownAvatar = document.querySelector('.dropdown-avatar');
-                
-                if (headerAvatar) headerAvatar.src = userData.photoURL;
-                if (dropdownAvatar) dropdownAvatar.src = userData.photoURL;
-                
-                console.log('[PerfilCuidador] Foto do perfil atualizada');
-            }
-            
             // Atualizar tipos de serviço
             if (userData.servicosOferecidos && userData.servicosOferecidos.length > 0) {
                 const tiposMap = {
