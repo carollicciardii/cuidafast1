@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - Aprovação de Cuidadores</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+  <link rel="stylesheet" href="../CSS/pages/cadastroComplementoCuidador.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+  <div class="container">
+    <main class="form-container" style="max-width: 720px;">
+      <div class="form-header">
+        <div class="header-top">
+          <h1>Painel do Administrador</h1>
+        </div>
+        <p>Analise os dados do cuidador e aprove ou reprove o cadastro.</p>
+      </div>
+
+      <section id="admin-status" class="info-box" style="margin-bottom: 1.5rem;">
+        <i class="ph ph-info"></i>
+        <p id="statusTexto">Carregando informações do cuidador...</p>
+      </section>
+
+      <section id="dados-cuidador" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
+        <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Dados do cuidador</h2>
+        <p><strong>Nome:</strong> <span id="campo-nome">-</span></p>
+        <p><strong>E-mail:</strong> <span id="campo-email">-</span></p>
+        <p><strong>Tipo de conta:</strong> <span id="campo-tipo">-</span></p>
+        <p><strong>Status de aprovação:</strong> <span id="campo-status-aprovacao">-</span></p>
+      </section>
+
+      <section id="dados-documentos" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;margin-top:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
+        <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Documentos enviados</h2>
+        <ul style="list-style: none; padding-left: 0;" id="lista-documentos">
+          <!-- preenchido via JS -->
+        </ul>
+      </section>
+
+      <div class="form-actions" style="margin-top:2rem;display:flex;gap:1rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button id="btn-reprovar" class="btn btn-secondary" type="button" style="background:#fff;color:#b3261e;border:1px solid #b3261e;">
+          <i class="ph ph-x-circle"></i>
+          Reprovar cadastro
+        </button>
+        <button id="btn-aprovar" class="btn btn-primary" type="button">
+          <i class="ph ph-check-circle"></i>
+          Aprovar cuidador
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <script src="../JS/admin-aprovacao-cuidador.js"></script>
+</body>
+</html>
+
+

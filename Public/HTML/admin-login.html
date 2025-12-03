@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Administrador - CuidaFast</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+  <link rel="stylesheet" href="../CSS/pages/cadastro.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+  <div class="container-cadastro" style="max-width:420px;margin:40px auto;">
+    <div class="back">
+      <a href="../index.html" class="back-link">
+        <i class="ph ph-arrow-circle-left"></i>
+      </a>
+    </div>
+
+    <h1>Login Administrador</h1>
+    <p style="margin-bottom:1.5rem;color:#666;">Acesso restrito à equipe interna.</p>
+
+    <form id="adminLoginForm">
+      <div class="input-group">
+        <input id="adminEmail" type="email" placeholder="E-mail do administrador" required />
+        <input id="adminPassword" type="password" placeholder="Senha" required />
+      </div>
+      <button type="submit" class="btn">Entrar</button>
+    </form>
+
+    <p id="adminLoginMsg" style="margin-top:1rem;font-size:0.9rem;color:#b3261e;display:none;"></p>
+  </div>
+
+  <script src="../JS/admin-login.js"></script>
+</body>
+</html>
+
+
