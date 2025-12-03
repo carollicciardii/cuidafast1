@@ -25,7 +25,8 @@ class CuidadorModel {
     const { usuario_id, tipos_cuidado, descricao, valor_hora, especialidades, experiencia, avaliacao, horarios_disponiveis, idiomas, formacao, local_trabalho, ganhos } = cuidador;
     
     const insertData = {
-      usuario_id
+      usuario_id,
+      avaliacao: 0  // Inicializa avaliação como 0 para contas novas
     };
 
     if (tipos_cuidado !== undefined) insertData.tipos_cuidado = tipos_cuidado;
@@ -33,7 +34,8 @@ class CuidadorModel {
     if (valor_hora !== undefined) insertData.valor_hora = valor_hora;
     if (especialidades !== undefined) insertData.especialidades = especialidades;
     if (experiencia !== undefined) insertData.experiencia = experiencia;
-    if (avaliacao !== undefined) insertData.avaliacao = avaliacao;
+    // Se avaliacao for explicitamente passada e diferente de null/undefined, usa ela (permite sobrescrever o padrão)
+    if (avaliacao !== undefined && avaliacao !== null) insertData.avaliacao = avaliacao;
     if (horarios_disponiveis !== undefined) insertData.horarios_disponiveis = horarios_disponiveis;
     if (idiomas !== undefined) insertData.idiomas = idiomas;
     if (formacao !== undefined) insertData.formacao = formacao;

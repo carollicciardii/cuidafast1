@@ -194,14 +194,10 @@
                 <span style="color: var(--azul-escuro);">Serviço</span>
                 <span style="color: var(--azul-escuro); font-weight: 600;">R$95<sup>00</sup></span>
               </div>
-              <div class="summary-item">
-                <span style="color: var(--azul-escuro);">Taxa</span>
-                <span style="color: var(--azul-escuro); font-weight: 600;">R$10<sup>90</sup></span>
-              </div>
               <hr style="border-color: var(--azul-escuro); opacity: 0.3; margin: 0.75rem 0;">
               <div class="summary-item total">
                 <span style="color: var(--azul-escuro); font-weight: 700;">Total Pago</span>
-                <span style="color: var(--azul-escuro); font-weight: 700; font-size: 1.1rem;">R$105<sup>90</sup></span>
+                <span style="color: var(--azul-escuro); font-weight: 700; font-size: 1.1rem;" id="totalPago">R$95<sup>00</sup></span>
               </div>
             </div>
           </div>
@@ -242,6 +238,20 @@
   <script src="../JS/homeCliente.js"></script>
   
   <script>
+      // Carregar valor do pagamento
+      document.addEventListener('DOMContentLoaded', function() {
+        const valor = parseFloat(localStorage.getItem('cuidafast_pagamento_valor') || '95.00');
+        const servicoSpan = document.querySelector('.summary-item span:last-child');
+        const totalSpan = document.getElementById('totalPago');
+        
+        if (servicoSpan) {
+          servicoSpan.textContent = `R$${valor.toFixed(2).replace('.', ',')}`;
+        }
+        if (totalSpan) {
+          totalSpan.innerHTML = `R$${valor.toFixed(2).replace('.', ',')}`;
+        }
+      });
+
       // Inicializar tooltips e popovers do Bootstrap
       var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

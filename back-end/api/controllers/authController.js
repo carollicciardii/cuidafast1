@@ -475,7 +475,9 @@ export const getUserData = async (req, res) => {
           horarios_disponiveis: cuidador.horarios_disponiveis,
           idiomas: cuidador.idiomas,
           formacao: cuidador.formacao,
-          local_trabalho: cuidador.local_trabalho
+          local_trabalho: cuidador.local_trabalho,
+          avaliacao: cuidador.avaliacao || 0,
+          numAvaliacoes: 0  // TODO: calcular a partir de consultas com avaliação
         };
       }
     }
@@ -486,7 +488,9 @@ export const getUserData = async (req, res) => {
         ...additionalData,
         endereco: Object.keys(endereco).length > 0 ? endereco : null,
         photoURL: user.photo_url || null,
-        primeiroNome: (user.nome || '').split(' ')[0]
+        primeiroNome: (user.nome || '').split(' ')[0],
+        dataCadastro: user.data_cadastro || user.dataCadastro || null,
+        data_cadastro: user.data_cadastro || user.dataCadastro || null
       }
     });
 

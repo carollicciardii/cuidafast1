@@ -77,6 +77,17 @@ document.addEventListener('DOMContentLoaded', function() {
         primeiroNome: data.user.nome.split(' ')[0]
       };
 
+      // Se for cuidador, só permite login se já foi aprovado no "painel admin"
+      if (userData.tipo === 'cuidador') {
+        const flagAprovado = localStorage.getItem('cuidafast_cuidador_aprovado');
+        if (flagAprovado !== 'true') {
+          alert('Seu cadastro de cuidador ainda está em análise ou foi reprovado. Aguarde a aprovação do administrador.');
+          // Garantir que não fique marcado como logado
+          localStorage.setItem('cuidafast_isLoggedIn', 'false');
+          return;
+        }
+      }
+
       // Salvar no localStorage
       localStorage.setItem('cuidafast_user', JSON.stringify(userData));
       localStorage.setItem('cuidafast_isLoggedIn', 'true');

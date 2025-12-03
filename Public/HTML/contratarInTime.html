@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   
   <!-- CSS -->
+  <link rel="stylesheet" href="../CSS/main.css">
   <link rel="stylesheet" href="../CSS/styles.css">
   <link rel="stylesheet" href="../CSS/header.css">
   <link rel="stylesheet" href="../CSS/pages/contratarInTime.css">
@@ -363,8 +364,8 @@
           localStorage.setItem('cuidafast_contratacao', JSON.stringify(contratacao));
           console.log('[ContratarInTime] Contratação salva:', contratacao);
           
-          // Redirecionar para página de pagamento
-          window.location.href = 'Pagamento.html';
+          // Redirecionar para página de escolha de método de pagamento (não mais Pagamento.html que pedia endereço)
+          window.location.href = 'pagamentoopcao.html';
         });
       }
     });

@@ -514,13 +514,15 @@
         dataEnvio: new Date().toISOString()
       };
       userData.cadastroCompleto = true;
-      // Opcional: marcar que está em análise para uso futuro
+      // Marcar que está em análise até o administrador aprovar
       userData.cadastroEmAnalise = true;
       localStorage.setItem('cuidafast_user', JSON.stringify(userData));
 
       // IMPORTANTE: "desloga" o usuário para não cair no auto-login da index
       localStorage.setItem('cuidafast_isLoggedIn', 'false');
       localStorage.removeItem('cuidafast_token');
+      // resetar flag de aprovação
+      localStorage.setItem('cuidafast_cuidador_aprovado', 'false');
 
       console.log('[EnviarDocumentos] Documentos enviados com sucesso (aguardando análise)', userData);
 

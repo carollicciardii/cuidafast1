@@ -8,8 +8,8 @@
  * import { buscarPerfilCuidador, buscarPerfilCliente, listarCuidadores } from './perfilAPI.js';
  */
 
-// Configuração da API
-const API_BASE_URL = 'http://localhost:3000/api/perfil';
+// Configuração da API (usar rota única de perfis)
+const API_BASE_URL = '/api/perfil/cuidadores';
 
 /**
  * Buscar perfil público de um cuidador
@@ -18,7 +18,7 @@ const API_BASE_URL = 'http://localhost:3000/api/perfil';
  */
 export async function buscarPerfilCuidador(cuidadorId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/cuidador/${cuidadorId}`);
+    const response = await fetch(`${API_BASE_URL}?action=cuidador&id=${encodeURIComponent(cuidadorId)}`);
     
     if (!response.ok) {
       if (response.status === 404) {
@@ -44,7 +44,7 @@ export async function buscarPerfilCuidador(cuidadorId) {
  */
 export async function buscarPerfilCliente(clienteId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/cliente/${clienteId}`);
+    const response = await fetch(`${API_BASE_URL}?action=cliente&id=${encodeURIComponent(clienteId)}`);
     
     if (!response.ok) {
       if (response.status === 404) {
@@ -71,7 +71,7 @@ export async function buscarPerfilCliente(clienteId) {
  */
 export async function buscarPerfilPorEmail(email, tipo) {
   try {
-    const url = `${API_BASE_URL}/buscar?email=${encodeURIComponent(email)}&tipo=${tipo}`;
+    const url = `${API_BASE_URL}?action=buscar&email=${encodeURIComponent(email)}&tipo=${tipo}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -100,11 +100,13 @@ export async function listarCuidadores(filtros = {}) {
   try {
     // Construir query params
     const params = new URLSearchParams();
+    // action padrão: cuidadores (lista)
+    params.append('action', 'cuidadores');
     if (filtros.especialidade) params.append('especialidade', filtros.especialidade);
     if (filtros.cidade) params.append('cidade', filtros.cidade);
     if (filtros.valorMax) params.append('valorMax', filtros.valorMax);
     
-    const url = `${API_BASE_URL}/cuidadores?${params.toString()}`;
+    const url = `${API_BASE_URL}?${params.toString()}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -129,7 +131,7 @@ export async function listarCuidadores(filtros = {}) {
  */
 export async function atualizarFotoPerfil(userId, fotoUrl) {
   try {
-    const response = await fetch(`${API_BASE_URL}/foto`, {
+    const response = await fetch(`${API_BASE_URL}?action=foto`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -188,6 +190,48 @@ export function preencherPerfilCuidador(perfil) {
   // Descrição/Bio
   const bioElement = document.getElementById('caregiverBio');
   if (bioElement) bioElement.textContent = perfil.descricao || 'Informações não disponíveis.';
+  
+  // Tipo de Serviço
+  const tipoServicoElement = document.getElementById('caregiverTipoServico');
+  if (tipoServicoElement) {
+    const tipos = perfil.tipos_cuidado;
+    if (tipos) {
+      const tiposArray = Array.isArray(tipos) ? tipos : [tipos];
+      const tiposMap = {
+        'idoso': 'Cuidador de Idosos',
+        'pet': 'Cuidador de Pet',
+        'crianca': 'Cuidador Infantil (Babá)',
+        'infantil': 'Cuidador Infantil (Babá)'
+      };
+      const tiposTexto = tiposArray.map(tipo => tiposMap[tipo] || tipo).join(', ');
+      tipoServicoElement.textContent = tiposTexto || '-';
+    } else {
+      tipoServicoElement.textContent = '-';
+    }
+  }
+  
+  // Áreas de Atuação
+  const areasAtuacaoElement = document.getElementById('caregiverAreasAtuacao');
+  if (areasAtuacaoElement) {
+    if (perfil.especialidades) {
+      const areas = Array.isArray(perfil.especialidades)
+        ? perfil.especialidades.join(', ')
+        : perfil.especialidades;
+      areasAtuacaoElement.textContent = areas || '-';
+    } else {
+      areasAtuacaoElement.textContent = '-';
+    }
+  }
+  
+  // Valor por Hora
+  const valorHoraElement = document.getElementById('caregiverValorHora');
+  if (valorHoraElement) {
+    if (perfil.valor_hora) {
+      valorHoraElement.textContent = `R$ ${parseFloat(perfil.valor_hora).toFixed(2).replace('.', ',')}/h`;
+    } else {
+      valorHoraElement.textContent = '-';
+    }
+  }
   
   // Email
   const emailElement = document.getElementById('caregiverEmail');

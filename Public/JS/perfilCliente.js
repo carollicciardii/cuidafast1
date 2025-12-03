@@ -14,15 +14,20 @@ async function initProfile() {
  * Carrega os dados do usuário no perfil
  */
 async function loadUserProfile() {
-    // Tenta buscar dados atualizados do banco primeiro
-    let userData = null;
-    if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
-        userData = await window.CuidaFastAuth.fetchUserDataFromDB();
-    }
+    // Primeiro pega do localStorage como base
+    let userData = getUserDataFromStorage();
     
-    // Se não conseguiu buscar do banco, usa localStorage
-    if (!userData) {
-        userData = getUserDataFromStorage();
+    // Tenta buscar dados atualizados do banco e mescla com os dados do localStorage
+    if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+        try {
+            const dbData = await window.CuidaFastAuth.fetchUserDataFromDB();
+            if (dbData) {
+                // Mescla dados do banco com os do localStorage (dados do banco têm prioridade)
+                userData = { ...userData, ...dbData };
+            }
+        } catch (error) {
+            console.warn('[PerfilCliente] Erro ao buscar dados do banco, usando localStorage:', error);
+        }
     }
     
     if (!userData) {
@@ -30,27 +35,56 @@ async function loadUserProfile() {
         return;
     }
 
-    // Atualizar nome principal
-    const profileName = document.querySelector('.profile-info h1');
+    // Atualizar nome principal - sempre exibe o nome se existir
+    const profileName = document.getElementById('profileUserName') || document.querySelector('.profile-info h1');
     if (profileName) {
-        profileName.textContent = userData.nome;
-    }
-
-    // Atualizar data de cadastro
-    const memberSince = document.querySelector('.member-since');
-    if (memberSince && userData.dataCadastro) {
-        const date = new Date(userData.dataCadastro);
-        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        const monthName = monthNames[date.getMonth()];
-        const year = date.getFullYear();
-        
-        if (userData.tipo === 'cuidador') {
-            memberSince.textContent = `Cuidador desde ${monthName} de ${year}`;
+        if (userData.nome) {
+            profileName.textContent = userData.nome;
         } else {
-            memberSince.textContent = `Membro desde ${monthName} de ${year}`;
+            console.warn('[PerfilCliente] Nome do usuário não encontrado nos dados');
         }
     }
+
+    // Atualizar data de cadastro - busca do banco de dados
+    const memberSince = document.querySelector('.member-since');
+    if (memberSince) {
+        // Tenta buscar a data de cadastro de diferentes fontes possíveis (prioriza data_cadastro do banco)
+        const dataCadastro = userData.data_cadastro || userData.dataCadastro || userData.created_at;
+        
+        console.log('[PerfilCliente] Dados do usuário:', { 
+            nome: userData.nome, 
+            data_cadastro: userData.data_cadastro, 
+            dataCadastro: userData.dataCadastro,
+            tipo: userData.tipo 
+        });
+        
+        if (dataCadastro) {
+            const date = new Date(dataCadastro);
+            // Verifica se a data é válida
+            if (!isNaN(date.getTime())) {
+                const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                const monthName = monthNames[date.getMonth()];
+                const year = date.getFullYear();
+                
+                if (userData.tipo === 'cuidador') {
+                    memberSince.textContent = `Cuidador desde ${monthName} de ${year}`;
+                } else {
+                    memberSince.textContent = `Membro desde ${monthName} de ${year}`;
+                }
+                console.log('[PerfilCliente] Data de cadastro exibida:', memberSince.textContent);
+            } else {
+                console.warn('[PerfilCliente] Data de cadastro inválida:', dataCadastro);
+                memberSince.textContent = userData.tipo === 'cuidador' ? 'Cuidador' : 'Membro';
+            }
+        } else {
+            console.warn('[PerfilCliente] Data de cadastro não encontrada. Dados disponíveis:', Object.keys(userData));
+            memberSince.textContent = userData.tipo === 'cuidador' ? 'Cuidador' : 'Membro';
+        }
+    }
+    
+    // Atualizar avaliações e estrelas
+    updateRatings(userData);
 
     // Atualizar informações pessoais
     updateInfoField('Nome Completo', userData.nome);
@@ -153,6 +187,75 @@ async function loadUserProfile() {
     }
 
     console.log('Perfil carregado para:', userData.nome);
+}
+
+/**
+ * Atualiza avaliações e estrelas no perfil
+ */
+function updateRatings(userData) {
+    const ratingContainer = document.querySelector('.profile-rating');
+    if (!ratingContainer) return;
+    
+    const starsContainer = ratingContainer.querySelector('.stars');
+    if (!starsContainer) return;
+    
+    // Busca avaliação dos dados do usuário (pode vir de diferentes fontes)
+    const avaliacao = userData.avaliacao || userData.rating || 0;
+    const numAvaliacoes = userData.numAvaliacoes || userData.num_avaliacoes || userData.totalAvaliacoes || 0;
+    
+    // Remove estrelas existentes
+    const existingStars = starsContainer.querySelectorAll('i');
+    existingStars.forEach(star => star.remove());
+    
+    // Remove texto de avaliação existente
+    const existingText = starsContainer.querySelector('span');
+    if (existingText) existingText.remove();
+    
+    // Se não houver avaliações, mostra zerado
+    if (numAvaliacoes === 0 || avaliacao === 0 || !avaliacao) {
+        // Cria estrelas vazias
+        for (let i = 0; i < 5; i++) {
+            const starIcon = document.createElement('i');
+            starIcon.className = 'ph ph-star';
+            starsContainer.appendChild(starIcon);
+        }
+        
+        // Adiciona texto de "Sem avaliações"
+        const textSpan = document.createElement('span');
+        textSpan.textContent = 'Sem avaliações';
+        starsContainer.appendChild(textSpan);
+    } else {
+        // Renderiza estrelas preenchidas conforme avaliação
+        const fullStars = Math.floor(avaliacao);
+        const hasHalfStar = (avaliacao % 1) >= 0.5;
+        
+        // Estrelas preenchidas
+        for (let i = 0; i < fullStars; i++) {
+            const starIcon = document.createElement('i');
+            starIcon.className = 'ph ph-star-fill';
+            starsContainer.appendChild(starIcon);
+        }
+        
+        // Meia estrela se necessário
+        if (hasHalfStar) {
+            const halfStarIcon = document.createElement('i');
+            halfStarIcon.className = 'ph ph-star-half';
+            starsContainer.appendChild(halfStarIcon);
+        }
+        
+        // Estrelas vazias
+        const emptyStars = 5 - Math.ceil(avaliacao);
+        for (let i = 0; i < emptyStars; i++) {
+            const starIcon = document.createElement('i');
+            starIcon.className = 'ph ph-star';
+            starsContainer.appendChild(starIcon);
+        }
+        
+        // Adiciona texto com avaliação
+        const textSpan = document.createElement('span');
+        textSpan.textContent = `${avaliacao.toFixed(1)} (${numAvaliacoes} avaliação${numAvaliacoes !== 1 ? 'ões' : ''})`;
+        starsContainer.appendChild(textSpan);
+    }
 }
 
 /**

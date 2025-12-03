@@ -69,7 +69,7 @@
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <a href="perfilCuidador.html" class="dropdown-item">
+                        <a href="#" class="dropdown-item" id="dropdownPerfilLink">
                             <i class="ph ph-user"></i>
                             <span>Meu Perfil</span>
                         </a>
@@ -77,9 +77,9 @@
                             <i class="ph ph-gear"></i>
                             <span>Configurações</span>
                         </a>
-                        <a href="#" class="dropdown-item">
+                        <a href="#" class="dropdown-item" id="dropdownHistoricoLink">
                             <i class="ph ph-clock"></i>
-                            <span>Histórico</span>
+                            <span id="dropdownHistoricoText">Histórico</span>
                         </a>
                         <a href="#" class="dropdown-item">
                             <i class="ph ph-question"></i>
@@ -252,7 +252,7 @@
             </div>
         </div>
 
-        <!-- Histórico de Pagamentos -->
+        <!-- Histórico de Pagamentos (somente quando houver pagamentos reais) -->
         <div class="row mb-5">
             <div class="col-12">
                 <div class="dashboard-card">
@@ -281,23 +281,17 @@
                                     </tr>
                                 </thead>
                                 <tbody id="pagamentosTableBody">
-                                    <tr>
-                                        <td>15/10/2024</td>
-                                        <td>Maria Silva</td>
-                                        <td>Cuidado de Idoso</td>
-                                        <td>R$ 250,00</td>
-                                        <td><span class="badge bg-danger">Cancelado</span></td>
-                                    </tr>
+                                    <!-- Linhas reais serão inseridas quando houver pagamentos -->
                                 </tbody>
                             </table>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div class="pagination-info">
-                                Mostrando <span id="paginaAtual">1-10</span> de <span id="totalRegistros">45</span> registros
+                            <div class="pagination-info" id="pagamentosEmptyState">
+                                Nenhum pagamento registrado ainda.
                             </div>
                             <nav>
-                                <ul class="pagination pagination-sm mb-0" id="paginacao">
-                                    <!-- Paginação será inserida via JavaScript -->
+                                <ul class="pagination pagination-sm mb-0 d-none" id="paginacao">
+                                    <!-- Paginação será inserida via JavaScript quando houver dados reais -->
                                 </ul>
                             </nav>
                         </div>

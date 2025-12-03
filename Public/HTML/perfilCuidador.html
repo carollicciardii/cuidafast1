@@ -71,7 +71,7 @@
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <a href="perfilCuidador.html" class="dropdown-item active">
+                        <a href="#" class="dropdown-item active" id="dropdownPerfilLink">
                             <i class="ph ph-user"></i>
                             <span>Meu Perfil</span>
                         </a>
@@ -79,9 +79,9 @@
                             <i class="ph ph-gear"></i>
                             <span>Configurações</span>
                         </a>
-                        <a href="#" class="dropdown-item">
+                        <a href="#" class="dropdown-item" id="dropdownHistoricoLink">
                             <i class="ph ph-clock"></i>
-                            <span>Histórico</span>
+                            <span id="dropdownHistoricoText">Histórico</span>
                         </a>
                         <a href="#" class="dropdown-item">
                             <i class="ph ph-question"></i>
@@ -112,16 +112,11 @@
                 </button>
             </div>
             <div class="profile-info">
-                <h1>Maria Santos</h1>
-                <p class="member-since">Cuidadora desde Março de 2023</p>
+                <h1 id="profileUserName">Carregando...</h1>
+                <p class="member-since">Carregando...</p>
                 <div class="profile-rating">
                     <div class="stars">
-                        <i class="ph ph-star-fill"></i>
-                        <i class="ph ph-star-fill"></i>
-                        <i class="ph ph-star-fill"></i>
-                        <i class="ph ph-star-fill"></i>
-                        <i class="ph ph-star-fill"></i>
-                        <span>5.0 (48 avaliações)</span>
+                        <!-- Estrelas e avaliações serão carregadas dinamicamente -->
                     </div>
                 </div>
             </div>
@@ -168,7 +163,7 @@
             <div class="profile-card">
                 <div class="card-header">
                     <h2>Especialidades</h2>
-                    <a href="PerfilCuidadorEditarEspecialidades.html" class="edit-link">
+                    <a href="PerfilCuidadorEditarInformações.html?tab=especialidades" class="edit-link">
                         <i class="ph ph-pencil-simple"></i> Editar
                     </a>
                 </div>
@@ -180,15 +175,11 @@
                         </div>
                         <div class="info-item">
                             <span class="info-label">Áreas de Atuação</span>
-                            <span class="info-value">Cuidados com Idosos, Cuidados Paliativos, Reabilitação</span>
+                            <span class="info-value" id="areasAtuacaoValue">-</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Experiência</span>
-                            <span class="info-value">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Disponibilidade</span>
-                            <span class="info-value">-</span>
+                            <span class="info-label">Valor por Hora</span>
+                            <span class="info-value" id="valorHoraValue">-</span>
                         </div>
                     </div>
                 </div>
@@ -201,13 +192,120 @@
     <script src="../JS/perfilCliente.js"></script>
     <script>
         // Carregar dados do cuidador logado
-        document.addEventListener('DOMContentLoaded', function() {
-            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+        document.addEventListener('DOMContentLoaded', async function() {
+            let userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
             
-            if (!userData || !userData.nome) {
+            if (!userData || (!userData.nome && !userData.usuario_id && !userData.id)) {
                 console.warn('[PerfilCuidador] Usuário não autenticado');
                 window.location.href = '../../index.html';
                 return;
+            }
+
+            // Tentar buscar dados atualizados do banco (mescla com localStorage)
+            if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+                try {
+                    const updatedData = await window.CuidaFastAuth.fetchUserDataFromDB();
+                    if (updatedData) {
+                        // Mescla dados do banco com os do localStorage (dados do banco têm prioridade)
+                        userData = { ...userData, ...updatedData };
+                    }
+                } catch (error) {
+                    console.warn('[PerfilCuidador] Erro ao buscar dados atualizados:', error);
+                }
+            }
+
+            // Atualizar nome - sempre exibe o nome se existir
+            const profileName = document.getElementById('profileUserName');
+            if (profileName) {
+                if (userData.nome) {
+                    profileName.textContent = userData.nome;
+                } else {
+                    console.warn('[PerfilCuidador] Nome do usuário não encontrado nos dados');
+                    profileName.textContent = 'Cuidador';
+                }
+            }
+
+            // Atualizar data de cadastro - busca do banco de dados
+            const memberSince = document.querySelector('.member-since');
+            if (memberSince) {
+                // Prioriza data_cadastro do banco de dados
+                const dataCadastro = userData.data_cadastro || userData.dataCadastro || userData.created_at;
+                
+                if (dataCadastro) {
+                    const date = new Date(dataCadastro);
+                    if (!isNaN(date.getTime())) {
+                        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                        const monthName = monthNames[date.getMonth()];
+                        const year = date.getFullYear();
+                        memberSince.textContent = `Cuidador desde ${monthName} de ${year}`;
+                    } else {
+                        console.warn('[PerfilCuidador] Data de cadastro inválida:', dataCadastro);
+                        memberSince.textContent = 'Cuidador';
+                    }
+                } else {
+                    console.warn('[PerfilCuidador] Data de cadastro não encontrada nos dados do usuário');
+                    memberSince.textContent = 'Cuidador';
+                }
+            }
+
+            // Atualizar avaliações e estrelas
+            const ratingContainer = document.querySelector('.profile-rating');
+            if (ratingContainer) {
+                const starsContainer = ratingContainer.querySelector('.stars');
+                if (starsContainer) {
+                    const avaliacao = userData.avaliacao || userData.rating || 0;
+                    const numAvaliacoes = userData.numAvaliacoes || userData.num_avaliacoes || userData.totalAvaliacoes || 0;
+                    
+                    // Limpar conteúdo existente
+                    starsContainer.innerHTML = '';
+                    
+                    // Se não houver avaliações, mostra zerado
+                    if (numAvaliacoes === 0 || avaliacao === 0 || !avaliacao) {
+                        // Cria estrelas vazias
+                        for (let i = 0; i < 5; i++) {
+                            const starIcon = document.createElement('i');
+                            starIcon.className = 'ph ph-star';
+                            starsContainer.appendChild(starIcon);
+                        }
+                        
+                        // Adiciona texto de "Sem avaliações"
+                        const textSpan = document.createElement('span');
+                        textSpan.textContent = 'Sem avaliações';
+                        starsContainer.appendChild(textSpan);
+                    } else {
+                        // Renderiza estrelas preenchidas conforme avaliação
+                        const fullStars = Math.floor(avaliacao);
+                        const hasHalfStar = (avaliacao % 1) >= 0.5;
+                        
+                        // Estrelas preenchidas
+                        for (let i = 0; i < fullStars; i++) {
+                            const starIcon = document.createElement('i');
+                            starIcon.className = 'ph ph-star-fill';
+                            starsContainer.appendChild(starIcon);
+                        }
+                        
+                        // Meia estrela se necessário
+                        if (hasHalfStar) {
+                            const halfStarIcon = document.createElement('i');
+                            halfStarIcon.className = 'ph ph-star-half';
+                            starsContainer.appendChild(halfStarIcon);
+                        }
+                        
+                        // Estrelas vazias
+                        const emptyStars = 5 - Math.ceil(avaliacao);
+                        for (let i = 0; i < emptyStars; i++) {
+                            const starIcon = document.createElement('i');
+                            starIcon.className = 'ph ph-star';
+                            starsContainer.appendChild(starIcon);
+                        }
+                        
+                        // Adiciona texto com avaliação
+                        const textSpan = document.createElement('span');
+                        textSpan.textContent = `${avaliacao.toFixed(1)} (${numAvaliacoes} avaliação${numAvaliacoes !== 1 ? 'ões' : ''})`;
+                        starsContainer.appendChild(textSpan);
+                    }
+                }
             }
 
             // Atualizar tipos de serviço
@@ -229,6 +327,30 @@
                 }
                 
                 console.log('[PerfilCuidador] Tipos de serviço:', tiposTexto);
+            }
+
+            // Atualizar áreas de atuação
+            const areasAtuacaoElement = document.getElementById('areasAtuacaoValue');
+            if (areasAtuacaoElement) {
+                if (userData.especialidades) {
+                    const areas = Array.isArray(userData.especialidades)
+                        ? userData.especialidades.join(', ')
+                        : userData.especialidades;
+                    areasAtuacaoElement.textContent = areas || '-';
+                } else {
+                    areasAtuacaoElement.textContent = '-';
+                }
+            }
+
+            // Atualizar valor por hora
+            const valorHoraElement = document.getElementById('valorHoraValue');
+            if (valorHoraElement) {
+                if (userData.valorHora || userData.valor_hora) {
+                    const valor = userData.valorHora || userData.valor_hora;
+                    valorHoraElement.textContent = `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}/h`;
+                } else {
+                    valorHoraElement.textContent = '-';
+                }
             }
             
             console.log('[PerfilCuidador] Cuidador carregado:', userData.nome);

@@ -373,8 +373,8 @@ function buscarConversas(termo) {
  */
 async function iniciarNovaConversa(destinatario_id) {
     try {
-        // Buscar dados do destinatário
-        const response = await fetch(`/api/perfil/cuidador/${destinatario_id}`);
+        // Buscar dados do destinatário via handler único de perfis
+        const response = await fetch(`/api/perfil/cuidadores?action=cuidador&id=${encodeURIComponent(destinatario_id)}`);
         if (!response.ok) throw new Error('Usuário não encontrado');
         
         const destinatario = await response.json();

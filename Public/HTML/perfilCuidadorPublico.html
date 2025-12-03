@@ -361,6 +361,26 @@
                 </div>
             </div>
 
+            <!-- Especialidades e Serviços -->
+            <div class="detail-card">
+                <h3>
+                    <i class="ph ph-heartbeat"></i>
+                    Especialidades
+                </h3>
+                <div class="detail-item">
+                    <div class="detail-label">Tipo de Serviço</div>
+                    <div class="detail-value" id="caregiverTipoServico">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Áreas de Atuação</div>
+                    <div class="detail-value" id="caregiverAreasAtuacao">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Valor por Hora</div>
+                    <div class="detail-value" id="caregiverValorHora" style="font-weight: 700; color: var(--azul-escuro);">-</div>
+                </div>
+            </div>
+
             <!-- Localização -->
             <div class="detail-card" id="locationCard" style="display: none;">
                 <h3>
@@ -540,6 +560,35 @@
                     document.getElementById('locationCard').style.display = 'block';
                     document.getElementById('caregiverCity').textContent = partes[0]?.trim() || '-';
                     document.getElementById('caregiverState').textContent = partes[1]?.trim() || '-';
+                }
+
+                // Preencher especialidades (já preenchido pela função preencherPerfilCuidador, mas garantir)
+                if (caregiver.tipos_cuidado) {
+                    const tiposArray = Array.isArray(caregiver.tipos_cuidado) ? caregiver.tipos_cuidado : [caregiver.tipos_cuidado];
+                    const tiposMap = {
+                        'idoso': 'Cuidador de Idosos',
+                        'pet': 'Cuidador de Pet',
+                        'crianca': 'Cuidador Infantil (Babá)',
+                        'infantil': 'Cuidador Infantil (Babá)'
+                    };
+                    const tiposTexto = tiposArray.map(tipo => tiposMap[tipo] || tipo).join(', ');
+                    const tipoServicoEl = document.getElementById('caregiverTipoServico');
+                    if (tipoServicoEl) tipoServicoEl.textContent = tiposTexto || '-';
+                }
+
+                if (caregiver.especialidades) {
+                    const areas = Array.isArray(caregiver.especialidades)
+                        ? caregiver.especialidades.join(', ')
+                        : caregiver.especialidades;
+                    const areasEl = document.getElementById('caregiverAreasAtuacao');
+                    if (areasEl) areasEl.textContent = areas || '-';
+                }
+
+                if (caregiver.valor_hora) {
+                    const valorEl = document.getElementById('caregiverValorHora');
+                    if (valorEl) {
+                        valorEl.textContent = `R$ ${parseFloat(caregiver.valor_hora).toFixed(2).replace('.', ',')}/h`;
+                    }
                 }
 
                 // Botão Contratar - Abrir modal
