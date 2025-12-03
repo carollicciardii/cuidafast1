@@ -23,12 +23,12 @@
     <link rel="stylesheet" href="../CSS/pages/perfilEditar.css">
 </head>
 <body class="edit-profile">
-    <!-- Header -->
+    <!-- Header (igual ao dashboard-cuidador) -->
     <header class="modern-header">
         <div class="header-container">
             <!-- Logo Section -->
             <div class="header-left">
-                <a href="dashboard-cuidador.html" class="logo-link">
+                <a href="dashboard-cuidador.html" class="logo-link" id="logoLink">
                     <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
                     <span class="logo-text"></span>
                 </a>
@@ -40,13 +40,13 @@
             <!-- User Actions -->
             <div class="header-right">
                 <!-- Notifications -->
-                <a href="notificacao.html" class="header-action-btn notification-btn">
+                <a href="notificacao.html" class="header-action-btn notification-btn" id="notificationBtn">
                     <i class="ph ph-bell"></i>
-                    <span class="notification-badge" style="display: none;">0</span>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
                 </a>
                 
                 <!-- Messages -->
-                <a href="mensagens.html" class="header-action-btn message-btn">
+                <a href="mensagens.html" class="header-action-btn message-btn" id="messageBtn">
                     <i class="ph ph-chat-circle"></i>
                     <span class="message-badge" style="display: none;">0</span>
                 </a>
@@ -65,21 +65,21 @@
                             <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
                             <div class="dropdown-user-info">
                                 <h4 id="dropdownUserName">Cuidador</h4>
-                                <p>Conta Profissional</p>
+                                <p id="dropdownUserType">Conta Profissional</p>
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <a href="perfilCuidador.html" class="dropdown-item">
+                        <a href="perfilCuidador.html" class="dropdown-item" id="dropdownPerfilLink">
                             <i class="ph ph-user"></i>
                             <span>Meu Perfil</span>
                         </a>
-                        <a href="configuracoes.html" class="dropdown-item">
+                        <a href="../HTML/configuracoes.html" class="dropdown-item">
                             <i class="ph ph-gear"></i>
                             <span>Configurações</span>
                         </a>
-                        <a href="#" class="dropdown-item">
+                        <a href="#" class="dropdown-item" id="dropdownHistoricoLink">
                             <i class="ph ph-clock"></i>
-                            <span>Histórico</span>
+                            <span id="dropdownHistoricoText">Histórico</span>
                         </a>
                         <a href="#" class="dropdown-item">
                             <i class="ph ph-question"></i>
