@@ -583,13 +583,12 @@ async function criarPagamentoPIX(valor, descricao = 'Pagamento de serviço', dad
             ...dadosAdicionais
         };
         
-        const response = await fetch(`${API_PAGAMENTO_BASE}/pix`, {
+        const response = await fetch(`${API_PAGAMENTO_BASE}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ valor, descricao, cliente, metodo: 'pix' })
+          });
+          
         
         const resultado = await response.json();
         
