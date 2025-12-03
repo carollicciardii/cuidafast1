@@ -38,19 +38,30 @@ async function loadUserProfile() {
 
     // Atualizar data de cadastro
     const memberSince = document.querySelector('.member-since');
-    if (memberSince && userData.dataCadastro) {
-        const date = new Date(userData.dataCadastro);
-        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        const monthName = monthNames[date.getMonth()];
-        const year = date.getFullYear();
+    if (memberSince) {
+        // Tenta buscar a data de cadastro de diferentes fontes possíveis
+        const dataCadastro = userData.dataCadastro || userData.data_cadastro || userData.created_at;
         
-        if (userData.tipo === 'cuidador') {
-            memberSince.textContent = `Cuidador desde ${monthName} de ${year}`;
-        } else {
-            memberSince.textContent = `Membro desde ${monthName} de ${year}`;
+        if (dataCadastro) {
+            const date = new Date(dataCadastro);
+            // Verifica se a data é válida
+            if (!isNaN(date.getTime())) {
+                const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                const monthName = monthNames[date.getMonth()];
+                const year = date.getFullYear();
+                
+                if (userData.tipo === 'cuidador') {
+                    memberSince.textContent = `Cuidador desde ${monthName} de ${year}`;
+                } else {
+                    memberSince.textContent = `Membro desde ${monthName} de ${year}`;
+                }
+            }
         }
     }
+    
+    // Atualizar avaliações e estrelas
+    updateRatings(userData);
 
     // Atualizar informações pessoais
     updateInfoField('Nome Completo', userData.nome);
@@ -153,6 +164,75 @@ async function loadUserProfile() {
     }
 
     console.log('Perfil carregado para:', userData.nome);
+}
+
+/**
+ * Atualiza avaliações e estrelas no perfil
+ */
+function updateRatings(userData) {
+    const ratingContainer = document.querySelector('.profile-rating');
+    if (!ratingContainer) return;
+    
+    const starsContainer = ratingContainer.querySelector('.stars');
+    if (!starsContainer) return;
+    
+    // Busca avaliação dos dados do usuário (pode vir de diferentes fontes)
+    const avaliacao = userData.avaliacao || userData.rating || 0;
+    const numAvaliacoes = userData.numAvaliacoes || userData.num_avaliacoes || userData.totalAvaliacoes || 0;
+    
+    // Remove estrelas existentes
+    const existingStars = starsContainer.querySelectorAll('i');
+    existingStars.forEach(star => star.remove());
+    
+    // Remove texto de avaliação existente
+    const existingText = starsContainer.querySelector('span');
+    if (existingText) existingText.remove();
+    
+    // Se não houver avaliações, mostra zerado
+    if (numAvaliacoes === 0 || avaliacao === 0 || !avaliacao) {
+        // Cria estrelas vazias
+        for (let i = 0; i < 5; i++) {
+            const starIcon = document.createElement('i');
+            starIcon.className = 'ph ph-star';
+            starsContainer.appendChild(starIcon);
+        }
+        
+        // Adiciona texto de "Sem avaliações"
+        const textSpan = document.createElement('span');
+        textSpan.textContent = 'Sem avaliações';
+        starsContainer.appendChild(textSpan);
+    } else {
+        // Renderiza estrelas preenchidas conforme avaliação
+        const fullStars = Math.floor(avaliacao);
+        const hasHalfStar = (avaliacao % 1) >= 0.5;
+        
+        // Estrelas preenchidas
+        for (let i = 0; i < fullStars; i++) {
+            const starIcon = document.createElement('i');
+            starIcon.className = 'ph ph-star-fill';
+            starsContainer.appendChild(starIcon);
+        }
+        
+        // Meia estrela se necessário
+        if (hasHalfStar) {
+            const halfStarIcon = document.createElement('i');
+            halfStarIcon.className = 'ph ph-star-half';
+            starsContainer.appendChild(halfStarIcon);
+        }
+        
+        // Estrelas vazias
+        const emptyStars = 5 - Math.ceil(avaliacao);
+        for (let i = 0; i < emptyStars; i++) {
+            const starIcon = document.createElement('i');
+            starIcon.className = 'ph ph-star';
+            starsContainer.appendChild(starIcon);
+        }
+        
+        // Adiciona texto com avaliação
+        const textSpan = document.createElement('span');
+        textSpan.textContent = `${avaliacao.toFixed(1)} (${numAvaliacoes} avaliação${numAvaliacoes !== 1 ? 'ões' : ''})`;
+        starsContainer.appendChild(textSpan);
+    }
 }
 
 /**

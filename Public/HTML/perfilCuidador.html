@@ -112,16 +112,11 @@
                 </button>
             </div>
             <div class="profile-info">
-                <h1>Maria Santos</h1>
-                <p class="member-since">Cuidadora desde Março de 2023</p>
+                <h1 id="profileUserName">Carregando...</h1>
+                <p class="member-since">Carregando...</p>
                 <div class="profile-rating">
                     <div class="stars">
-                        <i class="ph ph-star-fill"></i>
-                        <i class="ph ph-star-fill"></i>
-                        <i class="ph ph-star-fill"></i>
-                        <i class="ph ph-star-fill"></i>
-                        <i class="ph ph-star-fill"></i>
-                        <span>5.0 (48 avaliações)</span>
+                        <!-- Estrelas e avaliações serão carregadas dinamicamente -->
                     </div>
                 </div>
             </div>
@@ -201,13 +196,106 @@
     <script src="../JS/perfilCliente.js"></script>
     <script>
         // Carregar dados do cuidador logado
-        document.addEventListener('DOMContentLoaded', function() {
-            const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+        document.addEventListener('DOMContentLoaded', async function() {
+            let userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
             
             if (!userData || !userData.nome) {
                 console.warn('[PerfilCuidador] Usuário não autenticado');
                 window.location.href = '../../index.html';
                 return;
+            }
+
+            // Tentar buscar dados atualizados do banco
+            if (typeof window.CuidaFastAuth !== 'undefined' && window.CuidaFastAuth.fetchUserDataFromDB) {
+                try {
+                    const updatedData = await window.CuidaFastAuth.fetchUserDataFromDB();
+                    if (updatedData) {
+                        userData = { ...userData, ...updatedData };
+                    }
+                } catch (error) {
+                    console.warn('[PerfilCuidador] Erro ao buscar dados atualizados:', error);
+                }
+            }
+
+            // Atualizar nome
+            const profileName = document.getElementById('profileUserName');
+            if (profileName) {
+                profileName.textContent = userData.nome;
+            }
+
+            // Atualizar data de cadastro
+            const memberSince = document.querySelector('.member-since');
+            if (memberSince) {
+                const dataCadastro = userData.dataCadastro || userData.data_cadastro || userData.created_at;
+                if (dataCadastro) {
+                    const date = new Date(dataCadastro);
+                    if (!isNaN(date.getTime())) {
+                        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                        const monthName = monthNames[date.getMonth()];
+                        const year = date.getFullYear();
+                        memberSince.textContent = `Cuidador desde ${monthName} de ${year}`;
+                    }
+                }
+            }
+
+            // Atualizar avaliações e estrelas
+            const ratingContainer = document.querySelector('.profile-rating');
+            if (ratingContainer) {
+                const starsContainer = ratingContainer.querySelector('.stars');
+                if (starsContainer) {
+                    const avaliacao = userData.avaliacao || userData.rating || 0;
+                    const numAvaliacoes = userData.numAvaliacoes || userData.num_avaliacoes || userData.totalAvaliacoes || 0;
+                    
+                    // Limpar conteúdo existente
+                    starsContainer.innerHTML = '';
+                    
+                    // Se não houver avaliações, mostra zerado
+                    if (numAvaliacoes === 0 || avaliacao === 0 || !avaliacao) {
+                        // Cria estrelas vazias
+                        for (let i = 0; i < 5; i++) {
+                            const starIcon = document.createElement('i');
+                            starIcon.className = 'ph ph-star';
+                            starsContainer.appendChild(starIcon);
+                        }
+                        
+                        // Adiciona texto de "Sem avaliações"
+                        const textSpan = document.createElement('span');
+                        textSpan.textContent = 'Sem avaliações';
+                        starsContainer.appendChild(textSpan);
+                    } else {
+                        // Renderiza estrelas preenchidas conforme avaliação
+                        const fullStars = Math.floor(avaliacao);
+                        const hasHalfStar = (avaliacao % 1) >= 0.5;
+                        
+                        // Estrelas preenchidas
+                        for (let i = 0; i < fullStars; i++) {
+                            const starIcon = document.createElement('i');
+                            starIcon.className = 'ph ph-star-fill';
+                            starsContainer.appendChild(starIcon);
+                        }
+                        
+                        // Meia estrela se necessário
+                        if (hasHalfStar) {
+                            const halfStarIcon = document.createElement('i');
+                            halfStarIcon.className = 'ph ph-star-half';
+                            starsContainer.appendChild(halfStarIcon);
+                        }
+                        
+                        // Estrelas vazias
+                        const emptyStars = 5 - Math.ceil(avaliacao);
+                        for (let i = 0; i < emptyStars; i++) {
+                            const starIcon = document.createElement('i');
+                            starIcon.className = 'ph ph-star';
+                            starsContainer.appendChild(starIcon);
+                        }
+                        
+                        // Adiciona texto com avaliação
+                        const textSpan = document.createElement('span');
+                        textSpan.textContent = `${avaliacao.toFixed(1)} (${numAvaliacoes} avaliação${numAvaliacoes !== 1 ? 'ões' : ''})`;
+                        starsContainer.appendChild(textSpan);
+                    }
+                }
             }
 
             // Atualizar tipos de serviço
