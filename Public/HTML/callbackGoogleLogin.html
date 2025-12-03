@@ -93,14 +93,19 @@
         console.log('[callbackGoogleLogin] Resultado:', result);
 
         if (result.user) {
+          const resolvedId = result.user.usuario_id || result.user.id;
+          // Prioriza foto do backend, depois da payload (Google), por fim null
+          const finalPhotoUrl = result.user.photo_url || payload.foto_url || null;
+
           const backendUser = {
-            id: result.user.usuario_id || result.user.id,
-            usuario_id: result.user.usuario_id || result.user.id,
+            id: resolvedId,
+            usuario_id: resolvedId,
             nome: result.user.nome || payload.nome,
             email: user.email,
             telefone: result.user.telefone || null,
             tipo: result.user.tipo || 'cliente',
-            photoURL: payload.foto_url,
+            photoURL: finalPhotoUrl,
+            photo_url: finalPhotoUrl,
             primeiroNome: (result.user.nome || payload.nome).split(' ')[0],
             auth_uid: user.id,
             loginGoogle: true
