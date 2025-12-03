@@ -77,7 +77,9 @@ function initSidebar() {
   const mobileSearch = document.querySelector('.mobile-search-input');
   const container = document.querySelector('.containerzin') || document.getElementById('main-content') || document.body;
 
-  // Carregar cuidadores cadastrados do localStorage
+  const API_CAREGIVERS_ENDPOINT = '/api/perfil/cuidadores';
+
+  // Carregar cuidadores cadastrados do localStorage (fallback offline)
   function loadRegisteredCaregivers() {
     const usuarios = localStorage.getItem('cuidafast_usuarios');
     let cuidadores = [];
@@ -116,8 +118,8 @@ function initSidebar() {
     return cuidadores;
   }
 
-  // Carregar cuidadores reais do sistema
-  const REGISTERED_CAREGIVERS = loadRegisteredCaregivers();
+  // Carregar cuidadores reais do sistema (inicialmente via localStorage)
+  let REGISTERED_CAREGIVERS = loadRegisteredCaregivers();
 
   // Estado de paginação e filtro
   let caregiversState = {
@@ -127,13 +129,28 @@ function initSidebar() {
     filtered: null
   };
 
+  window.allCaregivers = caregiversState.items.slice();
+
   function renderCard(c) {
     const div = document.createElement('div');
     div.className = 'card';
+    const hasPhoto = Boolean(c.photoURL);
+    const priceTag = c.valorHora ? `<span class="price-badge"><i class="ph ph-currency-circle-dollar" aria-hidden="true"></i> ${formatCurrency(c.valorHora)}/h</span>` : '';
+    const specialtyTag = c.specialty ? `<span class="specialty-badge"><i class="ph ph-heartbeat" aria-hidden="true"></i> ${escapeHtml(c.specialty)}</span>` : '';
+    const locationTag = c.location ? `<div class="caregiver-location"><i class="ph ph-map-pin" aria-hidden="true"></i> ${escapeHtml(c.location)}</div>` : '';
     div.innerHTML = `
-      <div class="icon"><i class="ph ph-user" style="font-size:40px;color:#1B475D"></i></div>
+      <div class="icon">
+        ${hasPhoto 
+          ? `<img src="${escapeHtml(c.photoURL)}" alt="${escapeHtml(c.name)}" class="caregiver-photo" style="width:64px;height:64px;border-radius:12px;object-fit:cover;border:2px solid #E5EFF4;" />`
+          : `<i class="ph ph-user" style="font-size:40px;color:#1B475D"></i>`}
+      </div>
       <h3>${escapeHtml(c.name)}</h3>
+      <div class="caregiver-meta">
+        ${specialtyTag}
+        ${priceTag}
+      </div>
       <p>${escapeHtml(c.bio)}</p>
+      ${locationTag}
       <div style="display:flex;align-items:center;gap:8px;margin:12px 0;">
         <div style="display:flex;color:#FAD564">
           ${renderStars(c.rating)}
@@ -170,6 +187,12 @@ function initSidebar() {
     for(let i=0;i<full;i++) out += '<i class="ph-fill ph-star"></i>';
     for(let i=full;i<5;i++) out += '<i class="ph ph-star"></i>';
     return out;
+  }
+
+  function formatCurrency(value) {
+    const number = Number(value);
+    if (Number.isNaN(number)) return '';
+    return number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
   function escapeHtml(s){
@@ -232,14 +255,145 @@ function initSidebar() {
     }
   }
 
+  function updateCaregiverDataset(newItems) {
+    REGISTERED_CAREGIVERS = Array.isArray(newItems) ? newItems.slice() : [];
+    caregiversState.items = REGISTERED_CAREGIVERS.slice();
+    caregiversState.filtered = null;
+    caregiversState.page = 0;
+    window.allCaregivers = caregiversState.items.slice();
+  }
+
+  function ensureSpinnerStyles() {
+    if (document.getElementById('caregivers-spinner-style')) return;
+    const style = document.createElement('style');
+    style.id = 'caregivers-spinner-style';
+    style.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function showCaregiversLoadingState(message = 'Carregando cuidadores cadastrados...') {
+    ensureSpinnerStyles();
+    const containerEl = document.getElementById('caregiversContainer');
+    if (!containerEl) return;
+    containerEl.innerHTML = `
+      <div class="caregivers-loading" style="grid-column: 1 / -1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:48px 16px; text-align:center; background:#F7FBFD; border:1px solid #E5EFF4; border-radius:16px;">
+        <div class="spinner" style="width:32px;height:32px;border:4px solid #E5EFF4;border-top-color:#1B475D;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <p style="margin:0;color:#1B475D;font-weight:600;">${message}</p>
+        <small style="color:#5B7584;">Conectando com os cuidadores já cadastrados na plataforma</small>
+      </div>
+    `;
+  }
+
+  function showCaregiversErrorState(message = 'Não foi possível carregar os cuidadores agora.') {
+    const containerEl = document.getElementById('caregiversContainer');
+    if (!containerEl) return;
+    containerEl.innerHTML = `
+      <div class="no-results-box" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+        <div class="no-results-icon">
+          <i class="ph ph-warning-circle" style="font-size: 4rem; color: #F27457;"></i>
+        </div>
+        <div class="no-results-text">
+          <h3>${message}</h3>
+          <p>Tente novamente em instantes ou verifique sua conexão.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function mapApiCaregiver(profile) {
+    if (!profile) return null;
+    const specialties = Array.isArray(profile.especialidades)
+      ? profile.especialidades.join(', ')
+      : (profile.especialidades || profile.tipos_cuidado || 'Cuidador Geral');
+
+    const descricao = profile.descricao || `Profissional com experiência em ${specialties.toLowerCase()}.`;
+    const avaliacao = Number(profile.avaliacao);
+
+    return {
+      id: profile.id,
+      name: profile.nome || 'Cuidador',
+      specialty: specialties,
+      bio: descricao,
+      rating: !Number.isNaN(avaliacao) && avaliacao > 0 ? Number(avaliacao.toFixed(1)) : 4.8,
+      reviews: profile.total_avaliacoes || Math.floor(Math.random() * 120) + 20,
+      photoURL: profile.foto_perfil || null,
+      valorHora: profile.valor_hora || null,
+      location: profile.local_trabalho || ''
+    };
+  }
+
+  async function fetchCaregiversFromAPI(filters = {}) {
+    try {
+      ensureSpinnerStyles();
+      const query = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          query.append(key, value);
+        }
+      });
+
+      const loadBtn = document.getElementById('loadMoreBtn');
+      if (loadBtn) {
+        loadBtn.disabled = true;
+        loadBtn.className = 'btn outline disabled';
+        loadBtn.innerHTML = `<span class="spinner" style="width:16px;height:16px;border:2px solid #E5EFF4;border-top-color:#1B475D;border-radius:50%;display:inline-block;margin-right:8px;animation:spin 0.8s linear infinite;"></span>Atualizando cuidadores...`;
+        loadBtn.style.cursor = 'wait';
+      }
+
+      if (REGISTERED_CAREGIVERS.length === 0) {
+        showCaregiversLoadingState();
+      }
+
+      const endpoint = query.toString() ? `${API_CAREGIVERS_ENDPOINT}?${query.toString()}` : API_CAREGIVERS_ENDPOINT;
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar cuidadores (${response.status})`);
+      }
+
+      const data = await response.json();
+      const mapped = Array.isArray(data.cuidadores) ? data.cuidadores.map(mapApiCaregiver).filter(Boolean) : [];
+
+      if (mapped.length === 0) {
+        updateCaregiverDataset([]);
+        renderNextPage(true);
+        return;
+      }
+
+      updateCaregiverDataset(mapped);
+      renderNextPage(true);
+      showNotification('Cuidadores atualizados com sucesso!');
+    } catch (error) {
+      console.error('[HomeCliente] Erro ao carregar cuidadores reais:', error);
+      if (REGISTERED_CAREGIVERS.length === 0) {
+        showCaregiversErrorState();
+      }
+      showAlert('Não foi possível carregar os cuidadores agora. Tente novamente em instantes.', 'error');
+    } finally {
+      const loadBtn = document.getElementById('loadMoreBtn');
+      if (loadBtn) {
+        loadBtn.style.cursor = '';
+        loadBtn.disabled = false;
+        loadBtn.className = 'btn primary';
+        loadBtn.innerHTML = 'Carregar mais cuidadores <i class="ph ph-arrow-down" aria-hidden="true"></i>';
+      }
+    }
+  }
+
   // hook initial render
   document.addEventListener('DOMContentLoaded', function(){
-    // exibir primeira página
+    // exibir primeira página com dados locais (se houver)
     renderNextPage(true);
     const loadBtn = document.getElementById('loadMoreBtn');
     if(loadBtn){
       loadBtn.addEventListener('click', function(){ renderNextPage(false); });
     }
+    // buscar cuidadores reais do backend
+    fetchCaregiversFromAPI();
   });
 
   function filterCards(query){
