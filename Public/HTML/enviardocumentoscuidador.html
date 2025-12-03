@@ -105,7 +105,7 @@
     <h1>Cadastre-se</h1>
     <h2>Documentos Necessários</h2>
 
-    <!-- Upload RG/CNH -->
+    <!-- Upload RG/CNH (Documento de Identidade) -->
     <div class="upload-box">
       <p><strong>RG ou CNH</strong><br>Arquivo em PDF ou imagem (máx. 5MB)</p>
       <label class="upload-btn">
@@ -126,9 +126,30 @@
       </div>
     </div>
 
-    <!-- Upload Feedback -->
+    <!-- Upload Certificados de cursos e experiência comprovada -->
     <div class="upload-box">
-      <p><strong>Envie-nos feedback que já recebeu</strong><br>Avaliações de clientes (não obrigatório)</p>
+      <p><strong>Certificados de cursos e experiência comprovada</strong><br>Certificados, declarações ou documentos que comprovem sua formação e experiência (PDF ou imagem, máx. 5MB cada)</p>
+      <label class="upload-btn">
+        <i class="ph ph-upload"></i> Fazer Upload
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" id="certificados" multiple>
+      </label>
+      <div class="upload-status" id="status-certificados"></div>
+      <div class="file-preview" id="preview-certificados">
+        <img class="file-preview-image" id="img-certificados" style="display:none;">
+        <i class="ph ph-file-pdf file-preview-icon" id="icon-certificados"></i>
+        <div class="file-preview-info">
+          <div class="file-preview-name" id="name-certificados"></div>
+          <div class="file-preview-size" id="size-certificados"></div>
+        </div>
+        <button class="file-preview-remove" id="remove-certificados" type="button">
+          <i class="ph ph-x-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Upload Feedback (avaliações de clientes) -->
+    <div class="upload-box">
+      <p><strong>Feedbacks / Avaliações de clientes</strong><br>Avaliações, prints ou cartas de recomendação de clientes (PDF ou imagem, máx. 5MB cada)</p>
       <label class="upload-btn">
         <i class="ph ph-upload"></i> Fazer Upload
         <input type="file" accept=".pdf,.jpg,.jpeg,.png" id="feedback" multiple>
@@ -142,6 +163,69 @@
           <div class="file-preview-size" id="size-feedback"></div>
         </div>
         <button class="file-preview-remove" id="remove-feedback" type="button">
+          <i class="ph ph-x-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Certidão de antecedentes criminais -->
+    <div class="upload-box">
+      <p><strong>Certidão de antecedentes criminais</strong><br>Documento atualizado emitido por órgão oficial (PDF ou imagem, máx. 5MB)</p>
+      <label class="upload-btn">
+        <i class="ph ph-upload"></i> Fazer Upload
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" id="antecedentes">
+      </label>
+      <div class="upload-status" id="status-antecedentes"></div>
+      <div class="file-preview" id="preview-antecedentes">
+        <img class="file-preview-image" id="img-antecedentes" style="display:none;">
+        <i class="ph ph-file-pdf file-preview-icon" id="icon-antecedentes"></i>
+        <div class="file-preview-info">
+          <div class="file-preview-name" id="name-antecedentes"></div>
+          <div class="file-preview-size" id="size-antecedentes"></div>
+        </div>
+        <button class="file-preview-remove" id="remove-antecedentes" type="button">
+          <i class="ph ph-x-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Foto atual -->
+    <div class="upload-box">
+      <p><strong>Foto atual</strong><br>Foto recente, nítida, de rosto (imagem, máx. 5MB)</p>
+      <label class="upload-btn">
+        <i class="ph ph-upload"></i> Fazer Upload
+        <input type="file" accept=".jpg,.jpeg,.png" id="foto-atual">
+      </label>
+      <div class="upload-status" id="status-foto-atual"></div>
+      <div class="file-preview" id="preview-foto-atual">
+        <img class="file-preview-image" id="img-foto-atual" style="display:none;">
+        <i class="ph ph-user-circle file-preview-icon" id="icon-foto-atual"></i>
+        <div class="file-preview-info">
+          <div class="file-preview-name" id="name-foto-atual"></div>
+          <div class="file-preview-size" id="size-foto-atual"></div>
+        </div>
+        <button class="file-preview-remove" id="remove-foto-atual" type="button">
+          <i class="ph ph-x-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Registro de classe (opcional) -->
+    <div class="upload-box">
+      <p><strong>Registro de classe (opcional)</strong><br>CRP, COREN, CRM, CRO ou outro conselho de classe – apenas para profissões regulamentadas (PDF ou imagem, máx. 5MB)</p>
+      <label class="upload-btn">
+        <i class="ph ph-upload"></i> Fazer Upload
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" id="registro-classe">
+      </label>
+      <div class="upload-status" id="status-registro-classe"></div>
+      <div class="file-preview" id="preview-registro-classe">
+        <img class="file-preview-image" id="img-registro-classe" style="display:none;">
+        <i class="ph ph-file-pdf file-preview-icon" id="icon-registro-classe"></i>
+        <div class="file-preview-info">
+          <div class="file-preview-name" id="name-registro-classe"></div>
+          <div class="file-preview-size" id="size-registro-classe"></div>
+        </div>
+        <button class="file-preview-remove" id="remove-registro-classe" type="button">
           <i class="ph ph-x-circle"></i>
         </button>
       </div>
@@ -250,51 +334,188 @@
       document.getElementById('status-rg').className = 'upload-status';
     });
 
-    // Upload Feedback
-    const feedbackInput = document.getElementById('feedback');
-    let feedbackFile = null;
+    // Upload Certificados (múltiplos – pelo menos 1 obrigatório)
+    const certificadosInput = document.getElementById('certificados');
+    let certificadosFiles = [];
     
-    feedbackInput.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const success = showFilePreview(file, 'preview-feedback', 'img-feedback', 'icon-feedback', 'name-feedback', 'size-feedback', 'status-feedback');
+    certificadosInput.addEventListener('change', function(e) {
+      const files = Array.from(e.target.files || []);
+      if (files.length > 0) {
+        const first = files[0];
+        const success = showFilePreview(first, 'preview-certificados', 'img-certificados', 'icon-certificados', 'name-certificados', 'size-certificados', 'status-certificados');
         if (success) {
-          feedbackFile = file;
+          certificadosFiles = files;
         } else {
-          feedbackInput.value = '';
+          certificadosInput.value = '';
+          certificadosFiles = [];
         }
       }
     });
 
-    // Remover Feedback
+    document.getElementById('remove-certificados').addEventListener('click', function() {
+      certificadosInput.value = '';
+      certificadosFiles = [];
+      document.getElementById('preview-certificados').classList.remove('show');
+      document.getElementById('status-certificados').className = 'upload-status';
+    });
+
+    // Upload Feedback (múltiplos – obrigatório)
+    const feedbackInput = document.getElementById('feedback');
+    let feedbackFiles = [];
+    
+    feedbackInput.addEventListener('change', function(e) {
+      const files = Array.from(e.target.files || []);
+      if (files.length > 0) {
+        const first = files[0];
+        const success = showFilePreview(first, 'preview-feedback', 'img-feedback', 'icon-feedback', 'name-feedback', 'size-feedback', 'status-feedback');
+        if (success) {
+          feedbackFiles = files;
+        } else {
+          feedbackInput.value = '';
+          feedbackFiles = [];
+        }
+      }
+    });
+
     document.getElementById('remove-feedback').addEventListener('click', function() {
       feedbackInput.value = '';
-      feedbackFile = null;
+      feedbackFiles = [];
       document.getElementById('preview-feedback').classList.remove('show');
       document.getElementById('status-feedback').className = 'upload-status';
     });
 
+    // Upload Certidão de antecedentes criminais
+    const antecedentesInput = document.getElementById('antecedentes');
+    let antecedentesFile = null;
+
+    antecedentesInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const success = showFilePreview(file, 'preview-antecedentes', 'img-antecedentes', 'icon-antecedentes', 'name-antecedentes', 'size-antecedentes', 'status-antecedentes');
+        if (success) {
+          antecedentesFile = file;
+        } else {
+          antecedentesInput.value = '';
+          antecedentesFile = null;
+        }
+      }
+    });
+
+    document.getElementById('remove-antecedentes').addEventListener('click', function() {
+      antecedentesInput.value = '';
+      antecedentesFile = null;
+      document.getElementById('preview-antecedentes').classList.remove('show');
+      document.getElementById('status-antecedentes').className = 'upload-status';
+    });
+
+    // Upload Foto atual
+    const fotoAtualInput = document.getElementById('foto-atual');
+    let fotoAtualFile = null;
+
+    fotoAtualInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const success = showFilePreview(file, 'preview-foto-atual', 'img-foto-atual', 'icon-foto-atual', 'name-foto-atual', 'size-foto-atual', 'status-foto-atual');
+        if (success) {
+          fotoAtualFile = file;
+        } else {
+          fotoAtualInput.value = '';
+          fotoAtualFile = null;
+        }
+      }
+    });
+
+    document.getElementById('remove-foto-atual').addEventListener('click', function() {
+      fotoAtualInput.value = '';
+      fotoAtualFile = null;
+      document.getElementById('preview-foto-atual').classList.remove('show');
+      document.getElementById('status-foto-atual').className = 'upload-status';
+    });
+
+    // Upload Registro de classe (opcional)
+    const registroClasseInput = document.getElementById('registro-classe');
+    let registroClasseFile = null;
+
+    registroClasseInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const success = showFilePreview(file, 'preview-registro-classe', 'img-registro-classe', 'icon-registro-classe', 'name-registro-classe', 'size-registro-classe', 'status-registro-classe');
+        if (success) {
+          registroClasseFile = file;
+        } else {
+          registroClasseInput.value = '';
+          registroClasseFile = null;
+        }
+      }
+    });
+
+    document.getElementById('remove-registro-classe').addEventListener('click', function() {
+      registroClasseInput.value = '';
+      registroClasseFile = null;
+      document.getElementById('preview-registro-classe').classList.remove('show');
+      document.getElementById('status-registro-classe').className = 'upload-status';
+    });
+
     // Finalizar cadastro
     document.getElementById('btn-finalizar').addEventListener('click', function() {
+      let hasError = false;
+
+      // RG obrigatório
       if (!rgFile) {
         console.warn('[EnviarDocumentos] RG/CNH não enviado');
-        // Destacar campo obrigatório
-        document.querySelector('.upload-box').style.borderColor = '#f44336';
+        document.querySelector('#rg-cnh').closest('.upload-box').style.borderColor = '#f44336';
+        hasError = true;
+      }
+
+      // Certificados obrigatórios
+      if (certificadosFiles.length === 0) {
+        console.warn('[EnviarDocumentos] Certificados não enviados');
+        document.querySelector('#certificados').closest('.upload-box').style.borderColor = '#f44336';
+        hasError = true;
+      }
+
+      // Feedbacks obrigatórios
+      if (feedbackFiles.length === 0) {
+        console.warn('[EnviarDocumentos] Feedbacks não enviados');
+        document.querySelector('#feedback').closest('.upload-box').style.borderColor = '#f44336';
+        hasError = true;
+      }
+
+      // Certidão de antecedentes obrigatória
+      if (!antecedentesFile) {
+        console.warn('[EnviarDocumentos] Certidão de antecedentes não enviada');
+        document.querySelector('#antecedentes').closest('.upload-box').style.borderColor = '#f44336';
+        hasError = true;
+      }
+
+      // Foto atual obrigatória
+      if (!fotoAtualFile) {
+        console.warn('[EnviarDocumentos] Foto atual não enviada');
+        document.querySelector('#foto-atual').closest('.upload-box').style.borderColor = '#f44336';
+        hasError = true;
+      }
+
+      if (hasError) {
         setTimeout(() => {
-          document.querySelector('.upload-box').style.borderColor = '';
+          document.querySelectorAll('.upload-box').forEach(box => box.style.borderColor = '');
         }, 2000);
         return;
       }
       
-      // Salvar informação dos documentos no localStorage
+      // Salvar informação dos documentos no localStorage (somente metadados)
       const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
       userData.documentos = {
-        rgCnh: rgFile.name,
-        feedback: feedbackFile ? feedbackFile.name : null,
+        rgCnh: rgFile ? rgFile.name : null,
+        certificados: certificadosFiles.map(f => f.name),
+        feedbacks: feedbackFiles.map(f => f.name),
+        antecedentesCriminais: antecedentesFile ? antecedentesFile.name : null,
+        fotoAtual: fotoAtualFile ? fotoAtualFile.name : null,
+        registroClasse: registroClasseFile ? registroClasseFile.name : null,
         dataEnvio: new Date().toISOString()
       };
       userData.cadastroCompleto = true;
       localStorage.setItem('cuidafast_user', JSON.stringify(userData));
+
       console.log('[EnviarDocumentos] Documentos enviados com sucesso');
 
 // Mostra popup
@@ -304,6 +525,7 @@ document.getElementById('popup-confirmacao').style.display = 'flex';
 setTimeout(() => {
   window.location.href = '../Public/index.html';
 }, 3000);
+
 
     });
   </script>

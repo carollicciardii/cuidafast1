@@ -77,10 +77,8 @@ function initSidebar() {
   const mobileSearch = document.querySelector('.mobile-search-input');
   const container = document.querySelector('.containerzin') || document.getElementById('main-content') || document.body;
 
-  const API_CAREGIVERS_ENDPOINT = '/api/perfil/cuidadores';
-
-  // Carregar cuidadores cadastrados do localStorage (fallback offline)
-  function loadRegisteredCaregivers() {
+  // Carregar cuidadores cadastrados do localStorage (fallback)
+  function loadRegisteredCaregiversFromLocalStorage() {
     const usuarios = localStorage.getItem('cuidafast_usuarios');
     let cuidadores = [];
     
@@ -102,28 +100,21 @@ function initSidebar() {
             photoURL: c.photoURL || null
           }));
         
-        console.log(`[HomeCliente] ${cuidadores.length} cuidadores cadastrados carregados`);
+        console.log(`[HomeCliente] ${cuidadores.length} cuidadores cadastrados carregados do localStorage`);
       } catch (error) {
-        console.error('[HomeCliente] Erro ao carregar cuidadores:', error);
+        console.error('[HomeCliente] Erro ao carregar cuidadores do localStorage:', error);
       }
-    }
-    
-    // Se não houver cuidadores cadastrados, mostrar mensagem
-    if (cuidadores.length === 0) {
-      console.warn('[HomeCliente] Nenhum cuidador cadastrado encontrado');
-      // Retornar array vazio para mostrar mensagem apropriada
-      return [];
     }
     
     return cuidadores;
   }
 
-  // Carregar cuidadores reais do sistema (inicialmente via localStorage)
-  let REGISTERED_CAREGIVERS = loadRegisteredCaregivers();
+  // Dataset inicial (pode ser sobrescrito depois pela API de perfis)
+  const REGISTERED_CAREGIVERS = loadRegisteredCaregiversFromLocalStorage();
 
   // Estado de paginação e filtro
   let caregiversState = {
-    items: REGISTERED_CAREGIVERS.slice(), // cópia
+    items: REGISTERED_CAREGIVERS.slice(), // cópia inicial
     page: 0,
     perPage: 4,
     filtered: null
@@ -255,139 +246,76 @@ function initSidebar() {
     }
   }
 
-  function updateCaregiverDataset(newItems) {
-    REGISTERED_CAREGIVERS = Array.isArray(newItems) ? newItems.slice() : [];
-    caregiversState.items = REGISTERED_CAREGIVERS.slice();
-    caregiversState.filtered = null;
-    caregiversState.page = 0;
-    window.allCaregivers = caregiversState.items.slice();
-  }
-
-  function ensureSpinnerStyles() {
-    if (document.getElementById('caregivers-spinner-style')) return;
-    const style = document.createElement('style');
-    style.id = 'caregivers-spinner-style';
-    style.textContent = `
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function showCaregiversLoadingState(message = 'Carregando cuidadores cadastrados...') {
-    ensureSpinnerStyles();
-    const containerEl = document.getElementById('caregiversContainer');
-    if (!containerEl) return;
-    containerEl.innerHTML = `
-      <div class="caregivers-loading" style="grid-column: 1 / -1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:48px 16px; text-align:center; background:#F7FBFD; border:1px solid #E5EFF4; border-radius:16px;">
-        <div class="spinner" style="width:32px;height:32px;border:4px solid #E5EFF4;border-top-color:#1B475D;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-        <p style="margin:0;color:#1B475D;font-weight:600;">${message}</p>
-        <small style="color:#5B7584;">Conectando com os cuidadores já cadastrados na plataforma</small>
-      </div>
-    `;
-  }
-
-  function showCaregiversErrorState(message = 'Não foi possível carregar os cuidadores agora.') {
-    const containerEl = document.getElementById('caregiversContainer');
-    if (!containerEl) return;
-    containerEl.innerHTML = `
-      <div class="no-results-box" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
-        <div class="no-results-icon">
-          <i class="ph ph-warning-circle" style="font-size: 4rem; color: #F27457;"></i>
-        </div>
-        <div class="no-results-text">
-          <h3>${message}</h3>
-          <p>Tente novamente em instantes ou verifique sua conexão.</p>
-        </div>
-      </div>
-    `;
-  }
-
-  function mapApiCaregiver(profile) {
-    if (!profile) return null;
-    const specialties = Array.isArray(profile.especialidades)
-      ? profile.especialidades.join(', ')
-      : (profile.especialidades || profile.tipos_cuidado || 'Cuidador Geral');
-
-    const descricao = profile.descricao || `Profissional com experiência em ${specialties.toLowerCase()}.`;
-    const avaliacao = Number(profile.avaliacao);
-
-    return {
-      id: profile.id,
-      name: profile.nome || 'Cuidador',
-      specialty: specialties,
-      bio: descricao,
-      rating: !Number.isNaN(avaliacao) && avaliacao > 0 ? Number(avaliacao.toFixed(1)) : 4.8,
-      reviews: profile.total_avaliacoes || Math.floor(Math.random() * 120) + 20,
-      photoURL: profile.foto_perfil || null,
-      valorHora: profile.valor_hora || null,
-      location: profile.local_trabalho || ''
-    };
-  }
-
-  async function fetchCaregiversFromAPI(filters = {}) {
+  // Buscar cuidadores reais da API de perfis e atualizar os cards
+  async function fetchCaregiversFromAPI() {
     try {
-      ensureSpinnerStyles();
-      const query = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          query.append(key, value);
-        }
-      });
+      const API_BASE_URL = (window.API_CONFIG && window.API_CONFIG.PERFIL) || '/api/perfil';
+      const url = `${API_BASE_URL}/cuidadores`;
+      console.log('[HomeCliente] Buscando cuidadores reais em', url);
 
-      const loadBtn = document.getElementById('loadMoreBtn');
-      if (loadBtn) {
-        loadBtn.disabled = true;
-        loadBtn.className = 'btn outline disabled';
-        loadBtn.innerHTML = `<span class="spinner" style="width:16px;height:16px;border:2px solid #E5EFF4;border-top-color:#1B475D;border-radius:50%;display:inline-block;margin-right:8px;animation:spin 0.8s linear infinite;"></span>Atualizando cuidadores...`;
-        loadBtn.style.cursor = 'wait';
-      }
-
-      if (REGISTERED_CAREGIVERS.length === 0) {
-        showCaregiversLoadingState();
-      }
-
-      const endpoint = query.toString() ? `${API_CAREGIVERS_ENDPOINT}?${query.toString()}` : API_CAREGIVERS_ENDPOINT;
-      const response = await fetch(endpoint);
+      const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`Erro ao buscar cuidadores (${response.status})`);
-      }
-
-      const data = await response.json();
-      const mapped = Array.isArray(data.cuidadores) ? data.cuidadores.map(mapApiCaregiver).filter(Boolean) : [];
-
-      if (mapped.length === 0) {
-        updateCaregiverDataset([]);
-        renderNextPage(true);
+        console.warn('[HomeCliente] Falha ao buscar cuidadores da API:', response.status);
         return;
       }
 
-      updateCaregiverDataset(mapped);
+      const data = await response.json();
+      const apiCuidadores = Array.isArray(data.cuidadores) ? data.cuidadores : [];
+
+      if (apiCuidadores.length === 0) {
+        console.warn('[HomeCliente] Nenhum cuidador retornado pela API');
+        return;
+      }
+
+      const mapped = apiCuidadores.map(c => ({
+        name: c.nome || 'Cuidador',
+        specialty: (c.especialidades && Array.isArray(c.especialidades)
+          ? c.especialidades.join(', ')
+          : c.tipos_cuidado || 'Cuidador Geral'),
+        bio: c.descricao || 'Cuidador profissional disponível na sua região.',
+        rating: c.avaliacao || (4.5 + Math.random() * 0.5),
+        reviews: Math.floor(Math.random() * 100) + 10,
+        email: c.email,
+        telefone: c.telefone,
+        endereco: c.local_trabalho,
+        photoURL: c.foto_perfil || null
+      }));
+
+      // Atualiza estado e re-renderiza a partir da primeira página
+      caregiversState.items = mapped;
+      caregiversState.filtered = null;
+      caregiversState.page = 0;
+
+      // Persistir no localStorage para outros fluxos que usam essa lista
+      try {
+        const usuariosLocal = mapped.map(c => ({
+          nome: c.name,
+          tipo: 'cuidador',
+          especialidade: c.specialty,
+          bio: c.bio,
+          email: c.email,
+          telefone: c.telefone,
+          endereco: c.endereco,
+          photoURL: c.photoURL
+        }));
+        localStorage.setItem('cuidafast_usuarios', JSON.stringify(usuariosLocal));
+      } catch (e) {
+        console.warn('[HomeCliente] Não foi possível salvar cuidadores no localStorage:', e);
+      }
+
       renderNextPage(true);
-      showNotification('Cuidadores atualizados com sucesso!');
+      console.log(`[HomeCliente] ${mapped.length} cuidadores reais carregados da API`);
     } catch (error) {
-      console.error('[HomeCliente] Erro ao carregar cuidadores reais:', error);
-      if (REGISTERED_CAREGIVERS.length === 0) {
-        showCaregiversErrorState();
-      }
-      showAlert('Não foi possível carregar os cuidadores agora. Tente novamente em instantes.', 'error');
-    } finally {
-      const loadBtn = document.getElementById('loadMoreBtn');
-      if (loadBtn) {
-        loadBtn.style.cursor = '';
-        loadBtn.disabled = false;
-        loadBtn.className = 'btn primary';
-        loadBtn.innerHTML = 'Carregar mais cuidadores <i class="ph ph-arrow-down" aria-hidden="true"></i>';
-      }
+      console.error('[HomeCliente] Erro ao buscar cuidadores da API:', error);
     }
   }
 
   // hook initial render
   document.addEventListener('DOMContentLoaded', function(){
-    // exibir primeira página com dados locais (se houver)
+    // exibir primeira página (pode vir do localStorage)
     renderNextPage(true);
+    // em paralelo, tentar carregar cuidadores reais do backend
+    fetchCaregiversFromAPI();
     const loadBtn = document.getElementById('loadMoreBtn');
     if(loadBtn){
       loadBtn.addEventListener('click', function(){ renderNextPage(false); });
@@ -883,7 +811,6 @@ window.CuidaFastClient = {
       this.initSidebar();
       await this.loadUserData();
       this.initLoadMore();
-      this.initLogout();
       console.log('HomeCliente inicializada');
     },
 
