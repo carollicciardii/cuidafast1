@@ -1,4 +1,3 @@
-// services/mercadopago.service.js
 import axios from "axios";
 
 const MERCADOPAGO_BASE_URL = process.env.MERCADOPAGO_BASE_URL || "https://api.mercadopago.com";

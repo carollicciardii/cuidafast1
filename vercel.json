@@ -1,4 +1,3 @@
-{
   "version": 2,
   "routes": [
     { "src": "/api/auth/complete-profile", "dest": "/api/auth?path=complete-profile" },

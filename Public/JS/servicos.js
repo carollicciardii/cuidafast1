@@ -238,8 +238,15 @@
   async function fetchCuidadorLocationByAuthUidOrUsuario(params = {}) {
     // parâmetros: { auth_uid, usuario_id }
     let url = '/api/localizacao/cuidador';
-    if (params.auth_uid) url += `?auth_uid=${encodeURIComponent(params.auth_uid)}`;
-    else if (params.usuario_id) url += `?usuario_id=${encodeURIComponent(params.usuario_id)}`;
+    const queryParams = new URLSearchParams();
+    if (params.auth_uid) queryParams.append('auth_uid', params.auth_uid);
+    else if (params.usuario_id) queryParams.append('usuario_id', params.usuario_id);
+
+    if (queryParams.toString()) {
+      url += `?${queryParams.toString()}`;
+    } else {
+      return null; // Não há parâmetros para buscar
+    }
 
     const r = await fetchJson(url);
     if (!r.ok) return null;

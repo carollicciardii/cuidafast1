@@ -2,6 +2,7 @@
 import mercadopagoService from "../services/mercadoPagoService.js";
 import PagamentoModel from "../models/PagamentoModel.js"; // assume existe
 import supabase from "../models/db.js"; // supabase client (mesma fonte do PagamentoModel)
+import { sendNotificationToUser } from "../services/notificationServices.js";
 
 // Busca dados completos do cliente (cliente + usuario)
 // retorna { nome, email, telefone, cpf, endereco } ou null
@@ -196,28 +197,45 @@ async function consultarPagamento(req, res) {
           });
         }
       } catch (dbError) {
-        console.warn("[PagamentoController] Erro ao atualizar status no banco:", dbError);
-      }
-    } else {
-      // atualização por referencia
-      try {
-        // tenta atualizar registros onde referencia == mpId
-        const { data: upData, error: upErr } = await supabase
-          .from("pagamento")
-          .update({
-            status: resultado.data.status.toUpperCase(),
-            referencia: String(resultado.data.id),
-            data_pagamento: new Date().toISOString()
-          })
-          .eq("referencia", String(resultado.data.id));
-
-        if (upErr) {
-          console.warn("[PagamentoController] Erro ao atualizar pagamento por referencia:", upErr);
-        }
-      } catch (e) {
-        console.warn("[PagamentoController] erro ao atualizar por referencia:", e);
-      }
-    }
+      console.warn("[PagamentoController] Erro ao atualizar status no banco:", dbError);
+	      }
+	    } else {
+	      // atualização por referencia
+	      try {
+	        // tenta atualizar registros onde referencia == mpId
+	        const { data: upData, error: upErr } = await supabase
+	          .from("pagamento")
+	          .update({
+	            status: resultado.data.status.toUpperCase(),
+	            referencia: String(resultado.data.id),
+	            data_pagamento: new Date().toISOString()
+	          })
+	          .eq("referencia", String(resultado.data.id))
+	          .select(); // Adicionar select para obter os dados atualizados
+	
+	        if (upErr) {
+	          console.warn("[PagamentoController] Erro ao atualizar pagamento por referencia:", upErr);
+	        }
+	
+	        // Se o pagamento foi aprovado, enviar notificação para o cuidador
+	        if (resultado.data.status.toUpperCase() === 'APPROVED' && upData && upData.length > 0) {
+	          const pagamentoAtualizado = upData[0];
+	          if (pagamentoAtualizado.cuidador_id) {
+	            const title = "Nova Solicitação de Serviço!";
+	            const body = `Você foi selecionado para um novo serviço. Verifique a página de solicitações.`;
+	            try {
+	              await sendNotificationToUser(pagamentoAtualizado.cuidador_id, title, body);
+	              console.log(`[PagamentoController] Notificação enviada para o cuidador ${pagamentoAtualizado.cuidador_id}`);
+	            } catch (notifError) {
+	              console.error(`[PagamentoController] Erro ao enviar notificação para o cuidador ${pagamentoAtualizado.cuidador_id}:`, notifError);
+	            }
+	          }
+	        }
+	
+	      } catch (e) {
+	        console.warn("[PagamentoController] erro ao atualizar por referencia:", e);
+	      }
+	    }
 
     return res.status(200).json({
       success: true,
@@ -285,4 +303,4 @@ export default {
 };
 
 // exports nomeados para compatibilidade backward (create.js procura por criarPagamentoController)
-export { executarCriacaoPagamento, executarCriacaoPagamento as criarPagamentoController };
+export { criarPagamentoPIX, consultarPagamento, criarPagamentoCartao, executarCriacaoPagamento, executarCriacaoPagamento as criarPagamentoController };

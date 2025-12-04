@@ -1,4 +1,3 @@
-import supabase from './db.js';
 
 class PagamentoModel {
   static async getAll() {

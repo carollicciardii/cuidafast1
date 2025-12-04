@@ -1,4 +1,3 @@
-const supabase = require('./db');
 
 class MensagemModel {
   static async getAll() {

@@ -341,14 +341,20 @@ function initSidebar() {
       // Mapear tipo de cuidador corretamente
       let specialty = 'Cuidador Geral';
       if (c.tipos_cuidado) {
-        const tipos = Array.isArray(c.tipos_cuidado) ? c.tipos_cuidado : [c.tipos_cuidado];
+        // Garantir que tipos_cuidado é um array
+        const tipos = Array.isArray(c.tipos_cuidado) 
+          ? c.tipos_cuidado 
+          : (typeof c.tipos_cuidado === 'string' ? c.tipos_cuidado.split(',').map(t => t.trim()) : [c.tipos_cuidado]);
+        
         const tiposMap = {
           'idoso': 'Cuidador de Idosos',
           'pet': 'Cuidador de Pet',
           'crianca': 'Cuidador Infantil',
           'infantil': 'Cuidador Infantil'
         };
-        specialty = tipos.map(t => tiposMap[t] || t).join(', ');
+        // Mapear e juntar os tipos, removendo duplicatas se houver
+        const tiposUnicos = [...new Set(tipos.map(t => tiposMap[t] || t))];
+        specialty = tiposUnicos.join(', ');
       } else if (c.especialidades && Array.isArray(c.especialidades)) {
         specialty = c.especialidades.join(', ');
       } else if (c.especialidade) {
@@ -367,6 +373,17 @@ function initSidebar() {
       }
       
       // Garantir que temos um nome válido (não "Usuário")
+      // Priorizar o nome da conta (usuario.nome)
+      let nomeCuidador = c.nome || c.name || c.primeiroNome;
+      if (!nomeCuidador || nomeCuidador.trim() === '' || nomeCuidador.toLowerCase() === 'usuário' || nomeCuidador.toLowerCase() === 'usuario') {
+        // Tentar extrair nome do email (antes do @)
+        if (c.email) {
+          const emailName = c.email.split('@')[0];
+          nomeCuidador = emailName.charAt(0).toUpperCase() + emailName.slice(1) || 'Cuidador';
+        } else {
+          nomeCuidador = 'Cuidador';
+        }
+      }
       let nomeCuidador = c.nome || c.name || c.primeiroNome;
       // Se o nome for "Usuário" ou vazio, tentar buscar do email ou usar fallback
       if (!nomeCuidador || nomeCuidador.trim() === '' || nomeCuidador.toLowerCase() === 'usuário' || nomeCuidador.toLowerCase() === 'usuario') {
