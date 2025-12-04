@@ -7,6 +7,36 @@
   <link rel="stylesheet" href="../CSS/styles.css">
   <link rel="stylesheet" href="../CSS/pages/cadastroComplementoCuidador.css">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    /* Estilo dos previews */
+    .doc-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .doc-item {
+      text-align: center;
+      width: 120px;
+    }
+    .doc-item img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .doc-item img:hover {
+      transform: scale(1.05);
+    }
+    .doc-item p {
+      margin-top: 0.3rem;
+      font-size: 0.9rem;
+      color: #1B475D;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -33,9 +63,9 @@
 
       <section id="dados-documentos" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;margin-top:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
         <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Documentos enviados</h2>
-        <ul style="list-style: none; padding-left: 0;" id="lista-documentos">
-          <!-- preenchido via JS -->
-        </ul>
+        <div id="lista-documentos" class="doc-preview">
+          <!-- Preenchido via JS -->
+        </div>
       </section>
 
       <div class="form-actions" style="margin-top:2rem;display:flex;gap:1rem;justify-content:flex-end;flex-wrap:wrap;">
@@ -51,8 +81,66 @@
     </main>
   </div>
 
-  <script src="../JS/admin-aprovacao-cuidador.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Simulação de dados do cuidador
+      const cuidador = {
+        nome: "João Silva",
+        email: "joao@email.com",
+        tipo: "Profissional",
+        statusAprovacao: "Pendente",
+        documentos: {
+          rg: "uploads/rg.png",
+          nadaConsta: "uploads/nadaConsta.png",
+          foto: "uploads/foto.png",
+          feedbacks: "uploads/feedbacks.png",
+          certificado: "uploads/certificado.png"
+        }
+      };
+
+      // Preencher dados do cuidador
+      document.getElementById('campo-nome').textContent = cuidador.nome;
+      document.getElementById('campo-email').textContent = cuidador.email;
+      document.getElementById('campo-tipo').textContent = cuidador.tipo;
+      document.getElementById('campo-status-aprovacao').textContent = cuidador.statusAprovacao;
+      document.getElementById('statusTexto').textContent = "Dados carregados com sucesso.";
+
+      // Gerar previews de documentos
+      const lista = document.getElementById('lista-documentos');
+      lista.innerHTML = ''; // Limpa antes
+
+      for (const [key, path] of Object.entries(cuidador.documentos)) {
+        const div = document.createElement('div');
+        div.className = "doc-item";
+
+        // Imagem com link para abrir em nova aba
+        const img = document.createElement('img');
+        img.src = path;
+        img.alt = key;
+        img.title = "Clique para abrir";
+        img.addEventListener('click', () => {
+          window.open(path, '_blank');
+        });
+
+        const p = document.createElement('p');
+        p.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+
+        div.appendChild(img);
+        div.appendChild(p);
+        lista.appendChild(div);
+      }
+
+      // Botões aprovar/reprovar
+      document.getElementById('btn-aprovar').addEventListener('click', () => {
+        alert(`Cuidador ${cuidador.nome} aprovado!`);
+        document.getElementById('campo-status-aprovacao').textContent = "Aprovado";
+      });
+
+      document.getElementById('btn-reprovar').addEventListener('click', () => {
+        alert(`Cuidador ${cuidador.nome} reprovado!`);
+        document.getElementById('campo-status-aprovacao').textContent = "Reprovado";
+      });
+    });
+  </script>
 </body>
 </html>
-
-
