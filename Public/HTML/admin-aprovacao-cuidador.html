@@ -1,146 +1,189 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Admin - Aprovação de Cuidadores</title>
-  <link rel="stylesheet" href="../CSS/styles.css">
-  <link rel="stylesheet" href="../CSS/pages/cadastroComplementoCuidador.css">
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <style>
-    /* Estilo dos previews */
-    .doc-preview {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    .doc-item {
-      text-align: center;
-      width: 120px;
-    }
-    .doc-item img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .doc-item img:hover {
-      transform: scale(1.05);
-    }
-    .doc-item p {
-      margin-top: 0.3rem;
-      font-size: 0.9rem;
-      color: #1B475D;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin - Aprovação de Cuidadores</title>
+<link rel="stylesheet" href="../CSS/styles.css">
+<link rel="stylesheet" href="../CSS/pages/cadastroComplementoCuidador.css">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<style>
+  .doc-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .doc-item {
+    text-align: center;
+    width: 120px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 0.5rem;
+    transition: border-color 0.2s;
+  }
+  .doc-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .doc-item img:hover {
+    transform: scale(1.05);
+  }
+  .doc-item p {
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+    color: #1B475D;
+  }
+  .status-btns {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.3rem;
+  }
+  .status-btn {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    color: #fff;
+  }
+  .btn-aprovar { background: #28a745; }
+  .btn-reprovar { background: #dc3545; }
+  .doc-item.aprovado { border-color: #28a745; }
+  .doc-item.reprovado { border-color: #dc3545; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <main class="form-container" style="max-width: 720px;">
-      <div class="form-header">
-        <div class="header-top">
-          <h1>Painel do Administrador</h1>
-        </div>
-        <p>Analise os dados do cuidador e aprove ou reprove o cadastro.</p>
+<div class="container">
+  <main class="form-container" style="max-width: 720px;">
+    <div class="form-header">
+      <div class="header-top">
+        <h1>Painel do Administrador</h1>
       </div>
+      <p>Analise os documentos do cuidador e valide cada um individualmente.</p>
+    </div>
 
-      <section id="admin-status" class="info-box" style="margin-bottom: 1.5rem;">
-        <i class="ph ph-info"></i>
-        <p id="statusTexto">Carregando informações do cuidador...</p>
-      </section>
+    <section id="admin-status" class="info-box" style="margin-bottom: 1.5rem;">
+      <i class="ph ph-info"></i>
+      <p id="statusTexto">Carregando informações do cuidador...</p>
+    </section>
 
-      <section id="dados-cuidador" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
-        <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Dados do cuidador</h2>
-        <p><strong>Nome:</strong> <span id="campo-nome">-</span></p>
-        <p><strong>E-mail:</strong> <span id="campo-email">-</span></p>
-        <p><strong>Tipo de conta:</strong> <span id="campo-tipo">-</span></p>
-        <p><strong>Status de aprovação:</strong> <span id="campo-status-aprovacao">-</span></p>
-      </section>
+    <section id="dados-cuidador" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
+      <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Dados do cuidador</h2>
+      <p><strong>Nome:</strong> <span id="campo-nome">-</span></p>
+      <p><strong>E-mail:</strong> <span id="campo-email">-</span></p>
+      <p><strong>Tipo de conta:</strong> <span id="campo-tipo">-</span></p>
+      <p><strong>Status de aprovação:</strong> <span id="campo-status-aprovacao">Pendente</span></p>
+    </section>
 
-      <section id="dados-documentos" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;margin-top:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
-        <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Documentos enviados</h2>
-        <div id="lista-documentos" class="doc-preview">
-          <!-- Preenchido via JS -->
-        </div>
-      </section>
-
-      <div class="form-actions" style="margin-top:2rem;display:flex;gap:1rem;justify-content:flex-end;flex-wrap:wrap;">
-        <button id="btn-reprovar" class="btn btn-secondary" type="button" style="background:#fff;color:#b3261e;border:1px solid #b3261e;">
-          <i class="ph ph-x-circle"></i>
-          Reprovar cadastro
-        </button>
-        <button id="btn-aprovar" class="btn btn-primary" type="button">
-          <i class="ph ph-check-circle"></i>
-          Aprovar cuidador
-        </button>
+    <section id="dados-documentos" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;margin-top:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
+      <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Documentos enviados</h2>
+      <div id="lista-documentos" class="doc-preview">
+        <!-- Preenchido via JS -->
       </div>
-    </main>
-  </div>
+    </section>
+  </main>
+</div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Simulação de dados do cuidador
-      const cuidador = {
-        nome: "João Silva",
-        email: "joao@email.com",
-        tipo: "Profissional",
-        statusAprovacao: "Pendente",
-        documentos: {
-          rg: "uploads/rg.png",
-          nadaConsta: "uploads/nadaConsta.png",
-          foto: "uploads/foto.png",
-          feedbacks: "uploads/feedbacks.png",
-          certificado: "uploads/certificado.png"
-        }
-      };
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const cuidador = {
+    nome: "João Silva",
+    email: "joao@email.com",
+    tipo: "Profissional",
+    statusAprovacao: "Pendente",
+    documentos: {
+      rg: "uploads/rg.png",
+      nadaConsta: "uploads/nadaConsta.png",
+      foto: "uploads/foto.png",
+      feedbacks: "uploads/feedbacks.png",
+      certificado: "uploads/certificado.png"
+    },
+    statusDocumentos: {} // aqui guardaremos status de cada doc
+  };
 
-      // Preencher dados do cuidador
-      document.getElementById('campo-nome').textContent = cuidador.nome;
-      document.getElementById('campo-email').textContent = cuidador.email;
-      document.getElementById('campo-tipo').textContent = cuidador.tipo;
-      document.getElementById('campo-status-aprovacao').textContent = cuidador.statusAprovacao;
-      document.getElementById('statusTexto').textContent = "Dados carregados com sucesso.";
+  const lista = document.getElementById('lista-documentos');
+  const statusTexto = document.getElementById('statusTexto');
+  const campoStatusAprovacao = document.getElementById('campo-status-aprovacao');
 
-      // Gerar previews de documentos
-      const lista = document.getElementById('lista-documentos');
-      lista.innerHTML = ''; // Limpa antes
+  // Inicializa status de cada documento como pendente
+  for (const key in cuidador.documentos) {
+    cuidador.statusDocumentos[key] = "pendente";
+  }
 
-      for (const [key, path] of Object.entries(cuidador.documentos)) {
-        const div = document.createElement('div');
-        div.className = "doc-item";
+  function atualizarStatusGeral() {
+    const statuses = Object.values(cuidador.statusDocumentos);
+    if (statuses.every(s => s === "aprovado")) {
+      campoStatusAprovacao.textContent = "Aprovado";
+    } else if (statuses.some(s => s === "reprovado")) {
+      campoStatusAprovacao.textContent = "Reprovado";
+    } else {
+      campoStatusAprovacao.textContent = "Pendente";
+    }
+  }
 
-        // Imagem com link para abrir em nova aba
-        const img = document.createElement('img');
-        img.src = path;
-        img.alt = key;
-        img.title = "Clique para abrir";
-        img.addEventListener('click', () => {
-          window.open(path, '_blank');
-        });
+  function criarDocumentoItem(key, path) {
+    const div = document.createElement('div');
+    div.className = "doc-item";
+    div.id = `doc-${key}`;
 
-        const p = document.createElement('p');
-        p.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+    const img = document.createElement('img');
+    img.src = path;
+    img.alt = key;
+    img.title = "Clique para abrir";
+    img.addEventListener('click', () => window.open(path, '_blank'));
 
-        div.appendChild(img);
-        div.appendChild(p);
-        lista.appendChild(div);
-      }
+    const p = document.createElement('p');
+    p.textContent = key.charAt(0).toUpperCase() + key.slice(1);
 
-      // Botões aprovar/reprovar
-      document.getElementById('btn-aprovar').addEventListener('click', () => {
-        alert(`Cuidador ${cuidador.nome} aprovado!`);
-        document.getElementById('campo-status-aprovacao').textContent = "Aprovado";
-      });
+    const btnContainer = document.createElement('div');
+    btnContainer.className = "status-btns";
 
-      document.getElementById('btn-reprovar').addEventListener('click', () => {
-        alert(`Cuidador ${cuidador.nome} reprovado!`);
-        document.getElementById('campo-status-aprovacao').textContent = "Reprovado";
-      });
+    const btnAprovar = document.createElement('button');
+    btnAprovar.className = "status-btn btn-aprovar";
+    btnAprovar.textContent = "Aprovar";
+    btnAprovar.addEventListener('click', () => {
+      div.classList.remove("reprovado");
+      div.classList.add("aprovado");
+      cuidador.statusDocumentos[key] = "aprovado";
+      atualizarStatusGeral();
     });
-  </script>
+
+    const btnReprovar = document.createElement('button');
+    btnReprovar.className = "status-btn btn-reprovar";
+    btnReprovar.textContent = "Reprovar";
+    btnReprovar.addEventListener('click', () => {
+      div.classList.remove("aprovado");
+      div.classList.add("reprovado");
+      cuidador.statusDocumentos[key] = "reprovado";
+      atualizarStatusGeral();
+    });
+
+    btnContainer.appendChild(btnAprovar);
+    btnContainer.appendChild(btnReprovar);
+
+    div.appendChild(img);
+    div.appendChild(p);
+    div.appendChild(btnContainer);
+    lista.appendChild(div);
+  }
+
+  // Preencher dados do cuidador
+  document.getElementById('campo-nome').textContent = cuidador.nome;
+  document.getElementById('campo-email').textContent = cuidador.email;
+  document.getElementById('campo-tipo').textContent = cuidador.tipo;
+  statusTexto.textContent = "Documentos carregados com sucesso.";
+
+  // Criar itens de documento
+  for (const [key, path] of Object.entries(cuidador.documentos)) {
+    criarDocumentoItem(key, path);
+  }
+});
+</script>
 </body>
 </html>
