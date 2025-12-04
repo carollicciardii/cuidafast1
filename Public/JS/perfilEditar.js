@@ -87,11 +87,22 @@ async function loadUserData() {
     }
 
     // Carregar endereço se houver campos de endereço na página
-    // Prioriza campos diretos do banco, depois objeto endereco
+    // Prioriza campos diretos do banco, depois objeto endereco (tratando string/JSON com segurança)
+    let enderecoObj = null;
+    if (userData.endereco) {
+        try {
+            enderecoObj = typeof userData.endereco === 'string'
+                ? JSON.parse(userData.endereco)
+                : userData.endereco;
+        } catch (e) {
+            console.warn('[PerfilEditar] Não foi possível parsear userData.endereco:', e, userData.endereco);
+            enderecoObj = null;
+        }
+    }
+
     const cepInput = document.getElementById('cep');
     if (cepInput) {
-        // Primeiro tenta campos diretos, depois objeto endereco
-        const cep = userData.cep || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).cep);
+        const cep = userData.cep || (enderecoObj && enderecoObj.cep);
         if (cep) {
             cepInput.value = cep;
         }
@@ -99,7 +110,7 @@ async function loadUserData() {
 
     const ruaInput = document.getElementById('rua');
     if (ruaInput) {
-        const rua = userData.rua || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).rua);
+        const rua = userData.rua || (enderecoObj && enderecoObj.rua);
         if (rua) {
             ruaInput.value = rua;
         }
@@ -107,7 +118,7 @@ async function loadUserData() {
 
     const numeroInput = document.getElementById('numero');
     if (numeroInput) {
-        const numero = userData.numero || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).numero);
+        const numero = userData.numero || (enderecoObj && enderecoObj.numero);
         if (numero) {
             numeroInput.value = numero;
         }
@@ -115,7 +126,7 @@ async function loadUserData() {
 
     const complementoInput = document.getElementById('complemento');
     if (complementoInput) {
-        const complemento = userData.complemento || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).complemento);
+        const complemento = userData.complemento || (enderecoObj && enderecoObj.complemento);
         if (complemento) {
             complementoInput.value = complemento;
         }
@@ -123,7 +134,7 @@ async function loadUserData() {
 
     const bairroInput = document.getElementById('bairro');
     if (bairroInput) {
-        const bairro = userData.bairro || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).bairro);
+        const bairro = userData.bairro || (enderecoObj && enderecoObj.bairro);
         if (bairro) {
             bairroInput.value = bairro;
         }
@@ -131,7 +142,7 @@ async function loadUserData() {
 
     const cidadeInput = document.getElementById('cidade');
     if (cidadeInput) {
-        const cidade = userData.cidade || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).cidade);
+        const cidade = userData.cidade || (enderecoObj && enderecoObj.cidade);
         if (cidade) {
             cidadeInput.value = cidade;
         }
@@ -139,7 +150,7 @@ async function loadUserData() {
 
     const estadoInput = document.getElementById('estado');
     if (estadoInput) {
-        const estado = userData.estado || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).estado);
+        const estado = userData.estado || (enderecoObj && enderecoObj.estado);
         if (estado) {
             estadoInput.value = estado;
         }
@@ -314,6 +325,17 @@ function initFormSubmit() {
             ? parseFloat(valorHoraInput.value)
             : null;
 
+        // Montar objeto de endereço unificado (para salvar em localStorage e backend)
+        const enderecoPayload = {
+            cep: cep || userData.cep || (userData.endereco && userData.endereco.cep),
+            rua: rua || userData.rua || (userData.endereco && userData.endereco.rua),
+            numero: numero || userData.numero || (userData.endereco && userData.endereco.numero),
+            complemento: complemento || userData.complemento || (userData.endereco && userData.endereco.complemento),
+            bairro: bairro || userData.bairro || (userData.endereco && userData.endereco.bairro),
+            cidade: cidade || userData.cidade || (userData.endereco && userData.endereco.cidade),
+            estado: estado || userData.estado || (userData.endereco && userData.endereco.estado)
+        };
+
         // Atualizar dados do usuário (objeto localStorage)
         const updatedData = {
             ...userData,
@@ -332,16 +354,8 @@ function initFormSubmit() {
             bairro: bairro || userData.bairro,
             cidade: cidade || userData.cidade,
             estado: estado || userData.estado,
-            // Endereço como objeto também
-            endereco: {
-                cep: cep || userData.cep || (userData.endereco && userData.endereco.cep),
-                rua: rua || userData.rua || (userData.endereco && userData.endereco.rua),
-                numero: numero || userData.numero || (userData.endereco && userData.endereco.numero),
-                complemento: complemento || userData.complemento || (userData.endereco && userData.endereco.complemento),
-                bairro: bairro || userData.bairro || (userData.endereco && userData.endereco.bairro),
-                cidade: cidade || userData.cidade || (userData.endereco && userData.endereco.cidade),
-                estado: estado || userData.estado || (userData.endereco && userData.endereco.estado)
-            },
+            // Endereço como objeto também (para uso futuro)
+            endereco: enderecoPayload,
             // Dados específicos do cuidador (se aplicável)
             descricao: descricao || userData.descricao,
             tipos_cuidado: tipos_cuidado || userData.tipos_cuidado,
@@ -386,7 +400,7 @@ function initFormSubmit() {
                         data_nascimento: birthDate || userData.data_nascimento || userData.dataNascimento || null,
                         cpf: cpf || userData.cpf || userData.cpf_numero || null,
                         cpf_numero: cpf || userData.cpf_numero || userData.cpf || null,
-                        // Campos de endereço
+                        // Campos de endereço (planos + objeto)
                         cep: cep || null,
                         rua: rua || null,
                         numero: numero || null,
@@ -394,6 +408,7 @@ function initFormSubmit() {
                         bairro: bairro || null,
                         cidade: cidade || null,
                         estado: estado || null,
+                        endereco: enderecoPayload,
                         photo_url: updatedData.photoURL && !updatedData.photoURL.includes('images.webp') 
                             ? updatedData.photoURL 
                             : userData.photo_url || userData.photoURL || null,

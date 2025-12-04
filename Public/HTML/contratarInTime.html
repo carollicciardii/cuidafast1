@@ -257,7 +257,17 @@
         }
         
         // Carregar endereço se existir (pode estar em user.endereco ou nos campos diretos)
-        let endereco = user.endereco;
+        let endereco = null;
+        if (user.endereco) {
+          try {
+            endereco = typeof user.endereco === 'string'
+              ? JSON.parse(user.endereco)
+              : user.endereco;
+          } catch (e) {
+            console.warn('[ContratarInTime] Não foi possível parsear user.endereco:', e, user.endereco);
+            endereco = null;
+          }
+        }
         
         // Se não tiver objeto endereco, monta a partir dos campos diretos do banco
         if (!endereco && (user.rua || user.cidade)) {

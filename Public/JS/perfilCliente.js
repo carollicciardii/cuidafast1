@@ -141,14 +141,26 @@ async function loadUserProfile() {
     }
 
     // Atualizar endereço se existir - preenche campos individuais
-    // Prioriza campos diretos do banco, depois objeto endereco
-    const cep = userData.cep || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).cep);
-    const rua = userData.rua || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).rua);
-    const numero = userData.numero || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).numero);
-    const complemento = userData.complemento || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).complemento);
-    const bairro = userData.bairro || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).bairro);
-    const cidade = userData.cidade || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).cidade);
-    const estado = userData.estado || (userData.endereco && (typeof userData.endereco === 'string' ? JSON.parse(userData.endereco) : userData.endereco).estado);
+    // Prioriza campos diretos do banco, depois objeto endereco (tratando string/JSON com segurança)
+    let enderecoObj = null;
+    if (userData.endereco) {
+        try {
+            enderecoObj = typeof userData.endereco === 'string'
+                ? JSON.parse(userData.endereco)
+                : userData.endereco;
+        } catch (e) {
+            console.warn('[PerfilCliente] Não foi possível parsear userData.endereco:', e, userData.endereco);
+            enderecoObj = null;
+        }
+    }
+
+    const cep = userData.cep || (enderecoObj && enderecoObj.cep);
+    const rua = userData.rua || (enderecoObj && enderecoObj.rua);
+    const numero = userData.numero || (enderecoObj && enderecoObj.numero);
+    const complemento = userData.complemento || (enderecoObj && enderecoObj.complemento);
+    const bairro = userData.bairro || (enderecoObj && enderecoObj.bairro);
+    const cidade = userData.cidade || (enderecoObj && enderecoObj.cidade);
+    const estado = userData.estado || (enderecoObj && enderecoObj.estado);
     
     // Preencher campos individuais do endereço
     // CEP
