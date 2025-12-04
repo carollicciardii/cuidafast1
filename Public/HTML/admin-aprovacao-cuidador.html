@@ -8,25 +8,145 @@
 <link rel="stylesheet" href="../CSS/pages/cadastroComplementoCuidador.css">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <style>
+  body {
+    background: #f4f7fb;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .form-container {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    padding: 2rem 2.5rem;
+  }
+
+  .form-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-header h1 {
+    font-size: 1.6rem;
+    color: #1B475D;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .form-header h1 i {
+    font-size: 1.8rem;
+    color: #00A0B4;
+  }
+
+  .form-header p {
+    margin-top: 0.25rem;
+    color: #607080;
+    font-size: 0.95rem;
+  }
+
+  .info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: #e7f5ff;
+    border: 1px solid #d0e7ff;
+  }
+
+  .info-box i {
+    font-size: 1.3rem;
+    color: #0077b6;
+    margin-top: 0.1rem;
+  }
+
+  .info-box p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #1B475D;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .badge-pendente {
+    background: #fff7e6;
+    color: #b26a00;
+  }
+
+  .badge-aprovado {
+    background: #e7f8ef;
+    color: #1e7a37;
+  }
+
+  .badge-reprovado {
+    background: #fde8ea;
+    color: #b02a37;
+  }
+
+  .section-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  }
+
+  .section-card h2 {
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    color: #1B475D;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-card h2 i {
+    font-size: 1.2rem;
+    color: #00A0B4;
+  }
+
+  .section-subtitle {
+    font-size: 0.85rem;
+    color: #7a8a9a;
+    margin-bottom: 0.75rem;
+  }
+
   .doc-preview {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.25rem;
     margin-top: 1rem;
   }
   .doc-item {
     text-align: center;
-    width: 120px;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    padding: 0.5rem;
+    width: 140px;
+    border: 2px solid #e0e6ed;
+    border-radius: 12px;
+    padding: 0.6rem 0.5rem 0.75rem;
     transition: border-color 0.2s;
+    background: #f8fafc;
   }
   .doc-item img {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: transform 0.2s;
   }
@@ -43,6 +163,7 @@
     justify-content: center;
     gap: 0.5rem;
     margin-top: 0.3rem;
+    flex-wrap: wrap;
   }
   .status-btn {
     padding: 0.2rem 0.5rem;
@@ -56,16 +177,51 @@
   .btn-reprovar { background: #dc3545; }
   .doc-item.aprovado { border-color: #28a745; }
   .doc-item.reprovado { border-color: #dc3545; }
+
+  .docs-legend {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #7a8a9a;
+    margin-top: 0.5rem;
+  }
+
+  .docs-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .docs-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-pendente { background: #ffc107; }
+  .dot-aprovado { background: #28a745; }
+  .dot-reprovado { background: #dc3545; }
+
+  @media (max-width: 768px) {
+    .form-container {
+      padding: 1.5rem 1.25rem;
+      max-width: 100% !important;
+    }
+
+    .doc-item {
+      width: 46%;
+    }
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <main class="form-container" style="max-width: 720px;">
+  <main class="form-container" style="max-width: 820px;">
     <div class="form-header">
       <div class="header-top">
-        <h1>Painel do Administrador</h1>
+        <h1><i class="ph ph-shield-check"></i>Painel do Administrador</h1>
       </div>
-      <p>Analise os documentos do cuidador e valide cada um individualmente.</p>
+      <p>Analise os documentos enviados pelo cuidador, aprove ou reprove cada arquivo com base na foto anexada.</p>
     </div>
 
     <section id="admin-status" class="info-box" style="margin-bottom: 1.5rem;">
@@ -73,16 +229,27 @@
       <p id="statusTexto">Carregando informações do cuidador...</p>
     </section>
 
-    <section id="dados-cuidador" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
-      <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Dados do cuidador</h2>
+    <section id="dados-cuidador" class="section-card">
+      <h2><i class="ph ph-user-circle"></i>Dados do cuidador</h2>
       <p><strong>Nome:</strong> <span id="campo-nome">-</span></p>
       <p><strong>E-mail:</strong> <span id="campo-email">-</span></p>
       <p><strong>Tipo de conta:</strong> <span id="campo-tipo">-</span></p>
-      <p><strong>Status de aprovação:</strong> <span id="campo-status-aprovacao">Pendente</span></p>
+      <p>
+        <strong>Status de aprovação:</strong>
+        <span id="campo-status-aprovacao" class="badge badge-pendente">Pendente</span>
+      </p>
     </section>
 
-    <section id="dados-documentos" class="form-group" style="background:#fff;border-radius:12px;padding:1.5rem;margin-top:1.5rem;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
-      <h2 style="margin-bottom:1rem;font-size:1.1rem;color:#1B475D;">Documentos enviados</h2>
+    <section id="dados-documentos" class="section-card" style="margin-top:1.5rem;">
+      <h2><i class="ph ph-folders"></i>Documentos enviados</h2>
+      <p class="section-subtitle">
+        Visualize cada documento com foto e marque como <strong>Aprovado</strong> ou <strong>Reprovado</strong>.
+      </p>
+      <div class="docs-legend">
+        <span><span class="docs-legend-dot dot-pendente"></span>Pendente</span>
+        <span><span class="docs-legend-dot dot-aprovado"></span>Aprovado</span>
+        <span><span class="docs-legend-dot dot-reprovado"></span>Reprovado</span>
+      </div>
       <div id="lista-documentos" class="doc-preview">
         <!-- Preenchido via JS -->
       </div>
@@ -92,17 +259,19 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Exemplo estático – depois você pode trocar pelos dados reais do cuidador
   const cuidador = {
     nome: "João Silva",
     email: "joao@email.com",
     tipo: "Profissional",
     statusAprovacao: "Pendente",
     documentos: {
-      rg: "uploads/rg.png",
-      nadaConsta: "uploads/nadaConsta.png",
-      foto: "uploads/foto.png",
-      feedbacks: "uploads/feedbacks.png",
-      certificado: "uploads/certificado.png"
+      // caminhos relativos a partir de Public/HTML
+      rg: "../uploads/rg.png",
+      nadaConsta: "../uploads/nadaConsta.png",
+      foto: "../uploads/foto.png",
+      feedbacks: "../uploads/feedbacks.png",
+      certificado: "../uploads/certificado.png"
     },
     statusDocumentos: {} // aqui guardaremos status de cada doc
   };
@@ -111,6 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusTexto = document.getElementById('statusTexto');
   const campoStatusAprovacao = document.getElementById('campo-status-aprovacao');
 
+  function atualizarBadgeStatus(status) {
+    campoStatusAprovacao.classList.remove('badge-pendente', 'badge-aprovado', 'badge-reprovado');
+    if (status === 'Aprovado') {
+      campoStatusAprovacao.classList.add('badge-aprovado');
+    } else if (status === 'Reprovado') {
+      campoStatusAprovacao.classList.add('badge-reprovado');
+    } else {
+      campoStatusAprovacao.classList.add('badge-pendente');
+    }
+    campoStatusAprovacao.textContent = status;
+  }
+
   // Inicializa status de cada documento como pendente
   for (const key in cuidador.documentos) {
     cuidador.statusDocumentos[key] = "pendente";
@@ -118,16 +299,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function atualizarStatusGeral() {
     const statuses = Object.values(cuidador.statusDocumentos);
+    const pendentes = statuses.filter(s => s === "pendente").length;
+    const aprovados = statuses.filter(s => s === "aprovado").length;
+    const reprovados = statuses.filter(s => s === "reprovado").length;
+
     if (statuses.every(s => s === "aprovado")) {
-      campoStatusAprovacao.textContent = "Aprovado";
+      atualizarBadgeStatus("Aprovado");
+      statusTexto.textContent = "Todos os documentos deste cuidador foram avaliados e aprovados.";
     } else if (statuses.some(s => s === "reprovado")) {
-      campoStatusAprovacao.textContent = "Reprovado";
+      atualizarBadgeStatus("Reprovado");
+      statusTexto.textContent = `Existem documentos reprovados. Aprovados: ${aprovados}, Reprovados: ${reprovados}, Pendentes: ${pendentes}.`;
     } else {
-      campoStatusAprovacao.textContent = "Pendente";
+      atualizarBadgeStatus("Pendente");
+      statusTexto.textContent = `Documentos pendentes de análise: ${pendentes}. Aprovados: ${aprovados}.`;
     }
   }
 
   function criarDocumentoItem(key, path) {
+    if (!path) return; // só cria visualmente se existir caminho da foto
+
+    const labels = {
+      rg: "RG",
+      nadaConsta: "Nada Consta",
+      foto: "Foto de Perfil",
+      feedbacks: "Feedbacks",
+      certificado: "Certificado"
+    };
+
     const div = document.createElement('div');
     div.className = "doc-item";
     div.id = `doc-${key}`;
@@ -139,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     img.addEventListener('click', () => window.open(path, '_blank'));
 
     const p = document.createElement('p');
-    p.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+    p.textContent = labels[key] || (key.charAt(0).toUpperCase() + key.slice(1));
 
     const btnContainer = document.createElement('div');
     btnContainer.className = "status-btns";
