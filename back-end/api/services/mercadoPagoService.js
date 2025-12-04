@@ -30,7 +30,7 @@ export async function criarPagamentoPIX(valor, descricao, cliente = {}, external
 
     const names = (cliente.nome || "").trim().split(/\s+/);
     const payer = {
-      email: cliente.email || "TESTUSER4604601283137415595@testuser.com",
+      email: cliente.email || "test_user_123456@testuser.com",
       first_name: names[0] || "Cliente",
       last_name: names.slice(1).join(" ") || undefined,
       identification: cliente.cpf
