@@ -1,8 +1,6 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/api/auth/complete-profile", "dest": "/api/auth?path=complete-profile" },
-    { "src": "/api/auth/complete-cuidador-profile", "dest": "/api/auth?path=complete-cuidador-profile" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/", "dest": "/Public/index.html" },
     { "src": "/(.*)", "dest": "/Public/$1" }
