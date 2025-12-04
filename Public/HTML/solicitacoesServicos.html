@@ -524,7 +524,24 @@
         function carregarSolicitacoes() {
             const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
             const servicos = ServicosManager.getServicosCuidador(userData.email);
-            
+
+            // Atualizar badge com quantidade de solicitações pendentes
+            try {
+                const pendentesCount = servicos.filter(s => s.status === 'pendente').length;
+                const badgeEl = document.getElementById('notificationBadge');
+                if (badgeEl) {
+                    if (pendentesCount > 0) {
+                        badgeEl.textContent = pendentesCount.toString();
+                        badgeEl.style.display = 'inline-flex';
+                    } else {
+                        badgeEl.textContent = '0';
+                        badgeEl.style.display = 'none';
+                    }
+                }
+            } catch (e) {
+                console.warn('[SolicitacoesServicos] Erro ao atualizar badge de notificações:', e);
+            }
+
             let filteredServicos = servicos;
             
             // Filtrar por tab

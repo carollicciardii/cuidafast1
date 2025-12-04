@@ -308,7 +308,7 @@
             }
         }
 
-        // Salvar especialidades
+        // Salvar especialidades (atualiza localStorage + backend complete-profile)
         document.getElementById('formEspecialidades').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -320,14 +320,15 @@
 
             const tipoServico = document.getElementById('tipoServico').value;
             const areasAtuacao = document.getElementById('areasAtuacao').value;
-            const valorHora = parseFloat(document.getElementById('valorHora').value);
+            const valorHoraRaw = document.getElementById('valorHora').value;
+            const valorHora = valorHoraRaw ? parseFloat(valorHoraRaw) : null;
 
             if (!tipoServico || !valorHora) {
                 alert('Por favor, preencha todos os campos obrigatórios.');
                 return;
             }
 
-            // Atualizar no localStorage
+            // Atualizar no localStorage (para uso imediato nas telas do cuidador)
             const updatedData = {
                 ...userData,
                 servicosOferecidos: [tipoServico],
@@ -336,7 +337,46 @@
             };
             localStorage.setItem('cuidafast_user', JSON.stringify(updatedData));
 
-            // TODO: Atualizar no backend via API
+            // Atualizar no backend via API complete-profile (dados do cuidador)
+            try {
+                const userId = userData.id || userData.usuario_id;
+                if (userId) {
+                    const API_URL = window.API_CONFIG?.AUTH || "/api/auth";
+                    const completeProfileUrl = `${API_URL}/complete-profile`;
+
+                    const payload = {
+                        usuario_id: userId,
+                        tipo: 'cuidador',
+                        tipos_cuidado: [tipoServico],
+                        especialidades: updatedData.especialidades,
+                        valor_hora: valorHora
+                    };
+
+                    const response = await fetch(completeProfileUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('cuidafast_token') || ''}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        console.warn('[EditarPerfil] Erro ao atualizar especialidades no backend:', response.status);
+                    } else {
+                        const result = await response.json();
+                        console.log('[EditarPerfil] Especialidades atualizadas no backend:', result);
+                        if (result.user) {
+                            const mergedData = { ...updatedData, ...result.user };
+                            localStorage.setItem('cuidafast_user', JSON.stringify(mergedData));
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('[EditarPerfil] Erro na chamada complete-profile para cuidador:', err);
+                // Continua mesmo com erro no backend, pois localStorage já foi atualizado
+            }
+
             alert('✅ Especialidades atualizadas com sucesso!');
             window.location.href = 'perfilCuidador.html';
         });

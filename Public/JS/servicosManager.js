@@ -7,13 +7,15 @@
  *   cuidadorEmail: string,
  *   clienteEmail: string,
  *   clienteNome: string,
- *   tipo: string, // 'idoso', 'crianca', 'pet'
- *   status: string, // 'pendente', 'aceito', 'em_andamento', 'concluido', 'cancelado'
+ *   tipo: string,        // 'idoso', 'crianca', 'pet'
+ *   status: string,      // 'pendente', 'aceito', 'em_andamento', 'concluido', 'cancelado'
  *   dataContratacao: string (ISO),
  *   dataInicio: string (ISO),
  *   dataConclusao: string (ISO),
  *   valorPago: number,
- *   avaliacao: { nota: number, comentario: string }
+ *   avaliacao: { nota: number, comentario: string },
+ *   cuidadorId?: number | string, // ID no backend (para notificações)
+ *   clienteId?: number | string   // ID no backend (para notificações)
  * }
  */
 
@@ -21,7 +23,7 @@ const ServicosManager = {
   /**
    * Criar novo serviço
    */
-  criarServico(cuidadorEmail, clienteEmail, clienteNome, tipo) {
+  criarServico(cuidadorEmail, clienteEmail, clienteNome, tipo, cuidadorId = null, clienteId = null) {
     const servico = {
       id: 'srv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
       cuidadorEmail: cuidadorEmail,
@@ -33,13 +35,36 @@ const ServicosManager = {
       dataInicio: null,
       dataConclusao: null,
       valorPago: 0,
-      avaliacao: null
+      avaliacao: null,
+      cuidadorId: cuidadorId,
+      clienteId: clienteId
     };
 
     // Salvar no localStorage
     let servicos = this.getServicos();
     servicos.push(servico);
     localStorage.setItem('cuidafast_servicos', JSON.stringify(servicos));
+
+    // 🔔 ENVIAR NOTIFICAÇÃO PARA O CUIDADOR QUANDO O CLIENTE SOLICITA SERVIÇO
+    try {
+      if (typeof NotificationEvents !== 'undefined' && servico.cuidadorId) {
+        const tipoMap = {
+          idoso: 'Cuidado de Idosos',
+          idosos: 'Cuidado de Idosos',
+          crianca: 'Cuidado Infantil',
+          infantil: 'Cuidado Infantil',
+          pet: 'Cuidado de Pets'
+        };
+        const tipoDescricao = tipoMap[servico.tipo] || servico.tipo || 'serviço';
+        NotificationEvents.onNovoServico(
+          servico.cuidadorId,
+          servico.clienteNome || 'Cliente',
+          tipoDescricao
+        ).catch(err => console.error('[Notificação] Erro ao notificar cuidador:', err));
+      }
+    } catch (err) {
+      console.error('[ServicosManager] Erro ao disparar notificação de nova solicitação:', err);
+    }
 
     console.log('[ServicosManager] Serviço criado:', servico);
     return servico;

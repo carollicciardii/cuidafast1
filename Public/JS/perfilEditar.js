@@ -264,12 +264,13 @@ function initFormSubmit() {
             return;
         }
 
-        // Coletar dados do formulário
+        // Coletar dados do formulário (dados comuns)
         const fullName = document.getElementById('fullName')?.value || '';
         const email = document.getElementById('email')?.value || '';
         const phone = document.getElementById('phone')?.value || '';
         const birthDate = document.getElementById('birthDate')?.value || '';
         const cpf = document.getElementById('cpf')?.value || '';
+        const descricao = document.getElementById('description')?.value || '';
 
         // Validar campos obrigatórios
         if (!fullName || !email) {
@@ -286,7 +287,34 @@ function initFormSubmit() {
         const cidade = document.getElementById('cidade')?.value || '';
         const estado = document.getElementById('estado')?.value || '';
 
-        // Atualizar dados do usuário
+        // Coletar dados específicos do cuidador se os campos existirem
+        const tipoServicoSelect = document.getElementById('tiposServico') || document.getElementById('tipoServico');
+        const areasAtuacaoInput = document.getElementById('areasAtuacao');
+        const valorHoraInput = document.getElementById('valorHora');
+
+        let tipos_cuidado = null;
+        if (tipoServicoSelect && tipoServicoSelect.value) {
+            // Se for select múltiplo, coleta todos; senão, apenas o valor principal
+            if (tipoServicoSelect.multiple) {
+                tipos_cuidado = Array.from(tipoServicoSelect.selectedOptions).map(opt => opt.value);
+            } else {
+                tipos_cuidado = [tipoServicoSelect.value];
+            }
+        }
+
+        let especialidades = null;
+        if (areasAtuacaoInput && areasAtuacaoInput.value) {
+            especialidades = areasAtuacaoInput.value
+                .split(',')
+                .map(a => a.trim())
+                .filter(a => a);
+        }
+
+        const valor_hora = valorHoraInput && valorHoraInput.value
+            ? parseFloat(valorHoraInput.value)
+            : null;
+
+        // Atualizar dados do usuário (objeto localStorage)
         const updatedData = {
             ...userData,
             nome: fullName,
@@ -313,7 +341,12 @@ function initFormSubmit() {
                 bairro: bairro || userData.bairro || (userData.endereco && userData.endereco.bairro),
                 cidade: cidade || userData.cidade || (userData.endereco && userData.endereco.cidade),
                 estado: estado || userData.estado || (userData.endereco && userData.endereco.estado)
-            }
+            },
+            // Dados específicos do cuidador (se aplicável)
+            descricao: descricao || userData.descricao,
+            tipos_cuidado: tipos_cuidado || userData.tipos_cuidado,
+            especialidades: especialidades || userData.especialidades,
+            valor_hora: valor_hora || userData.valor_hora || userData.valorHora
         };
 
         // Atualizar foto se foi selecionada
@@ -364,7 +397,13 @@ function initFormSubmit() {
                         photo_url: updatedData.photoURL && !updatedData.photoURL.includes('images.webp') 
                             ? updatedData.photoURL 
                             : userData.photo_url || userData.photoURL || null,
-                        tipo: userData.tipo || 'cliente'
+                        // Tipo de usuário para o backend (cliente ou cuidador)
+                        tipo: userData.tipo || 'cliente',
+                        // Campos específicos do cuidador (serão ignorados para clientes)
+                        descricao: descricao || userData.descricao || null,
+                        tipos_cuidado: tipos_cuidado || userData.tipos_cuidado || null,
+                        especialidades: especialidades || userData.especialidades || null,
+                        valor_hora: valor_hora || userData.valor_hora || userData.valorHora || null
                     };
                     
                     const response = await fetch(completeProfileUrl, {

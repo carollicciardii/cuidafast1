@@ -234,12 +234,14 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../JS/auth.js"></script>
   <script src="../JS/header.js"></script>
+  <script src="../JS/servicosManager.js"></script>
+  <script src="../JS/notificationHelper.js"></script>
   <script src="../../js/main.js"></script>
   <script src="../JS/homeCliente.js"></script>
   
   <script>
-      // Carregar valor do pagamento
-      document.addEventListener('DOMContentLoaded', function() {
+      // Carregar valor do pagamento e criar serviço para o cuidador
+      document.addEventListener('DOMContentLoaded', async function() {
         const valor = parseFloat(localStorage.getItem('cuidafast_pagamento_valor') || '95.00');
         const servicoSpan = document.querySelector('.summary-item span:last-child');
         const totalSpan = document.getElementById('totalPago');
@@ -249,6 +251,84 @@
         }
         if (totalSpan) {
           totalSpan.innerHTML = `R$${valor.toFixed(2).replace('.', ',')}`;
+        }
+
+        // Criar registro de serviço e notificação para o cuidador (somente uma vez)
+        try {
+          if (localStorage.getItem('cuidafast_servico_criado_apos_pagamento') === 'true') {
+            return;
+          }
+
+          if (typeof window.ServicosManager === 'undefined') {
+            console.warn('[PagamentoPIXFinalizar] ServicosManager não disponível, não será criado serviço local.');
+            return;
+          }
+
+          const userStr = localStorage.getItem('cuidafast_user');
+          const contratacaoStr = localStorage.getItem('cuidafast_contratacao');
+          const cuidadorIdStored = localStorage.getItem('cuidafast_contratacao_cuidadorId');
+
+          if (!userStr || !contratacaoStr || !cuidadorIdStored) {
+            console.warn('[PagamentoPIXFinalizar] Dados insuficientes para criar serviço (usuário/contratação/cuidadorId ausentes).');
+            return;
+          }
+
+          const user = JSON.parse(userStr);
+          const contratacao = JSON.parse(contratacaoStr);
+          const cuidadorId = cuidadorIdStored;
+
+          // Buscar dados públicos do cuidador para obter o email
+          let cuidadorEmail = null;
+          let cuidadorBackendId = null;
+          try {
+            const resp = await fetch(`/api/perfil/cuidadores?action=cuidador&id=${encodeURIComponent(cuidadorId)}`);
+            if (resp.ok) {
+              const cuidador = await resp.json();
+              cuidadorEmail = cuidador.email || null;
+              cuidadorBackendId = cuidador.id || cuidador.usuario_id || cuidadorId;
+            } else {
+              console.warn('[PagamentoPIXFinalizar] Não foi possível obter dados do cuidador para email, usando apenas ID armazenado.');
+              cuidadorBackendId = cuidadorId;
+            }
+          } catch (err) {
+            console.warn('[PagamentoPIXFinalizar] Erro ao buscar perfil do cuidador:', err);
+            cuidadorBackendId = cuidadorId;
+          }
+
+          if (!cuidadorEmail) {
+            console.warn('[PagamentoPIXFinalizar] Email do cuidador não encontrado, serviço não será criado.');
+            return;
+          }
+
+          const tipoMap = {
+            idosos: 'idoso',
+            idoso: 'idoso',
+            pet: 'pet',
+            crianca: 'crianca',
+            infantil: 'crianca'
+          };
+          const tipoContratado = contratacao.tipoCuidador || 'idosos';
+          const tipoServico = tipoMap[tipoContratado] || tipoContratado;
+
+          const clienteNome = user.nome || user.primeiroNome || 'Cliente';
+          const clienteEmail = user.email || '';
+          const clienteId = user.id || user.usuario_id || null;
+
+          const servicoCriado = window.ServicosManager.criarServico(
+            cuidadorEmail,
+            clienteEmail,
+            clienteNome,
+            tipoServico,
+            cuidadorBackendId,
+            clienteId
+          );
+
+          console.log('[PagamentoPIXFinalizar] Serviço criado após pagamento PIX:', servicoCriado);
+
+          // Evitar duplicar serviços ao recarregar esta tela
+          localStorage.setItem('cuidafast_servico_criado_apos_pagamento', 'true');
+        } catch (err) {
+          console.error('[PagamentoPIXFinalizar] Erro ao criar serviço após pagamento:', err);
         }
       });
 
