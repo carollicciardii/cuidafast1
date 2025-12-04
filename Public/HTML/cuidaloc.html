@@ -1,23 +1,159 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Localização Cuidador</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<link rel="stylesheet" href="../CSS/map.css" />
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
-</head>
-<body>
-<div id="map"></div>
-<p id="status"></p>
-<button id="simulateBtn">Simular localização</button>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Localização do Cuidador - CuidaFast</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="../../back-end/config/FirebaseConfig.js"></script>
-<script src="../JS/cuidaloc.js"></script>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- Phosphor Icons + Bootstrap -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Estilos do app (mesmos da visão do cliente/serviços) -->
+  <link rel="stylesheet" href="../CSS/styles.css">
+  <link rel="stylesheet" href="../CSS/header.css">
+  <link rel="stylesheet" href="../CSS/components.css">
+  <link rel="stylesheet" href="../CSS/pages/servicos.css">
+  <link rel="stylesheet" href="../CSS/map.css">
+</head>
+<body class="client-home">
+
+  <!-- Header Moderno (igual ao cliente) -->
+  <header class="modern-header">
+    <div class="header-container">
+      <!-- Logo Section -->
+      <div class="header-left">
+        <a href="dashboard-cuidador.html" class="logo-link">
+          <img id="logo" src="../assets/Logotipo_1_vetorizado.svg" alt="Logotipo CuidaFast" class="logo" />
+          <span class="logo-text"></span>
+        </a>
+      </div>
+
+      <!-- Search Bar (opcional) -->
+      <div class="header-center">
+        <div class="search-container">
+          <i class="ph ph-magnifying-glass search-icon"></i>
+          <input type="text" placeholder="Buscar clientes..." class="search-input" id="headerSearch">
+          <button class="search-btn" type="button">
+            <i class="ph ph-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- User Actions -->
+      <div class="header-right">
+        <!-- Notifications -->
+        <button class="header-action-btn notification-btn" id="notificationBtn">
+          <i class="ph ph-bell"></i>
+          <span class="notification-badge" style="display:none;">0</span>
+        </button>
+
+        <!-- Messages -->
+        <button class="header-action-btn message-btn" id="messageBtn">
+          <i class="ph ph-chat-circle"></i>
+          <span class="message-badge" style="display:none;">0</span>
+        </button>
+
+        <!-- User Profile -->
+        <div class="user-profile-dropdown" id="userProfileDropdown">
+          <button class="user-profile-btn" id="userProfileBtn">
+            <img src="../assets/images.webp" alt="Avatar do cuidador" class="user-avatar-img">
+            <span class="user-name" id="headerUserName">Cuidador</span>
+            <i class="ph ph-caret-down dropdown-arrow"></i>
+          </button>
+
+          <div class="profile-dropdown-menu" id="profileDropdownMenu">
+            <div class="dropdown-header">
+              <img src="../assets/images.webp" alt="Avatar" class="dropdown-avatar">
+              <div class="dropdown-user-info">
+                <h4 id="dropdownUserName">Cuidador</h4>
+                <p>Conta Cuidador</p>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a href="perfilCuidador.html" class="dropdown-item">
+              <i class="ph ph-user"></i>
+              <span>Meu Perfil</span>
+            </a>
+            <a href="../HTML/configuracoes.html" class="dropdown-item">
+              <i class="ph ph-gear"></i>
+              <span>Configurações</span>
+            </a>
+            <a href="#" class="dropdown-item">
+              <i class="ph ph-question"></i>
+              <span>Ajuda</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="../../index.html" class="dropdown-item logout-item" id="headerLogoutBtn">
+              <i class="ph ph-sign-out"></i>
+              <span>Sair</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+          <i class="ph ph-list"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL (similar ao servicos.html) -->
+  <div class="main-container">
+    <div class="main-content">
+      <div class="back-button">
+        <a href="javascript:history.back()" class="back-link">
+          <i class="ph ph-arrow-left"></i>
+          Voltar
+        </a>
+      </div>
+
+      <div class="payment-card-centered">
+        <div class="card-header">
+          <h3 style="color: var(--azul-escuro); text-align: center;">
+            Localização do Cliente e Rota até você
+          </h3>
+        </div>
+
+        <div class="container">
+          <div class="info-card">
+            <p id="status" style="margin-bottom: 0.75rem;">
+              Use o botão abaixo para confirmar sua localização atual. O mapa mostra a casa do cliente,
+              você (cuidador) e a rota entre vocês.
+            </p>
+            <button class="btn primary" type="button" onclick="window.cuidalocSendCurrentPosition && window.cuidalocSendCurrentPosition()">
+              <i class="ph ph-map-pin-line" aria-hidden="true"></i>
+              Confirmar minha localização
+            </button>
+            <button class="btn outline" id="simulateBtn" type="button" style="margin-left: 8px;">
+              <i class="ph ph-flask" aria-hidden="true"></i>
+              Simular localização
+            </button>
+          </div>
+
+          <!-- Mapa principal (mesmo id usado em servicos.js) -->
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Scripts globais -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../JS/auth.js"></script>
+  <script src="../JS/header.js"></script>
+
+  <!-- Mapa e rota (mesma lógica da visão do cliente) -->
+  <script src="../JS/servicos.js"></script>
+
+  <!-- Script de envio de localização do cuidador (mantido) -->
+  <script src="../JS/cuidaloc.js"></script>
 </body>
 </html>
