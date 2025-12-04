@@ -142,7 +142,23 @@
   </ul>
 </div>
 
+<script>
+  document.getElementById("btnContinuePayment").addEventListener("click", () => {
+  const metodo = document.querySelector("input[name='payment']:checked");
 
+  if (!metodo) {
+    alert("Selecione um método de pagamento");
+    return;
+  }
+
+  // Redireciona conforme o método escolhido
+  if (metodo.value === "pix") {
+    window.location.href = "pagamentopix.html";
+  } else if (metodo.value === "pagseguro") {
+    window.location.href = "pagamentopagseguro.html"; // se tiver uma página específica
+  }
+});
+</script>
 <button type="button" class="btn-continue" id="btnContinuePayment">Continuar</button>
       </div>
     </div>
