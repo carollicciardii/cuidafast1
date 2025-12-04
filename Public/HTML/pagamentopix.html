@@ -218,5 +218,29 @@
           return new bootstrap.Popover(popoverTriggerEl);
       });
   </script>
+  <script>
+    // Fluxo simples: depois de efetuar o pagamento no app do banco,
+    // o usuário clica em "Ver Pedido" e vai para a tela de pagamento finalizado.
+    document.addEventListener('DOMContentLoaded', function () {
+      const btnViewOrder = document.querySelector('.btn-view-order');
+      const btnCopyPix = document.querySelector('.btn-copy-pix');
+
+      if (btnCopyPix) {
+        btnCopyPix.addEventListener('click', function () {
+          const chavePixFicticia = '00020126360014BR.GOV.BCB.PIX0114+55119999999990214PagamentoCuidaFast5204000053039865802BR5920CuidaFast Servicos6010Sao Paulo62070503***6304ABCD';
+          navigator.clipboard.writeText(chavePixFicticia)
+            .then(() => alert('Código PIX copiado para a área de transferência.'))
+            .catch(() => alert('Não foi possível copiar o código PIX.'));
+        });
+      }
+
+      if (btnViewOrder) {
+        btnViewOrder.addEventListener('click', function () {
+          // Aqui apenas simulamos que o pagamento foi concluído
+          window.location.href = 'pagamentopixfinalizar.html';
+        });
+      }
+    });
+  </script>
 </body>
 </html>

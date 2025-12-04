@@ -17,7 +17,6 @@ function safePhoneParts(phoneRaw) {
     number: digits.slice(2) || undefined
   };
 }
-
 export async function criarPagamentoPIX(valor, descricao, cliente = {}, externalReference = null) {
   try {
     if (!MERCADOPAGO_ACCESS_TOKEN) {

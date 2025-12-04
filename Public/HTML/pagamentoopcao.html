@@ -142,23 +142,7 @@
   </ul>
 </div>
 
-<script>
-  document.getElementById("btnContinuePayment").addEventListener("click", () => {
-  const metodo = document.querySelector("input[name='payment']:checked");
 
-  if (!metodo) {
-    alert("Selecione um método de pagamento");
-    return;
-  }
-
-  // Redireciona conforme o método escolhido
-  if (metodo.value === "pix") {
-    window.location.href = "pagamentopix.html";
-  } else if (metodo.value === "pagseguro") {
-    window.location.href = "pagamentopagseguro.html"; // se tiver uma página específica
-  }
-});
-</script>
 <button type="button" class="btn-continue" id="btnContinuePayment">Continuar</button>
       </div>
     </div>
@@ -222,81 +206,74 @@
      }
    });
 
-   document.getElementById("btnContinuePayment").addEventListener("click", async () => {
-  const metodo = document.querySelector("input[name='payment']:checked");
+  // Fluxo atual: somente redireciona para a tela de PIX (Mercado Pago fica guardado abaixo)
+  document.getElementById("btnContinuePayment").addEventListener("click", () => {
+    const metodo = document.querySelector("input[name='payment']:checked");
+  
+    if (!metodo) {
+      alert("Selecione um método de pagamento");
+      return;
+    }
+  
+    const valor = parseFloat(localStorage.getItem('cuidafast_pagamento_valor') || '95.00');
+    // guardar método/valor para as próximas telas, se precisar
+    localStorage.setItem('cuidafast_pagamento_metodo', metodo.value);
+    localStorage.setItem('cuidafast_pagamento_valor', valor.toString());
+  
+    if (metodo.value === 'pix') {
+      // Vai para a página de pagamento PIX
+      window.location.href = 'pagamentopix.html';
+    } else {
+      // Futuro: aqui poderemos reativar o fluxo de mercado pago/pagseguro
+      alert('No momento apenas pagamento via PIX está disponível. Em breve outras opções.');
+    }
+  });
 
-  if (!metodo) {
-    alert("Selecione um método de pagamento");
-    return;
-  }
+  // ===== CÓDIGO ANTIGO DO MERCADO PAGO (GUARDADO) =====
+  // Mantido aqui caso você queira reativar o fluxo direto com a API depois.
+  async function criarPagamentoMercadoPago(body) {
+    try {
+      console.log("[Pagamento][MercadoPago] Enviando requisição:", body);
+      const res = await fetch("/api/pagamento/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
 
-  const valor = parseFloat(localStorage.getItem('cuidafast_pagamento_valor') || '95.00');
+      console.log("[Pagamento][MercadoPago] Status da resposta:", res.status, res.statusText);
+      console.log("[Pagamento][MercadoPago] Content-Type:", res.headers.get("content-type"));
 
-  const body = {
-    valor: valor,
-    metodo: metodo.value,
-    descricao: "Pagamento de serviço CuidaFast" // Descrição obrigatória
-  };
+      const responseText = await res.text();
+      console.log("[Pagamento][MercadoPago] Resposta (texto):", responseText.substring(0, 500));
 
-  try {
-    console.log("[Pagamento] Enviando requisição:", body);
-    const res = await fetch("/api/pagamento/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-
-    console.log("[Pagamento] Status da resposta:", res.status, res.statusText);
-    console.log("[Pagamento] Content-Type:", res.headers.get("content-type"));
-
-    // Tenta ler a resposta como texto primeiro para debug
-    const responseText = await res.text();
-    console.log("[Pagamento] Resposta (texto):", responseText.substring(0, 500));
-
-    // Verifica se a resposta é JSON válido
-    let json;
-    const contentType = res.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      try {
-        json = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error("[Pagamento] Erro ao parsear JSON:", parseError);
-        console.error("[Pagamento] Resposta completa:", responseText);
-        alert(`Erro: Resposta inválida do servidor (${res.status}). Verifique o console para mais detalhes.`);
-        return;
+      let json;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        try {
+          json = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error("[Pagamento][MercadoPago] Erro ao parsear JSON:", parseError);
+          console.error("[Pagamento][MercadoPago] Resposta completa:", responseText);
+          throw new Error(`Resposta inválida do servidor (${res.status})`);
+        }
+      } else {
+        console.error("[Pagamento][MercadoPago] Resposta não é JSON. Content-Type:", contentType);
+        console.error("[Pagamento][MercadoPago] Resposta completa:", responseText);
+        throw new Error(`Servidor retornou resposta inválida (${res.status})`);
       }
-    } else {
-      console.error("[Pagamento] Resposta não é JSON. Content-Type:", contentType);
-      console.error("[Pagamento] Resposta completa:", responseText);
-      alert(`Erro: Servidor retornou resposta inválida (${res.status}). Verifique o console para mais detalhes.`);
-      return;
-    }
 
-    if (!res.ok) {
-      console.error("Erro do servidor:", json);
-      const errorMsg = json.error || json.message || "Erro ao criar pagamento";
-      alert(`Erro: ${errorMsg}`);
-      return;
-    }
+      if (!res.ok) {
+        console.error("[Pagamento][MercadoPago] Erro do servidor:", json);
+        const errorMsg = json.error || json.message || "Erro ao criar pagamento";
+        throw new Error(errorMsg);
+      }
 
-    if (!json.init_point && !json.pagamento?.ticket_url && !json.pagamento?.qr_code_base64) {
-      console.error("Resposta sem init_point:", json);
-      alert("Erro: Resposta do servidor não contém link de pagamento");
-      return;
+      return json;
+    } catch (err) {
+      console.error("[Pagamento][MercadoPago] Erro na requisição:", err);
+      throw err;
     }
-
-    const paymentUrl = json.init_point || json.pagamento?.ticket_url || json.pagamento?.qr_code_base64;
-    if (paymentUrl) {
-      window.location.href = paymentUrl;
-    } else {
-      alert("Erro: Não foi possível obter o link de pagamento");
-    }
-
-  } catch (err) {
-    console.error("Erro na requisição:", err);
-    alert(`Erro ao conectar com o servidor: ${err.message}`);
   }
-});
 
 
   </script>
