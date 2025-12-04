@@ -46,6 +46,15 @@ function carregarEstatisticasReais() {
         return null;
     }
 
+    // 🌟 Caso de demonstração: garantir que a conta do Cristiano tenha pelo menos 1 serviço concluído
+    try {
+        if (userData.nome && userData.nome.toLowerCase().includes('cristiano')) {
+            seedServicoDemoParaCristiano(userData);
+        }
+    } catch (e) {
+        console.warn('[Dashboard] Erro ao aplicar seed de serviço demo para Cristiano:', e);
+    }
+
     // Obter estatísticas
     const stats = ServicosManager.getEstatisticasCuidador(userData.email);
     
@@ -55,6 +64,47 @@ function carregarEstatisticasReais() {
     atualizarCardsDashboard(stats);
     
     return stats;
+}
+
+/**
+ * Cria um serviço concluído de demonstração para o cuidador "Cristiano",
+ * com um pagamento realizado pela cliente "Carol", caso ainda não exista nenhum.
+ */
+function seedServicoDemoParaCristiano(userData) {
+    if (!userData || !userData.email) return;
+
+    const servicosExistentes = ServicosManager.getServicosCuidador(userData.email) || [];
+    const jaTemConcluido = servicosExistentes.some(s => s.status === 'concluido');
+
+    if (jaTemConcluido) {
+        // Já existe pelo menos um serviço real, não precisamos criar demo
+        return;
+    }
+
+    const clienteNome = 'Carol';
+    const clienteEmail = 'carol@example.com';
+    const tipoServico = 'idoso'; // Exemplo de tipo
+
+    const cuidadorBackendId = userData.id || userData.usuario_id || null;
+    const clienteId = null; // Desconhecido aqui, usamos apenas para fins visuais
+
+    // Criar serviço pendente
+    const servico = ServicosManager.criarServico(
+        userData.email,
+        clienteEmail,
+        clienteNome,
+        tipoServico,
+        cuidadorBackendId,
+        clienteId
+    );
+
+    if (!servico || !servico.id) return;
+
+    // Aceitar e concluir o serviço com um valor fictício
+    ServicosManager.aceitarServico(servico.id, userData.email);
+    ServicosManager.concluirServico(servico.id, userData.email, 150.00);
+
+    console.log('[Dashboard] Serviço de demonstração criado para Cristiano:', servico.id);
 }
 
 /**
@@ -642,21 +692,74 @@ function initServicosChart() {
 
 // Função para inicializar histórico de pagamentos
 function initHistoricoPagamentos() {
-    // Não carregar dados simulados. Manter a tabela vazia até que haja integração real de pagamentos.
     const tbody = document.getElementById('pagamentosTableBody');
     const emptyInfo = document.getElementById('pagamentosEmptyState');
     const paginacao = document.getElementById('paginacao');
 
-    if (tbody) {
+    if (!tbody) return;
+
+    // Buscar serviços concluídos reais do cuidador para montar histórico de pagamentos
+    try {
+        const userData = JSON.parse(localStorage.getItem('cuidafast_user') || '{}');
+
+        if (!userData.email || userData.tipo !== 'cuidador' || typeof ServicosManager === 'undefined') {
+            // Mantém estado vazio padrão
+            tbody.innerHTML = '';
+            if (emptyInfo) {
+                emptyInfo.textContent = 'Nenhum pagamento registrado ainda. Os pagamentos aparecerão aqui quando forem realizados pelos clientes.';
+            }
+            if (paginacao) {
+                paginacao.classList.add('d-none');
+            }
+            return;
+        }
+
+        const servicos = ServicosManager.getServicosCuidador(userData.email) || [];
+        const concluidos = servicos.filter(s => s.status === 'concluido' && s.valorPago && s.valorPago > 0);
+
+        if (concluidos.length === 0) {
+            tbody.innerHTML = '';
+            if (emptyInfo) {
+                emptyInfo.textContent = 'Nenhum pagamento registrado ainda. Os pagamentos aparecerão aqui quando forem realizados pelos clientes.';
+            }
+            if (paginacao) {
+                paginacao.classList.add('d-none');
+            }
+            return;
+        }
+
+        // Mapear serviços concluídos para estrutura de pagamentos
+        const pagamentos = concluidos.map((s, index) => ({
+            id: index + 1,
+            data: s.dataConclusao || s.dataContratacao || new Date().toISOString(),
+            cliente: s.clienteNome || 'Cliente',
+            servico: ({
+                'idoso': 'Cuidado de Idosos',
+                'crianca': 'Cuidado Infantil',
+                'pet': 'Cuidado de Pets'
+            }[s.tipo]) || s.tipo || 'Serviço',
+            valor: s.valorPago || 0,
+            status: 'pago'
+        }));
+
+        // Renderizar tabela e paginação usando as funções auxiliares
+        renderPagamentosTable(pagamentos, 1);
+        initPaginacao(pagamentos);
+        initFiltroMes(pagamentos);
+
+        if (emptyInfo) {
+            emptyInfo.style.display = 'none';
+        }
+
+    } catch (e) {
+        console.error('[Dashboard] Erro ao carregar histórico de pagamentos:', e);
         tbody.innerHTML = '';
-    }
-
-    if (emptyInfo) {
-        emptyInfo.textContent = 'Nenhum pagamento registrado ainda. Os pagamentos aparecerão aqui quando forem realizados pelos clientes.';
-    }
-
-    if (paginacao) {
-        paginacao.classList.add('d-none');
+        if (emptyInfo) {
+            emptyInfo.textContent = 'Erro ao carregar histórico de pagamentos.';
+        }
+        if (paginacao) {
+            paginacao.classList.add('d-none');
+        }
     }
 }
 
