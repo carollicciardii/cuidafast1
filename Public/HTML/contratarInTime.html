@@ -305,34 +305,6 @@
         addressInfo.style.borderColor = '#e74c3c';
         addressInfo.style.color = '#e74c3c';
       }
-      
-      // --- Lógica de pré-seleção do tipo de cuidador ---
-      const urlParams = new URLSearchParams(window.location.search);
-      const tipoCuidadorParam = urlParams.get('tipo');
-      
-      if (tipoCuidadorParam) {
-        console.log('[ContratarInTime] Parâmetro "tipo" encontrado na URL:', tipoCuidadorParam);
-        
-        // Mapeamento do tipo de cuidador (pode ser necessário normalizar)
-        let tipoNormalizado = tipoCuidadorParam.toLowerCase();
-        if (tipoNormalizado.includes('idoso')) {
-          tipoNormalizado = 'idosos';
-        } else if (tipoNormalizado.includes('pet')) {
-          tipoNormalizado = 'pet';
-        } else if (tipoNormalizado.includes('crianca') || tipoNormalizado.includes('infantil')) {
-          tipoNormalizado = 'crianca';
-        }
-        
-        const radioInput = document.querySelector(`input[name="cuidador"][value="${tipoNormalizado}"]`);
-        
-        if (radioInput) {
-          radioInput.checked = true;
-          console.log(`[ContratarInTime] Tipo de cuidador "${tipoNormalizado}" pré-selecionado.`);
-        } else {
-          console.warn(`[ContratarInTime] Não foi possível pré-selecionar o tipo "${tipoCuidadorParam}".`);
-        }
-      }
-      // --- Fim da lógica de pré-seleção ---
     });
 
     // Formatar CEP

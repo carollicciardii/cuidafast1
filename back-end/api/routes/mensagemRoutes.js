@@ -1,11 +1,20 @@
 const express = require('express');
-import { getConversas, getMensagens, enviarMensagem } from '../controllers/mensagemController.js';
+const router = express.Router();
+const mensagemController = require('../controllers/mensagemController');
 
 /**
  * Rotas para mensagens
  * Base: /api/mensagens
  */
 
-// O arquivo de rotas não é necessário, pois o vercel.json mapeia para api/mensagens.js.
-// Vou criar o handler em api/mensagens.js.
+// Buscar conversas de um usuário
+router.get('/conversas/:userId', mensagemController.getConversas);
+
+// Buscar mensagens entre dois usuários
+router.get('/mensagens/:userId/:contatoId', mensagemController.getMensagens);
+
+// Enviar mensagem
+router.post('/enviar', mensagemController.enviarMensagem);
+
+module.exports = router;
 

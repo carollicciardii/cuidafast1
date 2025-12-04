@@ -1,3 +1,4 @@
+const supabase = require('./db');
 
 class ContratarModel {
   static async getAll() {

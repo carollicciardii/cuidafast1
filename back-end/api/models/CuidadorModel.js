@@ -1,3 +1,4 @@
+import supabase from './db.js';
 
 class CuidadorModel {
   static async getAll() {

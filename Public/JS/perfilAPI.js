@@ -234,10 +234,17 @@ export function preencherPerfilCuidador(perfil) {
     phoneElement.textContent = perfil.telefone || '-';
   }
   
-  // Sobre - Mostrar a descrição do cuidador
+  // Sobre - Mostrar áreas de atuação ao invés de descrição
   const bioElement = document.getElementById('caregiverBio');
   if (bioElement) {
-    bioElement.textContent = perfil.descricao || 'Informações não disponíveis.';
+    if (perfil.especialidades) {
+      const areas = Array.isArray(perfil.especialidades)
+        ? perfil.especialidades.join(', ')
+        : perfil.especialidades;
+      bioElement.textContent = areas || 'Informações não disponíveis.';
+    } else {
+      bioElement.textContent = perfil.descricao || 'Informações não disponíveis.';
+    }
   }
   
   // Tipo de Serviço
@@ -245,37 +252,28 @@ export function preencherPerfilCuidador(perfil) {
   if (tipoServicoElement) {
     const tipos = perfil.tipos_cuidado;
     if (tipos) {
-      // Garantir que tipos é um array de strings
-      const tiposArray = Array.isArray(tipos) 
-        ? tipos 
-        : (typeof tipos === 'string' ? tipos.split(',').map(t => t.trim()) : [tipos]);
-      
+      const tiposArray = Array.isArray(tipos) ? tipos : [tipos];
       const tiposMap = {
         'idoso': 'Cuidador de Idosos',
         'pet': 'Cuidador de Pet',
         'crianca': 'Cuidador Infantil (Babá)',
         'infantil': 'Cuidador Infantil (Babá)'
       };
-      // Mapear e juntar os tipos, removendo duplicatas se houver
-      const tiposUnicos = [...new Set(tiposArray.map(tipo => tiposMap[tipo] || tipo))];
-      const tiposTexto = tiposUnicos.join(', ');
+      const tiposTexto = tiposArray.map(tipo => tiposMap[tipo] || tipo).join(', ');
       tipoServicoElement.textContent = tiposTexto || '-';
     } else {
       tipoServicoElement.textContent = '-';
     }
   }
   
-  // Áreas de Atuação (Especialidades)
+  // Áreas de Atuação
   const areasAtuacaoElement = document.getElementById('caregiverAreasAtuacao');
   if (areasAtuacaoElement) {
     if (perfil.especialidades) {
-      // Garantir que especialidades é um array de strings
-      const areasArray = Array.isArray(perfil.especialidades)
-        ? perfil.especialidades
-        : (typeof perfil.especialidades === 'string' ? perfil.especialidades.split(',').map(t => t.trim()) : [perfil.especialidades]);
-      
-      const areasTexto = areasArray.join(', ');
-      areasAtuacaoElement.textContent = areasTexto || '-';
+      const areas = Array.isArray(perfil.especialidades)
+        ? perfil.especialidades.join(', ')
+        : perfil.especialidades;
+      areasAtuacaoElement.textContent = areas || '-';
     } else {
       areasAtuacaoElement.textContent = '-';
     }

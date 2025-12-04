@@ -1,3 +1,4 @@
+const { sendNotificationToAll } = require("../services/notificationService");
 
 async function sendNotification(req, res) {
   try {

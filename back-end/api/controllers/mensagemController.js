@@ -1,7 +1,6 @@
 const MensagemModel = require('../models/MensagemModel');
-import UsuarioModel from '../models/UsuarioModel.js';
-import MensagemModel from '../models/MensagemModel.js';
-import db from '../models/db.js';
+const UsuarioModel = require('../models/UsuarioModel');
+const db = require('../models/db');
 
 /**
  * Controller para gerenciar mensagens entre usuários
@@ -12,7 +11,7 @@ import db from '../models/db.js';
  * GET /api/mensagens/conversas/:userId
  * Retorna lista de conversas com último contato de cada uma
  */
-export const getConversas = async (req, res) => {
+const getConversas = async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -68,7 +67,7 @@ export const getConversas = async (req, res) => {
  * Buscar mensagens entre dois usuários
  * GET /api/mensagens/mensagens/:userId/:contatoId
  */
-export const getMensagens = async (req, res) => {
+const getMensagens = async (req, res) => {
   try {
     const { userId, contatoId } = req.params;
     
@@ -110,7 +109,7 @@ export const getMensagens = async (req, res) => {
  * Enviar mensagem
  * POST /api/mensagens/enviar
  */
-export const enviarMensagem = async (req, res) => {
+const enviarMensagem = async (req, res) => {
   try {
     const { remetente_id, destinatario_id, conteudo } = req.body;
     
@@ -150,7 +149,12 @@ export const enviarMensagem = async (req, res) => {
 };
 
 // Exportar para uso em serverless functions (ES modules)
-export default {
+module.exports.getConversas = getConversas;
+module.exports.getMensagens = getMensagens;
+module.exports.enviarMensagem = enviarMensagem;
+
+// Também exportar como objeto para compatibilidade
+module.exports = {
   getConversas,
   getMensagens,
   enviarMensagem
